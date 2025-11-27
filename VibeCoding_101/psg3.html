@@ -316,6 +316,109 @@
             transform: translateY(-2px) scale(1.05);
             box-shadow: 0 8px 25px rgba(0, 255, 65, 0.6);
         }
+
+        /* Responsive design for mobile devices */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+                align-items: flex-start;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+                margin-bottom: 3px;
+            }
+
+            .subtitle {
+                font-size: 0.8rem;
+                margin-bottom: 10px;
+            }
+
+            .game-layout {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .left-panel {
+                width: 100%;
+                flex-direction: row;
+                flex-wrap: wrap;
+                order: 1;
+            }
+
+            .upload-section {
+                flex: 1;
+                min-width: 100%;
+                order: 1;
+            }
+
+            .stats {
+                flex: 1;
+                min-width: 100%;
+                flex-direction: row;
+                order: 3;
+            }
+
+            .stat-box {
+                flex: 1;
+            }
+
+            .controls {
+                flex: 1;
+                min-width: 100%;
+                order: 4;
+                font-size: 0.7rem;
+            }
+
+            .game-container {
+                order: 2;
+                padding: 10px;
+            }
+
+            canvas {
+                width: 100% !important;
+                height: auto !important;
+                max-width: 100vw;
+                aspect-ratio: 1;
+            }
+        }
+
+        /* Extra small screens - portrait phones */
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .subtitle {
+                font-size: 0.7rem;
+            }
+
+            .upload-btn {
+                padding: 8px 20px;
+                font-size: 0.8rem;
+            }
+
+            .stat-label {
+                font-size: 0.65rem;
+            }
+
+            .stat-value {
+                font-size: 1.4rem;
+            }
+
+            .game-over h2 {
+                font-size: 2rem;
+            }
+
+            .game-over p {
+                font-size: 1.1rem;
+            }
+
+            .restart-btn {
+                padding: 12px 30px;
+                font-size: 0.9rem;
+            }
+        }
     </style>
 </head>
 <body>
