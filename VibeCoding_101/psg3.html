@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo Snake - Eat Your Memories!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --neon-pink: #ff006e;
+            --neon-blue: #00f5ff;
+            --neon-green: #00ff41;
+            --neon-yellow: #ffeb3b;
+            --neon-purple: #b967ff;
+            --dark-bg: #0a0e27;
+            --card-bg: #1a1f3a;
+        }
+
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #2a1f3a 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            overflow: auto;
+            position: relative;
+            padding: 15px;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(circle at 20% 50%, rgba(255, 0, 110, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(0, 245, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 50% 20%, rgba(185, 103, 255, 0.1) 0%, transparent 50%);
+            animation: pulse 8s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        h1 {
+            font-family: 'Fredoka One', cursive;
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+            background: linear-gradient(45deg, var(--neon-pink), var(--neon-blue), var(--neon-green), var(--neon-yellow));
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 4s ease infinite;
+            letter-spacing: 2px;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .subtitle {
+            font-size: 0.95rem;
+            color: var(--neon-blue);
+            margin-bottom: 15px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .game-layout {
+            display: flex;
+            gap: 20px;
+            align-items: stretch;
+            justify-content: center;
+        }
+
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 250px;
+            flex-shrink: 0;
+        }
+
+        .upload-section {
+            padding: 15px;
+            background: rgba(255, 0, 110, 0.1);
+            border-radius: 12px;
+            border: 2px dashed var(--neon-pink);
+            transition: all 0.3s ease;
+        }
+
+        .upload-section:hover {
+            background: rgba(255, 0, 110, 0.2);
+            box-shadow: 0 0 15px rgba(255, 0, 110, 0.4);
+        }
+
+        .upload-label {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--neon-yellow);
+            margin-bottom: 8px;
+            display: block;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            font-family: 'Quicksand', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 3px 15px rgba(255, 0, 110, 0.4);
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 0, 110, 0.6);
+        }
+
+        #photoPreview {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+            min-height: 50px;
+            justify-content: center;
+        }
+
+        .photo-thumbnail {
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
+            object-fit: cover;
+            border: 2px solid var(--neon-green);
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+            animation: photoAppear 0.4s ease;
+        }
+
+        @keyframes photoAppear {
+            from {
+                opacity: 0;
+                transform: scale(0.5) rotate(-10deg);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) rotate(0deg);
+            }
+        }
+
+        .stats {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, rgba(0, 245, 255, 0.2), rgba(185, 103, 255, 0.2));
+            padding: 12px;
+            border-radius: 10px;
+            border: 2px solid rgba(0, 245, 255, 0.5);
+            box-shadow: 0 3px 15px rgba(0, 245, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .stat-box:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 245, 255, 0.5);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--neon-blue);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            font-family: 'Fredoka One', cursive;
+            background: linear-gradient(45deg, var(--neon-yellow), var(--neon-green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .controls {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.7);
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            line-height: 1.4;
+        }
+
+        .controls strong {
+            color: var(--neon-yellow);
+            font-weight: 700;
+        }
+
+        .game-container {
+            background: rgba(26, 31, 58, 0.6);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow:
+                0 0 40px rgba(255, 0, 110, 0.3),
+                0 0 60px rgba(0, 245, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 0, 110, 0.3);
+        }
+
+        canvas {
+            border-radius: 12px;
+            box-shadow:
+                0 8px 30px rgba(0, 0, 0, 0.5),
+                0 0 40px rgba(0, 245, 255, 0.3);
+            display: block;
+            background: linear-gradient(135deg, rgba(10, 14, 39, 0.9), rgba(26, 31, 58, 0.9));
+            border: 2px solid rgba(0, 245, 255, 0.4);
+        }
+
+        .game-over {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: linear-gradient(135deg, rgba(255, 0, 110, 0.95), rgba(185, 103, 255, 0.95));
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.8);
+            z-index: 100;
+            text-align: center;
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            border: 3px solid var(--neon-yellow);
+        }
+
+        .game-over.show {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+
+        .game-over h2 {
+            font-family: 'Fredoka One', cursive;
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: var(--neon-yellow);
+            text-shadow: 0 0 20px rgba(255, 235, 59, 0.8);
+        }
+
+        .game-over p {
+            font-size: 1.3rem;
+            margin-bottom: 25px;
+            font-weight: 700;
+        }
+
+        .restart-btn {
+            background: linear-gradient(135deg, var(--neon-green), var(--neon-blue));
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            font-family: 'Quicksand', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 5px 20px rgba(0, 255, 65, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .restart-btn:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(0, 255, 65, 0.6);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PHOTO SNAKE</h1>
+        <p class="subtitle">🐍 Eat Your Memories! 📸</p>
+
+        <div class="game-layout">
+            <div class="left-panel">
+                <div class="upload-section">
+                    <label class="upload-label">🎨 Upload Photos</label>
+                    <input type="file" id="photoInput" accept="image/*" multiple>
+                    <label for="photoInput" class="upload-btn">Choose Photos</label>
+                    <div id="photoPreview"></div>
+                </div>
+
+                <div class="stats">
+                    <div class="stat-box">
+                        <div class="stat-label">Score</div>
+                        <div class="stat-value" id="score">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Photos Eaten</div>
+                        <div class="stat-value" id="photosEaten">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">High Score</div>
+                        <div class="stat-value" id="highScore">0</div>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <strong>Controls:</strong><br>Arrow Keys or WASD<br>Swipe on Mobile<br>Space to Pause
+                </div>
+            </div>
+
+            <div class="game-container">
+                <canvas id="gameCanvas" width="600" height="600"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-over" id="gameOverScreen">
+        <h2>GAME OVER!</h2>
+        <p>Final Score: <span id="finalScore">0</span></p>
+        <button class="restart-btn" onclick="restartGame()">Play Again</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const photoInput = document.getElementById('photoInput');
+        const photoPreview = document.getElementById('photoPreview');
+        const scoreElement = document.getElementById('score');
+        const photosEatenElement = document.getElementById('photosEaten');
+        const highScoreElement = document.getElementById('highScore');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const finalScoreElement = document.getElementById('finalScore');
+
+        // Game constants
+        const GRID_SIZE = 20;
+        const TILE_SIZE = canvas.width / GRID_SIZE;
+        let gameSpeed = 150;
+        let gameLoop;
+        let isPaused = false;
+
+        // Game state
+        let snake = [{ x: 10, y: 10 }];
+        let direction = { x: 1, y: 0 };
+        let nextDirection = { x: 1, y: 0 };
+        let food = { x: 15, y: 15 };
+        let score = 0;
+        let photosEaten = 0;
+        let highScore = localStorage.getItem('photoSnakeHighScore') || 0;
+        highScoreElement.textContent = highScore;
+
+        // Photo management
+        let uploadedPhotos = [];
+        let currentFoodImage = null;
+        let backgroundPhotos = []; // Store eaten photos as backgrounds
+
+        // Audio context for sound effects
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        // Happy sound effect (when food is eaten)
+        function playHappySound() {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            // Upbeat, cheerful sound - rising tone
+            oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
+            oscillator.frequency.exponentialRampToValueAtTime(659.25, audioContext.currentTime + 0.1); // E5
+            oscillator.frequency.exponentialRampToValueAtTime(783.99, audioContext.currentTime + 0.15); // G5
+
+            oscillator.type = 'sine';
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.2);
+        }
+
+        // Sad sound effect (when game ends)
+        function playSadSound() {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            // Sad, descending tone
+            oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
+            oscillator.frequency.exponentialRampToValueAtTime(392.00, audioContext.currentTime + 0.2); // G4
+            oscillator.frequency.exponentialRampToValueAtTime(261.63, audioContext.currentTime + 0.5); // C4
+
+            oscillator.type = 'triangle';
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.6);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.6);
+        }
+
+        // Colors for snake
+        const snakeColors = ['#ff006e', '#00f5ff', '#00ff41', '#ffeb3b', '#b967ff'];
+
+        // Upload photos
+        photoInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            photoPreview.innerHTML = '';
+
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        uploadedPhotos.push(img);
+
+                        // Show thumbnail
+                        const thumbnail = document.createElement('img');
+                        thumbnail.src = event.target.result;
+                        thumbnail.className = 'photo-thumbnail';
+                        photoPreview.appendChild(thumbnail);
+
+                        // Set first photo as initial food
+                        if (uploadedPhotos.length === 1) {
+                            currentFoodImage = img;
+                        }
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                togglePause();
+                return;
+            }
+
+            if (isPaused) return;
+
+            switch(e.key) {
+                case 'ArrowUp':
+                case 'w':
+                case 'W':
+                    if (direction.y === 0) nextDirection = { x: 0, y: -1 };
+                    break;
+                case 'ArrowDown':
+                case 's':
+                case 'S':
+                    if (direction.y === 0) nextDirection = { x: 0, y: 1 };
+                    break;
+                case 'ArrowLeft':
+                case 'a':
+                case 'A':
+                    if (direction.x === 0) nextDirection = { x: -1, y: 0 };
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                case 'D':
+                    if (direction.x === 0) nextDirection = { x: 1, y: 0 };
+                    break;
+            }
+        });
+
+        // Touch/Swipe controls for mobile
+        let touchStartX = 0;
+        let touchStartY = 0;
+        const MIN_SWIPE_DISTANCE = 3; // Minimum swipe distance in pixels
+
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault(); // Prevent scrolling while swiping
+        }, { passive: false });
+
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+
+            if (isPaused) return;
+
+            const touch = e.changedTouches[0];
+            const touchEndX = touch.clientX;
+            const touchEndY = touch.clientY;
+
+            // Calculate swipe distance
+            const deltaX = touchEndX - touchStartX;
+            const deltaY = touchEndY - touchStartY;
+
+            // Check if swipe is long enough
+            const swipeDistance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+            if (swipeDistance < MIN_SWIPE_DISTANCE) {
+                return; // Swipe too short, ignore
+            }
+
+            // Determine direction based on which axis has greater movement
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                // Horizontal swipe
+                if (deltaX > 0 && direction.x === 0) {
+                    // Swipe right
+                    nextDirection = { x: 1, y: 0 };
+                } else if (deltaX < 0 && direction.x === 0) {
+                    // Swipe left
+                    nextDirection = { x: -1, y: 0 };
+                }
+            } else {
+                // Vertical swipe
+                if (deltaY > 0 && direction.y === 0) {
+                    // Swipe down
+                    nextDirection = { x: 0, y: 1 };
+                } else if (deltaY < 0 && direction.y === 0) {
+                    // Swipe up
+                    nextDirection = { x: 0, y: -1 };
+                }
+            }
+        }, { passive: false });
+
+        function togglePause() {
+            isPaused = !isPaused;
+            if (isPaused) {
+                clearInterval(gameLoop);
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#ffeb3b';
+                ctx.font = 'bold 48px Fredoka One';
+                ctx.textAlign = 'center';
+                ctx.fillText('PAUSED', canvas.width / 2, canvas.height / 2);
+            } else {
+                gameLoop = setInterval(update, gameSpeed);
+            }
+        }
+
+        function generateFood() {
+            food = {
+                x: Math.floor(Math.random() * GRID_SIZE),
+                y: Math.floor(Math.random() * GRID_SIZE)
+            };
+
+            // Make sure food doesn't spawn on snake
+            while (snake.some(segment => segment.x === food.x && segment.y === food.y)) {
+                food = {
+                    x: Math.floor(Math.random() * GRID_SIZE),
+                    y: Math.floor(Math.random() * GRID_SIZE)
+                };
+            }
+
+            // Select random photo if available
+            if (uploadedPhotos.length > 0) {
+                currentFoodImage = uploadedPhotos[Math.floor(Math.random() * uploadedPhotos.length)];
+            }
+        }
+
+        function drawBackgrounds() {
+            // Draw only the most recent eaten photo as background
+            if (backgroundPhotos.length > 0) {
+                const latestPhoto = backgroundPhotos[backgroundPhotos.length - 1];
+                ctx.save();
+                ctx.globalAlpha = 0.3; // Semi-transparent background
+                ctx.drawImage(
+                    latestPhoto.image,
+                    0,
+                    0,
+                    canvas.width,
+                    canvas.height
+                );
+                ctx.restore();
+            }
+        }
+
+        function drawGrid() {
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= GRID_SIZE; i++) {
+                ctx.beginPath();
+                ctx.moveTo(i * TILE_SIZE, 0);
+                ctx.lineTo(i * TILE_SIZE, canvas.height);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(0, i * TILE_SIZE);
+                ctx.lineTo(canvas.width, i * TILE_SIZE);
+                ctx.stroke();
+            }
+        }
+
+        function drawSnake() {
+            snake.forEach((segment, index) => {
+                const colorIndex = index % snakeColors.length;
+                const gradient = ctx.createRadialGradient(
+                    segment.x * TILE_SIZE + TILE_SIZE / 2,
+                    segment.y * TILE_SIZE + TILE_SIZE / 2,
+                    0,
+                    segment.x * TILE_SIZE + TILE_SIZE / 2,
+                    segment.y * TILE_SIZE + TILE_SIZE / 2,
+                    TILE_SIZE / 2
+                );
+                gradient.addColorStop(0, snakeColors[colorIndex]);
+                gradient.addColorStop(1, snakeColors[(colorIndex + 1) % snakeColors.length]);
+
+                ctx.fillStyle = gradient;
+                ctx.fillRect(
+                    segment.x * TILE_SIZE + 2,
+                    segment.y * TILE_SIZE + 2,
+                    TILE_SIZE - 4,
+                    TILE_SIZE - 4
+                );
+
+                // Glow effect
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = snakeColors[colorIndex];
+                ctx.fillRect(
+                    segment.x * TILE_SIZE + 2,
+                    segment.y * TILE_SIZE + 2,
+                    TILE_SIZE - 4,
+                    TILE_SIZE - 4
+                );
+                ctx.shadowBlur = 0;
+
+                // Eyes on head
+                if (index === 0) {
+                    ctx.fillStyle = 'white';
+                    const eyeSize = TILE_SIZE / 6;
+                    if (direction.x === 1) {
+                        ctx.fillRect(segment.x * TILE_SIZE + TILE_SIZE - eyeSize * 2, segment.y * TILE_SIZE + eyeSize, eyeSize, eyeSize);
+                        ctx.fillRect(segment.x * TILE_SIZE + TILE_SIZE - eyeSize * 2, segment.y * TILE_SIZE + TILE_SIZE - eyeSize * 2, eyeSize, eyeSize);
+                    } else if (direction.x === -1) {
+                        ctx.fillRect(segment.x * TILE_SIZE + eyeSize, segment.y * TILE_SIZE + eyeSize, eyeSize, eyeSize);
+                        ctx.fillRect(segment.x * TILE_SIZE + eyeSize, segment.y * TILE_SIZE + TILE_SIZE - eyeSize * 2, eyeSize, eyeSize);
+                    } else if (direction.y === 1) {
+                        ctx.fillRect(segment.x * TILE_SIZE + eyeSize, segment.y * TILE_SIZE + TILE_SIZE - eyeSize * 2, eyeSize, eyeSize);
+                        ctx.fillRect(segment.x * TILE_SIZE + TILE_SIZE - eyeSize * 2, segment.y * TILE_SIZE + TILE_SIZE - eyeSize * 2, eyeSize, eyeSize);
+                    } else {
+                        ctx.fillRect(segment.x * TILE_SIZE + eyeSize, segment.y * TILE_SIZE + eyeSize, eyeSize, eyeSize);
+                        ctx.fillRect(segment.x * TILE_SIZE + TILE_SIZE - eyeSize * 2, segment.y * TILE_SIZE + eyeSize, eyeSize, eyeSize);
+                    }
+                }
+            });
+        }
+
+        function drawFood() {
+            if (currentFoodImage && uploadedPhotos.length > 0) {
+                // Draw photo as food
+                ctx.save();
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = '#00ff41';
+
+                // Add border
+                ctx.fillStyle = '#00ff41';
+                ctx.fillRect(
+                    food.x * TILE_SIZE,
+                    food.y * TILE_SIZE,
+                    TILE_SIZE,
+                    TILE_SIZE
+                );
+
+                // Draw photo inside
+                ctx.drawImage(
+                    currentFoodImage,
+                    food.x * TILE_SIZE + 3,
+                    food.y * TILE_SIZE + 3,
+                    TILE_SIZE - 6,
+                    TILE_SIZE - 6
+                );
+                ctx.restore();
+            } else {
+                // Draw default food
+                const gradient = ctx.createRadialGradient(
+                    food.x * TILE_SIZE + TILE_SIZE / 2,
+                    food.y * TILE_SIZE + TILE_SIZE / 2,
+                    0,
+                    food.x * TILE_SIZE + TILE_SIZE / 2,
+                    food.y * TILE_SIZE + TILE_SIZE / 2,
+                    TILE_SIZE / 2
+                );
+                gradient.addColorStop(0, '#ffeb3b');
+                gradient.addColorStop(1, '#ff006e');
+
+                ctx.fillStyle = gradient;
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = '#ffeb3b';
+                ctx.beginPath();
+                ctx.arc(
+                    food.x * TILE_SIZE + TILE_SIZE / 2,
+                    food.y * TILE_SIZE + TILE_SIZE / 2,
+                    TILE_SIZE / 2 - 2,
+                    0,
+                    Math.PI * 2
+                );
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        function update() {
+            direction = nextDirection;
+
+            // Move snake
+            const head = {
+                x: snake[0].x + direction.x,
+                y: snake[0].y + direction.y
+            };
+
+            // Check wall collision
+            if (head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE) {
+                gameOver();
+                return;
+            }
+
+            // Check self collision
+            if (snake.some(segment => segment.x === head.x && segment.y === head.y)) {
+                gameOver();
+                return;
+            }
+
+            snake.unshift(head);
+
+            // Check food collision
+            if (head.x === food.x && head.y === food.y) {
+                score += 10;
+                photosEaten++;
+                scoreElement.textContent = score;
+                photosEatenElement.textContent = photosEaten;
+
+                // Play happy sound
+                playHappySound();
+
+                // Add current photo to backgrounds
+                if (currentFoodImage) {
+                    backgroundPhotos.push({
+                        image: currentFoodImage
+                    });
+                }
+
+                generateFood();
+
+                // Speed up slightly
+                if (score % 50 === 0 && gameSpeed > 50) {
+                    gameSpeed -= 10;
+                    clearInterval(gameLoop);
+                    gameLoop = setInterval(update, gameSpeed);
+                }
+            } else {
+                snake.pop();
+            }
+
+            draw();
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBackgrounds(); // Draw background photos first
+            drawGrid();
+            drawFood();
+            drawSnake();
+        }
+
+        function gameOver() {
+            clearInterval(gameLoop);
+
+            // Play sad sound
+            playSadSound();
+
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('photoSnakeHighScore', highScore);
+                highScoreElement.textContent = highScore;
+            }
+
+            finalScoreElement.textContent = score;
+            gameOverScreen.classList.add('show');
+        }
+
+        function restartGame() {
+            snake = [{ x: 10, y: 10 }];
+            direction = { x: 1, y: 0 };
+            nextDirection = { x: 1, y: 0 };
+            score = 0;
+            photosEaten = 0;
+            gameSpeed = 150;
+            isPaused = false;
+            backgroundPhotos = []; // Clear background photos on restart
+
+            scoreElement.textContent = score;
+            photosEatenElement.textContent = photosEaten;
+            gameOverScreen.classList.remove('show');
+
+            generateFood();
+            clearInterval(gameLoop);
+            gameLoop = setInterval(update, gameSpeed);
+            draw();
+        }
+
+        // Start game
+        generateFood();
+        gameLoop = setInterval(update, gameSpeed);
+        draw();
+    </script>
+</body>
+</html>

@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1920, height=1080">
+    <title>My Journey in Vibe Coding</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="presentation">
+        <!-- Progress bar -->
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <!-- Slide 1: Title -->
+        <section class="slide active" data-slide="1">
+            <div class="slide-content title-slide">
+                <div class="journey-line"></div>
+                <h1 class="title-main">My Journey in</h1>
+                <h1 class="title-highlight">Vibe Coding</h1>
+                <p class="subtitle">Discovering the new frontier of computer programming</p>
+                <div class="author">
+                    <span class="name">Mark</span>
+                    <span class="role">Software Designer • Risk Professional • Vibe Coder</span>
+                </div>
+                <div class="start-hint">Press <kbd>→</kbd> or <kbd>Space</kbd> to begin the journey</div>
+            </div>
+        </section>
+
+        <!-- Slide 2: The Hook - Live PhotoSnake -->
+        <section class="slide" data-slide="2">
+            <div class="slide-content hook-layout">
+                <h2>Let me show you something...</h2>
+                <div class="hook-content">
+                    <div class="terminal-container">
+                        <div class="terminal-header">
+                            <span class="terminal-dot red"></span>
+                            <span class="terminal-dot yellow"></span>
+                            <span class="terminal-dot green"></span>
+                            <span class="terminal-title">Claude Code</span>
+                        </div>
+                        <div class="terminal-body">
+                            <div class="terminal-prompt">
+                                <span class="prompt-symbol">&gt;</span>
+                                <span class="typing-text" id="typingText"></span>
+                                <span class="cursor">|</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="demo-container hook-demo">
+                        <iframe id="snakeDemo" src="https://topsy31.github.io/Vibe-Snake/photo_snake_game.html" class="demo-frame"></iframe>
+                        <button class="reload-btn" onclick="document.getElementById('snakeDemo').src = document.getElementById('snakeDemo').src">Reset</button>
+                    </div>
+                    <div class="qr-section">
+                        <div class="qr-code-container">
+                            <img width="120" height="120" alt="QR Code to PhotoSnake game"
+                                 src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=https://topsy31.github.io/Vibe-Snake/photo_snake_game.html&bgcolor=ffffff&color=1a1a2e">
+                        </div>
+                        <p class="qr-label" style="font-size: 0.9rem !important; margin-top: 0.5rem;">Scan to play!</p>
+                    </div>
+                </div>
+                <p class="demo-caption">This entire game was created with a <strong>single conversation</strong></p>
+            </div>
+        </section>
+
+        <!-- Slide 3: What is Vibe Coding? -->
+        <section class="slide" data-slide="3">
+            <div class="slide-content center-content">
+                <h2>What is Vibe Coding?</h2>
+                <div class="definition-box">
+                    <blockquote>
+                        "Working in partnership with AI — I provide the ideas, AI provides the skills to bring it to life."
+                    </blockquote>
+                </div>
+                <div class="comparison">
+                    <div class="compare-item traditional">
+                        <h3>Traditional Development</h3>
+                        <p>You → Code → Result</p>
+                        <span class="time">Hours to Days</span>
+                    </div>
+                    <div class="compare-arrow">→</div>
+                    <div class="compare-item vibe">
+                        <h3>Vibe Coding</h3>
+                        <p>You + AI → Conversation → Result</p>
+                        <span class="time">Minutes to Hours</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 4: My Background -->
+        <section class="slide" data-slide="4">
+            <div class="slide-content">
+                <h2>My Background</h2>
+                <div class="background-grid">
+                    <div class="bg-card">
+                        <div class="bg-icon">👦</div>
+                        <h3>The Beginning</h3>
+                        <p>Learned BASIC on a ZX Spectrum as a child</p>
+                    </div>
+                    <div class="bg-card">
+                        <div class="bg-icon">📊</div>
+                        <h3>Data Person</h3>
+                        <p>More comfortable with data than code</p>
+                    </div>
+                    <div class="bg-card">
+                        <div class="bg-icon">🏗️</div>
+                        <h3>Software Designer</h3>
+                        <p>7 years specifying and testing software with human developers</p>
+                    </div>
+                    <div class="bg-card highlight">
+                        <div class="bg-icon">🤝</div>
+                        <h3>The Key Skill</h3>
+                        <p>Precision in specification + Understanding UX requirements</p>
+                    </div>
+                </div>
+                <p class="insight">I'm not a professional developer. But I know how to <strong>communicate</strong> what I want.</p>
+                <button class="reveal-logo-btn" onclick="showSafranLogo()">Reveal My Tool</button>
+            </div>
+        </section>
+
+        <!-- Safran Logo Splash Overlay -->
+        <div id="safranLogoOverlay" class="logo-overlay">
+            <div class="logo-splash">
+                <img src="safran-risk-manager-logo.png" alt="Safran Risk Manager Logo" class="splash-logo">
+            </div>
+        </div>
+
+        <!-- Slide 5: Timeline - The Journey Begins -->
+        <section class="slide" data-slide="5">
+            <div class="slide-content hook-layout">
+                <h2>March 2023 — The First Experiment</h2>
+                <div class="hook-content">
+                    <div class="terminal-container">
+                        <div class="terminal-header">
+                            <span class="terminal-dot red"></span>
+                            <span class="terminal-dot yellow"></span>
+                            <span class="terminal-dot green"></span>
+                            <span class="terminal-title">ChatGPT</span>
+                        </div>
+                        <div class="terminal-body">
+                            <div class="terminal-prompt">
+                                <span class="prompt-symbol">&gt;</span>
+                                <span class="typing-text" id="polygonTypingText"></span>
+                                <span class="cursor" id="polygonCursor">|</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="polygon-demo-container">
+                        <div class="polygon-header">
+                            <span class="polygon-title">Result</span>
+                            <div class="polygon-controls">
+                                <label>Sides: <input type="range" id="polygonSides" min="3" max="12" value="6"></label>
+                                <span id="sidesValue">6</span>
+                            </div>
+                        </div>
+                        <canvas id="polygonCanvas" width="700" height="600"></canvas>
+                        <p class="polygon-caption"><strong>13 lines of code.</strong> A memory from 35 years ago, brought to life in minutes.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 6: Timeline - MSc Work -->
+        <section class="slide" data-slide="6">
+            <div class="slide-content hook-layout">
+                <h2>2024 — MSc Risk Analysis</h2>
+                <div class="hook-content">
+                    <div class="terminal-container">
+                        <div class="terminal-header">
+                            <span class="terminal-dot red"></span>
+                            <span class="terminal-dot yellow"></span>
+                            <span class="terminal-dot green"></span>
+                            <span class="terminal-title">ChatGPT</span>
+                        </div>
+                        <div class="terminal-body">
+                            <div class="terminal-prompt">
+                                <span class="prompt-symbol">&gt;</span>
+                                <span class="typing-text" id="riskTypingText"></span>
+                                <span class="cursor" id="riskCursor">|</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="risk-dashboard-container">
+                        <div class="dashboard-header">
+                            <span class="dashboard-title">Risk Analysis Dashboard</span>
+                            <div class="dashboard-controls">
+                                <label>Risk Multiplier: <input type="range" id="riskMultiplier" min="0.5" max="2" step="0.1" value="1"></label>
+                                <span id="multiplierValue">1.0x</span>
+                            </div>
+                        </div>
+                        <div class="dashboard-charts">
+                            <div class="chart-container">
+                                <canvas id="barChart" width="450" height="280"></canvas>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="heatmapChart" width="450" height="280"></canvas>
+                            </div>
+                        </div>
+                        <p class="dashboard-caption"><strong>85 projects analyzed.</strong> AI helped me speak the language of data science.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 7: Timeline - The Method Evolution -->
+        <section class="slide" data-slide="7">
+            <div class="slide-content">
+                <h2>Evolution of Method</h2>
+                <div class="method-evolution">
+                    <div class="method-stage">
+                        <div class="stage-number">1</div>
+                        <h3>Copy & Paste Era</h3>
+                        <p>Ask ChatGPT → Get snippet → Manually paste into Python file</p>
+                        <span class="era">2023</span>
+                    </div>
+                    <div class="method-arrow">→</div>
+                    <div class="method-stage">
+                        <div class="stage-number">2</div>
+                        <h3>VS Code Integration</h3>
+                        <p>ChatGPT in browser → Cut & paste sections → Build in VS Code</p>
+                        <span class="era">Early 2024</span>
+                    </div>
+                    <div class="method-arrow">→</div>
+                    <div class="method-stage highlight">
+                        <div class="stage-number">3</div>
+                        <h3>Claude Code</h3>
+                        <p>AI writes directly in your files → Real-time collaboration</p>
+                        <span class="era">Mid 2025</span>
+                    </div>
+                </div>
+                <p class="evolution-insight">Each step removed friction between <strong>idea</strong> and <strong>implementation</strong></p>
+            </div>
+        </section>
+
+        <!-- Slide 8: GitHub Discovery -->
+        <section class="slide" data-slide="8">
+            <div class="slide-content">
+                <h2>Key Discovery: GitHub Pages</h2>
+                <div class="discovery-box">
+                    <p class="discovery-text">Free hosting for web projects = <strong>instant global deployment</strong></p>
+                </div>
+                <div class="github-demo-layout">
+                    <div class="demo-container small">
+                        <iframe src="https://topsy31.github.io/RedVBlue/" class="demo-frame"></iframe>
+                    </div>
+                    <div class="qr-section">
+                        <div class="qr-code-container">
+                            <img id="qrCodeImg" width="200" height="200" alt="QR Code to RedVBlue game"
+                                 src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://topsy31.github.io/RedVBlue/&bgcolor=ffffff&color=1a1a2e">
+                        </div>
+                        <p class="qr-label">Scan to play!</p>
+                        <p class="qr-url">topsy31.github.io/RedVBlue</p>
+                    </div>
+                </div>
+                <div class="project-info">
+                    <h3>RedVBlue</h3>
+                    <p>A cellular automaton battle simulation</p>
+                    <p class="tech-stack">100% HTML • Zero server needed • Live on the web</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 9: The Partnership -->
+        <section class="slide" data-slide="9">
+            <div class="slide-content center-content">
+                <h2>The Partnership Model</h2>
+                <div class="partnership-visual">
+                    <div class="partner human">
+                        <div class="partner-icon">🧠</div>
+                        <h3>You Bring</h3>
+                        <ul>
+                            <li>The vision</li>
+                            <li>Domain knowledge</li>
+                            <li>Quality judgment</li>
+                            <li>User perspective</li>
+                        </ul>
+                    </div>
+                    <div class="partner-connection">
+                        <span class="plus">+</span>
+                        <div class="connection-line"></div>
+                    </div>
+                    <div class="partner ai">
+                        <div class="partner-icon">🤖</div>
+                        <h3>AI Brings</h3>
+                        <ul>
+                            <li>Technical implementation</li>
+                            <li>Best practices</li>
+                            <li>Speed of execution</li>
+                            <li>Creative suggestions</li>
+                        </ul>
+                    </div>
+                </div>
+                <p class="partnership-quote">"Very similar to my partnership with human developers, but orders of magnitude faster."</p>
+            </div>
+        </section>
+
+        <!-- Slide 10: The Methodology -->
+        <section class="slide" data-slide="10">
+            <div class="slide-content">
+                <h2>My Vibe Coding Methodology</h2>
+                <div class="methodology">
+                    <div class="method-step">
+                        <div class="step-number">1</div>
+                        <h3>State Your Aim</h3>
+                        <p>Be clear about what you want to achieve, not how to achieve it</p>
+                    </div>
+                    <div class="method-step">
+                        <div class="step-number">2</div>
+                        <h3>Ask for Questions</h3>
+                        <p>Let the AI clarify requirements before coding begins</p>
+                    </div>
+                    <div class="method-step">
+                        <div class="step-number">3</div>
+                        <h3>Test First Reply</h3>
+                        <p>Run it immediately — find out what works and what doesn't</p>
+                    </div>
+                    <div class="method-step">
+                        <div class="step-number">4</div>
+                        <h3>Iterate</h3>
+                        <p>Refine through conversation until it matches your vision</p>
+                    </div>
+                    <div class="method-step">
+                        <div class="step-number">5</div>
+                        <h3>Go Live</h3>
+                        <p>Deploy and share with the world</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 11: Live Demo Introduction -->
+        <section class="slide" data-slide="11">
+            <div class="slide-content">
+                <h2>Now Let's Vibe Code Together</h2>
+                <div class="live-demo-intro">
+                    <p class="demo-challenge">Let's improve PhotoSnake with these features:</p>
+                    <div class="feature-cards">
+                        <div class="feature-card">
+                            <div class="feature-icon">📱</div>
+                            <h3>Mobile Controls</h3>
+                            <p class="feature-problem">Only works with arrow keys</p>
+                            <p class="feature-solution">Add touch/swipe controls</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">🖼️</div>
+                            <h3>Photo Background</h3>
+                            <p class="feature-problem">Add photo to background</p>
+                            <p class="feature-solution">Show eaten photo as background</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">🔊</div>
+                            <h3>Sound Effects</h3>
+                            <p class="feature-problem">Game has no audio feedback</p>
+                            <p class="feature-solution">Add happy/sad sound effects</p>
+                        </div>
+                    </div>
+                    <div class="demo-note">
+                        <p>Let's build these <strong>live</strong> using Claude Code</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 12: Live Coding Space -->
+        <section class="slide" data-slide="12">
+            <div class="slide-content full-width">
+                <h2>Live Vibe Coding</h2>
+                <div class="live-coding-area">
+                    <div class="code-section">
+                        <p class="instruction">Switch to VS Code with Claude Code extension</p>
+                        <div class="prompt-display" id="livePrompt">
+                            <p class="prompt-label">The Prompt:</p>
+                            <textarea id="promptInput" placeholder="Type your prompt here..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 13: The Result -->
+        <section class="slide" data-slide="13">
+            <div class="slide-content hook-layout">
+                <h2>The Result</h2>
+                <div class="hook-content">
+                    <div class="result-stats">
+                        <div class="stat">
+                            <span class="stat-value" id="timeElapsed">~5</span>
+                            <span class="stat-label">minutes</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">1</span>
+                            <span class="stat-label">conversation</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">∞</span>
+                            <span class="stat-label">possibilities</span>
+                        </div>
+                        <div class="github-link">
+                            <p>Scan QR on next slide to play on your phone!</p>
+                        </div>
+                    </div>
+                    <div class="demo-container hook-demo">
+                        <iframe id="resultFrame" src="https://topsy31.github.io/Vibe-Snake/psg2.html" class="demo-frame"></iframe>
+                        <button class="reload-btn" onclick="document.getElementById('resultFrame').src = document.getElementById('resultFrame').src">Refresh</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 14: Call to Action -->
+        <section class="slide" data-slide="14">
+            <div class="slide-content center-content">
+                <h2>Your Journey Starts Now</h2>
+                <div class="cta-content">
+                    <div class="qr-section cta-qr">
+                        <p class="qr-heading">Play the final version of PhotoSnake:</p>
+                        <div class="qr-code-container">
+                            <img width="180" height="180" alt="QR Code to PhotoSnake game"
+                                 src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https://topsy31.github.io/Vibe-Snake/psg3.html&bgcolor=ffffff&color=1a1a2e">
+                        </div>
+                        <p class="qr-url">topsy31.github.io/Vibe-Snake/psg3.html</p>
+                    </div>
+                    <div class="final-message">
+                        <p>You don't need to be a developer.</p>
+                        <p>You just need an <strong>idea</strong> and the willingness to <strong>converse</strong>.</p>
+                    </div>
+                    <div class="tools-list">
+                        <h3>Tools to Get Started:</h3>
+                        <ul>
+                            <li><strong>ChatGPT</strong> — Free, great for beginners</li>
+                            <li><strong>Claude</strong> — Excellent for longer conversations</li>
+                            <li><strong>Claude Code</strong> — Direct IDE integration</li>
+                            <li><strong>GitHub Pages</strong> — Free hosting for your creations</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 15: Thank You - The Big Reveal -->
+        <section class="slide" data-slide="15">
+            <div class="slide-content title-slide reveal-slide">
+                <div class="journey-line end"></div>
+                <h1 class="title-main">Thank You</h1>
+                <h2 class="title-sub">Questions?</h2>
+
+                <div class="reveal-container">
+                    <div class="reveal-label">One more thing...</div>
+                    <div class="reveal-box">
+                        <div class="reveal-icon">🎭</div>
+                        <p class="reveal-text">
+                            <span class="reveal-highlight">Every word, every animation, and every line of code</span>
+                            in this presentation was built using the <strong>vibe coding methods</strong> described today.
+                        </p>
+                        <div class="reveal-meta">
+                            <span class="reveal-badge">100% Vibe Coded</span>
+                            <span class="reveal-tool">with Claude Code</span>
+                        </div>
+                    </div>
+                    <p class="reveal-tagline">The presentation <em>is</em> the proof.</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="nav-controls">
+        <button id="prevBtn" class="nav-btn" disabled>← Previous</button>
+        <span class="slide-counter">
+            <input type="number" id="slideJumpInput" class="slide-jump-input" min="1" max="15" value="1" title="Enter slide number and press Enter">
+            <span class="slide-separator">/</span>
+            <span id="totalSlides">15</span>
+        </span>
+        <button id="nextBtn" class="nav-btn">Next →</button>
+    </nav>
+
+    <!-- Keyboard shortcuts hint -->
+    <div class="shortcuts-hint" id="shortcutsHint">
+        <kbd>←</kbd> <kbd>→</kbd> Navigate | <kbd>Space</kbd> Next | <kbd>F</kbd> Fullscreen | <kbd>?</kbd> Help
+    </div>
+
+    <script src="presentation.js"></script>
+</body>
+</html>
