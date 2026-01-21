@@ -42,7 +42,8 @@ These skills are available across all projects:
 | `/q` | Ask clarifying questions before starting work |
 | `/challenge` | Challenge assumptions and sharpen the prompt |
 | `/verify` | Review AI output critically before accepting |
-| `/commit` | Create git commit with descriptive message |
+| `/newproject` | Create new project folder with git and Claude init |
+| `/commit` | Create git commit with descriptive message (nested repo aware) |
 | `/status` | Get brief project status update |
 
 ### How Skills Work
@@ -125,19 +126,43 @@ Each project has its own `CLAUDE.md` with specific instructions:
 e:\Vibe Coding\
 ├── .claude\
 │   └── skills\           # Root-level skills (available to all projects)
-│       ├── q\
+│       ├── adversarial-editor\
 │       ├── challenge\
+│       ├── commit\
+│       ├── newproject\
+│       ├── pdf-chapter-builder\
+│       ├── q\
 │       └── verify\
 ├── CLAUDE.md             # This file
-├── VibeCoded-Ebook\      # Main e-book project
-├── VibeCoding-Ebook-Marketing\
-├── Marketing_Manager\
-├── Interloquial_Experiment\
-├── VibeCoding_101\
+├── CoffeeCup\            # [nested repo]
+├── Consulting\           # [nested repo, no remote]
+├── Contacts\
 ├── Gantt Chart\
-├── CoffeeCup\
-└── Contacts\
+├── Interloquial_Experiment\  # [nested repo]
+├── Marketing_Manager\    # [nested repo]
+├── VibeCoded-Ebook\      # [nested repo]
+├── VibeCoding-Ebook-Marketing\  # [nested repo]
+└── VibeCoding_101\
 ```
+
+---
+
+## Nested Repository Structure
+
+This workspace contains multiple independent git repositories. Each project folder marked `[nested repo]` has its own `.git` directory and commit history.
+
+**Important:** When committing changes, use `/commit` which will:
+1. Detect which repo(s) contain changes
+2. Ask for clarification if changes span multiple repos
+3. Commit to the correct repo (not the parent)
+
+| Folder | Git Remote | Branch |
+|--------|------------|--------|
+| Root (`e:\Vibe Coding`) | Vibecode101 | main |
+| `CoffeeCup/` | CoffeeCup | main |
+| `Consulting/` | (none - local only) | main |
+| `VibeCoded-Ebook/` | (check) | - |
+| `Marketing_Manager/` | (check) | - |
 
 ---
 
