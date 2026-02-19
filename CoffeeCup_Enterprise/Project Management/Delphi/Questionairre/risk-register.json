@@ -1,0 +1,100 @@
+{
+  "risks": [
+    {
+      "id": "R001",
+      "name": "Risk1",
+      "description": "Risk one test",
+      "owner": "",
+      "type": "threat",
+      "included": true,
+      "likelihood": 37,
+      "impactCost": {
+        "min": 0,
+        "likely": 0,
+        "max": 0
+      },
+      "impactTime": {
+        "min": 0,
+        "likely": 0,
+        "max": 0
+      },
+      "actionName": "",
+      "actionDescription": "",
+      "postLikelihood": 37,
+      "postImpactCost": {
+        "min": 0,
+        "likely": 0,
+        "max": 0
+      },
+      "postImpactTime": {
+        "min": 0,
+        "likely": 0,
+        "max": 0
+      }
+    },
+    {
+      "id": "R002",
+      "name": "Risk2",
+      "description": "Something else",
+      "owner": "",
+      "type": "threat",
+      "included": true,
+      "likelihood": 38,
+      "impactCost": {
+        "min": 0,
+        "likely": 0,
+        "max": 0
+      },
+      "impactTime": {
+        "min": 0,
+        "likely": 0,
+        "max": 0
+      },
+      "actionName": "",
+      "actionDescription": "",
+      "postLikelihood": 38,
+      "postImpactCost": {
+        "min": 0,
+        "likely": 0,
+        "max": 0
+      },
+      "postImpactTime": {
+        "min": 0,
+        "likely": 0,
+        "max": 0
+      }
+    },
+    {
+      "id": "R003",
+      "name": "Risk3",
+      "description": "Another risk",
+      "owner": "",
+      "type": "threat",
+      "included": true,
+      "likelihood": 39,
+      "impactCost": {
+        "min": 0,
+        "likely": 0,
+        "max": 0
+      },
+      "impactTime": {
+        "min": 0,
+        "likely": 0,
+        "max": 0
+      },
+      "actionName": "",
+      "actionDescription": "",
+      "postLikelihood": 39,
+      "postImpactCost": {
+        "min": 0,
+        "likely": 0,
+        "max": 0
+      },
+      "postImpactTime": {
+        "min": 0,
+        "likely": 0,
+        "max": 0
+      }
+    }
+  ]
+}

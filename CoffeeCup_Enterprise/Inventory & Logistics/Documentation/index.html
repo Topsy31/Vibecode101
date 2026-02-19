@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="blueprint">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CoffeeCup Enterprise — Inventory &amp; Logistics Documentation</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23b8956a'/%3E%3Cstop offset='100%25' stop-color='%23a07d4f'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='6' fill='url(%23g)'/%3E%3Cpath d='M21 12h1a3 3 0 010 6h-1M9 12h12v7a3 3 0 01-3 3h-6a3 3 0 01-3-3z' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cline x1='12' y1='7' x2='12' y2='9' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3Cline x1='16' y1='7' x2='16' y2='9' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+:root {
+  --bg-primary: #fafaf9; --bg-secondary: #f5f5f4; --bg-card: #ffffff; --bg-hover: rgba(0,0,0,0.02);
+  --border-primary: #e7e5e4; --border-secondary: #f5f5f4; --border-accent: #d6d3d1;
+  --text-primary: #292524; --text-secondary: #57534e; --text-muted: #78716c; --text-faint: #a8a29e;
+  --accent-primary: #b8956a; --accent-hover: #a07d4f; --accent-light: rgba(185, 149, 106, 0.12);
+  --suite-colour: #ef4444; --suite-light: rgba(239, 68, 68, 0.12);
+  --danger: #dc2626; --success: #16a34a;
+  --font-primary: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --radius-sm: 4px; --radius-md: 6px; --radius-lg: 12px; --radius-xl: 16px; --radius-full: 9999px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04); --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.05);
+  --transition-fast: 0.15s ease; --transition-normal: 0.2s ease; --transition-slow: 0.3s ease;
+  --sidebar-width: 260px;
+}
+[data-theme="blueprint"] body { background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%); background-image: linear-gradient(rgba(0,0,0,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.015) 1px, transparent 1px); background-size: 24px 24px; }
+[data-theme="fun"] { --bg-primary: #fef7ff; --bg-secondary: #fae8ff; --bg-card: #ffffff; --bg-hover: rgba(217, 70, 239, 0.04); --border-primary: #f0abfc; --border-secondary: #fae8ff; --border-accent: #e879f9; --text-primary: #701a75; --text-secondary: #86198f; --text-muted: #a21caf; --text-faint: #c026d3; --accent-primary: #d946ef; --accent-hover: #c026d3; --accent-light: rgba(217, 70, 239, 0.12); --danger: #e11d48; --success: #22c55e; --font-primary: 'Nunito', -apple-system, sans-serif; --radius-sm: 6px; --radius-md: 10px; --radius-lg: 20px; --radius-xl: 24px; }
+[data-theme="fun"] body { background: linear-gradient(135deg, #fdf4ff 0%, #fae8ff 50%, #f5d0fe 100%); }
+[data-theme="dark"] { --bg-primary: #0f0f0f; --bg-secondary: #1a1a1a; --bg-card: #242424; --bg-hover: rgba(255,255,255,0.04); --border-primary: #333333; --border-secondary: #2a2a2a; --border-accent: #444444; --text-primary: #f0f0f0; --text-secondary: #b0b0b0; --text-muted: #808080; --text-faint: #606060; --accent-primary: #6366f1; --accent-hover: #818cf8; --accent-light: rgba(99, 102, 241, 0.15); --danger: #ef4444; --success: #22c55e; --shadow-sm: 0 1px 3px rgba(0,0,0,0.3); --shadow-md: 0 8px 16px rgba(0,0,0,0.4); }
+[data-theme="dark"] body { background: linear-gradient(180deg, #0a0a0a 0%, #0f0f0f 100%); }
+[data-theme="traditional"] { --bg-primary: #f8f9fa; --bg-secondary: #e9ecef; --bg-card: #ffffff; --bg-hover: rgba(0,0,0,0.03); --border-primary: #ced4da; --border-secondary: #dee2e6; --border-accent: #adb5bd; --text-primary: #212529; --text-secondary: #495057; --text-muted: #6c757d; --text-faint: #adb5bd; --accent-primary: #0d6efd; --accent-hover: #0b5ed7; --accent-light: rgba(13, 110, 253, 0.1); --danger: #dc3545; --success: #198754; --radius-sm: 2px; --radius-md: 4px; --radius-lg: 4px; --radius-xl: 8px; --shadow-sm: 0 1px 2px rgba(0,0,0,0.05); --shadow-md: 0 1px 3px rgba(0,0,0,0.1); }
+[data-theme="traditional"] body { background: var(--bg-primary); }
+
+* { font-family: var(--font-primary); box-sizing: border-box; }
+body { background: var(--bg-primary); min-height: 100vh; margin: 0; padding: 0; color: var(--text-primary); }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-accent); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+.app-layout { display: flex; min-height: 100vh; }
+.sidebar { width: var(--sidebar-width); min-width: var(--sidebar-width); background: var(--bg-card); border-right: 1px solid var(--border-primary); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0; z-index: 100; transition: transform var(--transition-slow); overflow-y: auto; }
+.sidebar-header { padding: 20px 16px 12px; border-bottom: 1px solid var(--border-primary); }
+.sidebar-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text-primary); }
+.sidebar-brand-icon { width: 36px; height: 36px; border-radius: var(--radius-md); background: var(--suite-colour); display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: 700; flex-shrink: 0; }
+.sidebar-brand-text { font-size: 15px; font-weight: 700; line-height: 1.2; }
+.sidebar-brand-sub { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+.sidebar-nav { padding: 8px 0; flex: 1; }
+.nav-section { padding: 4px 0; }
+.nav-item { display: flex; align-items: center; gap: 8px; padding: 8px 16px; cursor: pointer; color: var(--text-secondary); font-size: 13px; font-weight: 500; transition: all var(--transition-fast); border-left: 3px solid transparent; user-select: none; }
+.nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+.nav-item.active { background: var(--suite-light); color: var(--suite-colour); border-left-color: var(--suite-colour); font-weight: 600; }
+.nav-item.sub { padding-left: 36px; font-size: 12px; }
+.nav-item.sub.active { border-left-color: transparent; }
+.nav-badge { font-size: 10px; padding: 1px 6px; border-radius: var(--radius-full); background: var(--suite-light); color: var(--suite-colour); font-weight: 600; }
+.main-area { flex: 1; margin-left: var(--sidebar-width); display: flex; flex-direction: column; min-height: 100vh; transition: margin-left var(--transition-slow); }
+.main-area.expanded { margin-left: 0; }
+.app-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; background: var(--bg-card); border-bottom: 1px solid var(--border-primary); position: sticky; top: 0; z-index: 50; gap: 16px; }
+.header-left { display: flex; align-items: center; gap: 12px; }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.hamburger { display: none; width: 36px; height: 36px; border: 1px solid var(--border-primary); border-radius: var(--radius-md); background: var(--bg-card); color: var(--text-secondary); cursor: pointer; align-items: center; justify-content: center; }
+.hamburger:hover { background: var(--bg-hover); color: var(--text-primary); }
+.header-icon { width: 36px; height: 36px; border-radius: var(--radius-md); background: var(--suite-colour); display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0; }
+.header-title { font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0; }
+.header-subtitle { font-size: 12px; color: var(--text-muted); margin: 0; }
+.theme-select { padding: 6px 28px 6px 10px; border: 1px solid var(--border-primary); border-radius: var(--radius-md); background: var(--bg-card); color: var(--text-primary); font-size: 13px; font-family: var(--font-primary); cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2378716c' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; outline: none; }
+.theme-select:focus { border-color: var(--accent-primary); box-shadow: 0 0 0 3px var(--accent-light); }
+.back-link { display: flex; align-items: center; gap: 6px; padding: 6px 14px; border: 1px solid var(--border-primary); border-radius: var(--radius-md); background: var(--bg-card); color: var(--text-secondary); font-size: 13px; font-weight: 500; text-decoration: none; transition: all var(--transition-fast); font-family: var(--font-primary); white-space: nowrap; }
+.back-link:hover { background: var(--bg-hover); color: var(--text-primary); border-color: var(--border-accent); }
+.content-area { flex: 1; padding: 32px; max-width: 960px; width: 100%; margin: 0 auto; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.prose h1 { font-size: 28px; font-weight: 700; color: var(--text-primary); margin: 0 0 8px; }
+.prose h2 { font-size: 22px; font-weight: 700; color: var(--text-primary); margin: 40px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border-primary); }
+.prose h2:first-child { margin-top: 0; }
+.prose h3 { font-size: 17px; font-weight: 600; color: var(--text-primary); margin: 28px 0 10px; }
+.prose p { font-size: 14px; line-height: 1.7; color: var(--text-secondary); margin: 0 0 14px; }
+.prose strong { color: var(--text-primary); font-weight: 600; }
+.prose ul, .prose ol { margin: 0 0 16px; padding-left: 24px; }
+.prose li { font-size: 14px; line-height: 1.7; color: var(--text-secondary); margin-bottom: 4px; }
+.prose a { color: var(--suite-colour); text-decoration: none; font-weight: 500; }
+.prose a:hover { text-decoration: underline; }
+.doc-table-wrapper { overflow-x: auto; margin: 0 0 20px; border-radius: var(--radius-lg); border: 1px solid var(--border-primary); }
+.doc-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.doc-table th { background: var(--bg-secondary); padding: 10px 14px; text-align: left; font-weight: 600; color: var(--text-primary); border-bottom: 1px solid var(--border-primary); white-space: nowrap; }
+.doc-table td { padding: 9px 14px; border-bottom: 1px solid var(--border-secondary); color: var(--text-secondary); vertical-align: top; }
+.doc-table tr:last-child td { border-bottom: none; }
+.doc-table code { font-family: var(--font-mono); font-size: 12px; background: var(--bg-secondary); padding: 2px 6px; border-radius: var(--radius-sm); color: var(--suite-colour); }
+.code-block { background: var(--bg-secondary); border: 1px solid var(--border-primary); border-radius: var(--radius-md); padding: 14px 16px; margin: 0 0 16px; overflow-x: auto; font-family: var(--font-mono); font-size: 12px; line-height: 1.6; color: var(--text-primary); }
+[data-theme="dark"] .code-block { background: #1a1a1a; border-color: #2a2a2a; }
+.doc-card { background: var(--bg-card); border: 1px solid var(--border-primary); border-radius: var(--radius-lg); padding: 20px; margin: 0 0 16px; box-shadow: var(--shadow-sm); }
+.doc-card h4 { margin-top: 0; }
+.callout { background: var(--suite-light); border: 1px solid var(--border-primary); border-left: 4px solid var(--suite-colour); border-radius: var(--radius-md); padding: 14px 16px; margin: 0 0 16px; font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+.callout strong { color: var(--text-primary); }
+.status-badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: var(--radius-full); font-weight: 600; }
+.status-badge.planned { background: rgba(245, 158, 11, 0.12); color: #d97706; }
+.doc-footer { padding: 20px 32px; border-top: 1px solid var(--border-primary); text-align: center; font-size: 12px; color: var(--text-muted); background: var(--bg-card); }
+.sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 90; }
+.sidebar-overlay.visible { display: block; }
+@media (max-width: 768px) { .sidebar { transform: translateX(-100%); } .sidebar.open { transform: translateX(0); } .main-area { margin-left: 0; } .hamburger { display: flex; } .content-area { padding: 20px 16px; } .app-header { padding: 10px 16px; } .back-link span { display: none; } .header-title { font-size: 16px; } }
+  </style>
+
+  <!-- React -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+const { useState, useEffect } = React;
+
+const icons = {
+  arrow: (s=14) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>,
+  menu: (s=20) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>,
+  box: (s=18) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>,
+};
+
+const SUITE_COLOUR = '#ef4444';
+
+const modules = [
+  { key: 'inv-stock', name: 'Stock Register', desc: 'Central inventory database tracking all stock items with quantities, locations, unit costs, and reorder points. Supports SKU management, batch tracking, and automatic low-stock alerts when quantities fall below defined thresholds.' },
+  { key: 'inv-warehouse', name: 'Warehouse', desc: 'Manage warehouse locations, zones, and bin positions. Track storage capacity, utilisation rates, and item placement. Supports multiple warehouse locations with inter-warehouse transfer tracking.' },
+  { key: 'inv-orders', name: 'Orders', desc: 'Process customer and internal orders from creation through picking, packing, and dispatch. Track order fulfilment rates, backorder quantities, and expected delivery dates for outstanding orders.' },
+  { key: 'inv-shipments', name: 'Shipments', desc: 'Track outbound shipments with carrier details, tracking numbers, and delivery confirmation. Monitor shipping costs, transit times, and delivery success rates across different carriers and routes.' },
+  { key: 'inv-hub', name: 'Inventory Hub', desc: 'Executive dashboard showing stock levels, warehouse utilisation, order fulfilment rates, and shipping performance. Highlights items approaching reorder points and identifies slow-moving stock for review.' },
+];
+
+const navSections = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'modules', label: 'Planned Modules', badge: modules.length, children: modules.map(m => ({ id: m.key, label: m.name })) },
+  { id: 'integrations', label: 'Integration Points' },
+  { id: 'data-model', label: 'Data Model' },
+];
+
+function App() {
+  const [activeSection, setActiveSection] = useState('overview');
+  const [expandedNav, setExpandedNav] = useState({ modules: true });
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [theme, setTheme] = useState(() => localStorage.getItem('coffeecup-theme') || 'blueprint');
+
+  useEffect(() => { document.documentElement.setAttribute('data-theme', theme); localStorage.setItem('coffeecup-theme', theme); }, [theme]);
+
+  const scrollTo = (id) => { setActiveSection(id); setSidebarOpen(false); const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+  const toggleNav = (key) => setExpandedNav(prev => ({ ...prev, [key]: !prev[key] }));
+
+  return (
+    <div className="app-layout">
+      <div className={`sidebar-overlay ${sidebarOpen ? 'visible' : ''}`} onClick={() => setSidebarOpen(false)} />
+      <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
+        <div className="sidebar-header">
+          <div className="sidebar-brand">
+            <div className="sidebar-brand-icon">I</div>
+            <div>
+              <div className="sidebar-brand-text">Inventory &amp; Logistics</div>
+              <div className="sidebar-brand-sub">Suite Documentation</div>
+            </div>
+          </div>
+        </div>
+        <nav className="sidebar-nav">
+          {navSections.map(section => (
+            <div className="nav-section" key={section.id}>
+              {section.children ? (
+                <>
+                  <div className={`nav-item ${activeSection === section.id ? 'active' : ''}`} onClick={() => { toggleNav(section.id); scrollTo(section.id); }}>
+                    <span style={{flex:1}}>{section.label}</span>
+                    {section.badge && <span className="nav-badge">{section.badge}</span>}
+                  </div>
+                  {expandedNav[section.id] && section.children.map(child => (
+                    <div key={child.id} className={`nav-item sub ${activeSection === child.id ? 'active' : ''}`} onClick={() => scrollTo(child.id)}>{child.label}</div>
+                  ))}
+                </>
+              ) : (
+                <div className={`nav-item ${activeSection === section.id ? 'active' : ''}`} onClick={() => scrollTo(section.id)}>{section.label}</div>
+              )}
+            </div>
+          ))}
+        </nav>
+      </aside>
+
+      <div className="main-area">
+        <header className="app-header">
+          <div className="header-left">
+            <button className="hamburger" onClick={() => setSidebarOpen(!sidebarOpen)}>{icons.menu()}</button>
+            <div className="header-icon">{icons.box()}</div>
+            <div>
+              <h1 className="header-title">Inventory &amp; Logistics Documentation</h1>
+              <p className="header-subtitle">CoffeeCup Enterprise Suite</p>
+            </div>
+          </div>
+          <div className="header-right">
+            <select className="theme-select" value={theme} onChange={e => setTheme(e.target.value)}>
+              <option value="blueprint">Blueprint</option>
+              <option value="fun">Fun</option>
+              <option value="dark">Dark</option>
+              <option value="traditional">Traditional</option>
+            </select>
+            <a href="../../Enterprise Launch/index.html" className="back-link">{icons.arrow()} <span>Back to Enterprise</span></a>
+          </div>
+        </header>
+
+        <div className="content-area prose">
+          <section id="overview">
+            <h2>Overview</h2>
+            <p>The <strong>Inventory &amp; Logistics Suite</strong> provides comprehensive stock management and order fulfilment capabilities. It tracks physical goods from receipt into the warehouse through storage, picking, packing, and final shipment to the customer, ensuring accurate stock levels and efficient logistics operations.</p>
+            <div className="callout">
+              <strong>Design Philosophy:</strong> Accurate inventory data is the foundation of reliable order fulfilment. This suite maintains real-time stock visibility across all warehouse locations, with automatic alerts for reorder points and slow-moving items. Every stock movement is recorded to maintain a complete audit trail.
+            </div>
+            <p>The suite comprises five modules covering stock management, warehouse operations, order processing, shipment tracking, and a central hub dashboard. Together they provide end-to-end visibility into the physical supply chain from goods receipt to customer delivery.</p>
+          </section>
+
+          <section id="modules">
+            <h2>Planned Modules</h2>
+            <p>The Inventory &amp; Logistics Suite comprises {modules.length} modules. The Stock Register is the central data store, with warehouse, order, and shipment modules all updating stock quantities through defined transactions.</p>
+            <div className="doc-table-wrapper">
+              <table className="doc-table">
+                <thead><tr><th>Module</th><th>Storage Key</th><th>Status</th></tr></thead>
+                <tbody>
+                  {modules.map(m => (
+                    <tr key={m.key}><td><strong>{m.name}</strong></td><td><code>{m.key}</code></td><td><span className="status-badge planned">Planned</span></td></tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {modules.map(m => (
+              <div key={m.key} id={m.key} className="doc-card">
+                <h3 style={{margin:'0 0 8px', color: SUITE_COLOUR}}>{m.name}</h3>
+                <p style={{fontSize:'12px', color:'var(--text-muted)', margin:'0 0 8px'}}>
+                  <code style={{fontFamily:'var(--font-mono)', fontSize:'11px', background:'var(--bg-secondary)', padding:'2px 6px', borderRadius:'var(--radius-sm)', color: SUITE_COLOUR}}>{m.key}</code>
+                </p>
+                <p style={{margin:0}}>{m.desc}</p>
+              </div>
+            ))}
+          </section>
+
+          <section id="integrations">
+            <h2>Integration Points</h2>
+            <p>The Inventory &amp; Logistics Suite connects primarily to the Suppliers &amp; Procurement Suite for inbound goods and to the Customer Lifecycle Suite for outbound order fulfilment.</p>
+
+            <h3>Procurement to Inventory</h3>
+            <p>When goods are received against a purchase order in the Procurement suite, the Stock Register is updated with the received quantities. Batch numbers, inspection status, and storage locations are recorded at the point of receipt. This is the primary inbound flow for inventory replenishment.</p>
+
+            <h3>CRM / Orders to Inventory</h3>
+            <p>Customer orders (originating from the CRM pipeline or direct sales) trigger stock reservation and picking lists. The order fulfilment process deducts reserved quantities from available stock and tracks the order through to dispatch.</p>
+
+            <h3>Inventory to Finance</h3>
+            <p>Stock valuations feed into the Finance Suite's Balance Sheet for asset reporting. Cost of goods sold (COGS) data flows into the P&amp;L Statement when items are shipped against customer orders.</p>
+
+            <div className="doc-table-wrapper">
+              <table className="doc-table">
+                <thead><tr><th>Direction</th><th>Connected Suite</th><th>Data Exchanged</th></tr></thead>
+                <tbody>
+                  <tr><td>Inbound</td><td><strong>Suppliers &amp; Procurement</strong></td><td>Goods received quantities, batch numbers, and quality status</td></tr>
+                  <tr><td>Inbound</td><td><strong>Customer Lifecycle</strong></td><td>Customer orders trigger stock reservation and picking</td></tr>
+                  <tr><td>Outbound</td><td><strong>Finance</strong></td><td>Stock valuations for balance sheet; COGS for P&amp;L</td></tr>
+                  <tr><td>Outbound</td><td><strong>Company &amp; Governance</strong></td><td>Inventory accuracy metrics and stock write-off data</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section id="data-model">
+            <h2>Data Model</h2>
+            <p>All Inventory data is persisted to <code className="code-block" style={{display:'inline', padding:'2px 6px', margin:0}}>localStorage</code>. The Stock Register is the master record for item quantities. All stock movements (receipts, issues, transfers, adjustments) are recorded as immutable transactions for audit purposes.</p>
+
+            <h3>localStorage Keys</h3>
+            <div className="doc-table-wrapper">
+              <table className="doc-table">
+                <thead><tr><th>Key</th><th>Type</th><th>Description</th></tr></thead>
+                <tbody>
+                  {modules.map(m => (
+                    <tr key={m.key}><td><code>{m.key}</code></td><td>JSON Array/Object</td><td>{m.name} data store</td></tr>
+                  ))}
+                  <tr><td><code>coffeecup-theme</code></td><td>String</td><td>Active theme preference (shared across all suites)</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3>Common Data Structures</h3>
+            <div className="code-block">{`// Stock item structure
+{
+  "id": "item-001",
+  "version": 1,
+  "sku": "WDG-1500-BLK",
+  "name": "Widget 1500 (Black)",
+  "category": "Components",
+  "unitOfMeasure": "each",
+  "quantityOnHand": 250,
+  "quantityReserved": 30,
+  "quantityAvailable": 220,
+  "reorderPoint": 50,
+  "reorderQuantity": 200,
+  "unitCost": 12.50,
+  "currency": "GBP",
+  "warehouseId": "wh-001",
+  "binLocation": "A-03-12",
+  "status": "active|discontinued|on-hold",
+  "createdAt": "2025-08-01T09:00:00Z",
+  "updatedAt": "2026-02-10T15:20:00Z"
+}`}</div>
+
+            <div className="code-block">{`// Shipment structure
+{
+  "id": "ship-001",
+  "version": 1,
+  "orderId": "ord-045",
+  "carrier": "Royal Mail",
+  "trackingNumber": "RM123456789GB",
+  "status": "preparing|dispatched|in-transit|delivered|returned",
+  "dispatchDate": "2026-02-15",
+  "estimatedDelivery": "2026-02-18",
+  "actualDelivery": null,
+  "weight": 2.5,
+  "weightUnit": "kg",
+  "shippingCost": 8.99,
+  "currency": "GBP",
+  "createdAt": "2026-02-15T09:30:00Z"
+}`}</div>
+          </section>
+        </div>
+
+        <footer className="doc-footer">CoffeeCup Enterprise -- Inventory &amp; Logistics Suite Documentation</footer>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

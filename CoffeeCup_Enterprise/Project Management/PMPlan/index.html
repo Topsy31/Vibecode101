@@ -1,0 +1,1853 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="blueprint">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CoffeeCup — PMPlan</title>
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23b8956a'/%3E%3Cstop offset='100%25' stop-color='%23a07d4f'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='6' fill='url(%23g)'/%3E%3Cpath d='M18 6h-6a2 2 0 00-2 2v16a2 2 0 002 2h10a2 2 0 002-2V12z' fill='none' stroke='white' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M18 6v6h6' fill='none' stroke='white' stroke-width='2' stroke-linejoin='round'/%3E%3Cline x1='13' y1='17' x2='21' y2='17' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3Cline x1='13' y1='21' x2='19' y2='21' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useCallback, useMemo, useReducer } = React;
+
+    // ============================================
+    // CONSTANTS
+    // ============================================
+    const STORAGE_KEY = 'pmplan-project';
+    const VERSIONS_KEY = 'pmplan-versions';
+
+    const THEMES = [
+      { id: 'blueprint', name: 'Blueprint' },
+      { id: 'fun', name: 'Fun' },
+      { id: 'dark', name: 'Dark' },
+      { id: 'traditional', name: 'Traditional' },
+    ];
+
+    const PLAN_STATUSES = ['Draft', 'In Review', 'Approved', 'Baselined'];
+
+    const METHODOLOGIES = ['Waterfall', 'Agile', 'Hybrid', 'PRINCE2'];
+
+    // ============================================
+    // SECTION DEFINITIONS
+    // ============================================
+    const SECTION_DEFS = {
+      // Tier 1 — Core
+      overview: { id: 'overview', name: 'Project Overview', tier: 1, icon: 'clipboard', description: 'High-level project charter: name, objectives, sponsor, dates, and business justification.' },
+      scope: { id: 'scope', name: 'Scope Statement', tier: 1, icon: 'target', description: 'What is in scope, out of scope, deliverables, acceptance criteria, assumptions, and constraints.' },
+      schedule: { id: 'schedule', name: 'Schedule Summary', tier: 1, icon: 'calendar', integration: 'gantt', description: 'Key milestones, dates, and critical path. Pulls from Gantt Chart.' },
+      budget: { id: 'budget', name: 'Budget Summary', tier: 1, icon: 'pound', integration: 'cost', description: 'Total budget, cost breakdown by category, and contingency reserves. Pulls from Cost Tracker.' },
+      team: { id: 'team', name: 'Team & Organisation', tier: 1, icon: 'users', integration: 'hierarchy', integrationAlt: 'raci', description: 'Org chart, key roles, responsibilities. Pulls from Hierarchy and RACI.' },
+      risk: { id: 'risk', name: 'Risk Summary', tier: 1, icon: 'alert-triangle', integration: 'risk', description: 'Top risks with ratings and response strategies. Pulls from Risk Register.' },
+      comms: { id: 'comms', name: 'Communications Plan', tier: 1, icon: 'message-circle', integrationAlt: 'raci', description: 'Stakeholder reporting schedule, meeting cadence, and escalation procedures. Consulted/Informed parties from RACI.' },
+      stakeholders: { id: 'stakeholders', name: 'Stakeholder Register', tier: 1, icon: 'user-check', integration: 'stakeholder', integrationAlt: 'raci', description: 'Key stakeholders, interests, influence level, and engagement strategy. Pulls from Stakeholder Map.' },
+      change: { id: 'change', name: 'Change Management', tier: 1, icon: 'git-branch', description: 'Change request process, approval authority, and impact assessment approach.' },
+      success: { id: 'success', name: 'Success Criteria', tier: 1, icon: 'award', description: 'Measurable criteria for project success and key performance indicators.' },
+
+      // Tier 2 — Extended
+      requirements: { id: 'requirements', name: 'Requirements Management', tier: 2, icon: 'list', description: 'How requirements are collected, documented, prioritised, and traced.' },
+      wbs: { id: 'wbs', name: 'WBS', tier: 2, icon: 'layers', integration: 'hierarchy', description: 'Work Breakdown Structure — hierarchical decomposition of scope.' },
+      scheduleBase: { id: 'scheduleBase', name: 'Schedule Baseline', tier: 2, icon: 'clock', integration: 'gantt', description: 'Approved schedule model snapshot for performance measurement.' },
+      costBase: { id: 'costBase', name: 'Cost Baseline', tier: 2, icon: 'trending-up', integration: 'cost', description: 'Time-phased approved budget and funding requirements. Pulls from Cost Tracker.' },
+      quality: { id: 'quality', name: 'Quality Management', tier: 2, icon: 'check-circle', integration: 'quality', description: 'Quality standards, assurance activities, control methods, and metrics. Pulls from Quality Register.' },
+      quantitativeAnalysis: { id: 'quantitativeAnalysis', name: 'Quantitative Analysis', tier: 2, icon: 'bar-chart-2', integration: 'analysis', description: 'Monte Carlo simulation results — P50/P80 schedule and cost confidence levels, JCL. Pulls from Integrated Analysis.' },
+      resourceCal: { id: 'resourceCal', name: 'Resource Calendar', tier: 2, icon: 'calendar', description: 'Team availability, leave schedules, and resource conflicts.' },
+      procurement: { id: 'procurement', name: 'Procurement Plan', tier: 2, icon: 'shopping-cart', integration: 'estimator', description: 'Make-or-buy decisions, vendor selection, and contract types. Pulls from Estimator.' },
+      issues: { id: 'issues', name: 'Issue Log', tier: 2, icon: 'alert-circle', description: 'Tracking materialised risks, open issues, and resolutions.' },
+      lessons: { id: 'lessons', name: 'Lessons Learned', tier: 2, icon: 'book-open', description: 'Approach to capturing and applying lessons during the project.' },
+      closure: { id: 'closure', name: 'Project Closure', tier: 2, icon: 'flag', description: 'Closure criteria, handover procedures, and final report template.' },
+
+      // Tier 3 — Specialist
+      hse: { id: 'hse', name: 'HSE Plan', tier: 3, icon: 'shield', description: 'Health, Safety & Environment — construction and industrial projects.' },
+      compliance: { id: 'compliance', name: 'Compliance Management', tier: 3, icon: 'file-text', description: 'Regulatory requirements, audit procedures, and compliance monitoring.' },
+      security: { id: 'security', name: 'Security Plan', tier: 3, icon: 'lock', description: 'Data security, access controls, and cybersecurity measures.' },
+      testing: { id: 'testing', name: 'Testing Strategy', tier: 3, icon: 'check-square', description: 'Verification and validation approach for IT/software projects.' },
+      benefits: { id: 'benefits', name: 'Benefits Realisation', tier: 3, icon: 'bar-chart', description: 'How project benefits will be measured, tracked, and realised.' },
+      evm: { id: 'evm', name: 'Earned Value Management', tier: 3, icon: 'activity', integration: 'evm', description: 'Formal performance measurement: CPI, SPI, EAC, ETC. Pulls from EVM Dashboard.' },
+      training: { id: 'training', name: 'Training Plan', tier: 3, icon: 'book', description: 'Skills development and training for the project team.' },
+      config: { id: 'config', name: 'Configuration Management', tier: 3, icon: 'settings', description: 'How project artefacts and deliverables are versioned and controlled.' },
+      sustainability: { id: 'sustainability', name: 'Sustainability Plan', tier: 3, icon: 'globe', description: 'Environmental, social, and governance considerations.' },
+    };
+
+    const TIER1_IDS = Object.values(SECTION_DEFS).filter(s => s.tier === 1).map(s => s.id);
+    const TIER2_IDS = Object.values(SECTION_DEFS).filter(s => s.tier === 2).map(s => s.id);
+    const TIER3_IDS = Object.values(SECTION_DEFS).filter(s => s.tier === 3).map(s => s.id);
+
+    // Integration source keys
+    const INTEGRATION_KEYS = {
+      gantt: 'gantt-project',
+      risk: 'risk-register',
+      hierarchy: 'hierarchy-data',
+      raci: 'raci-project',
+      delphi: 'delphi-studies',
+      kanban: 'kanban-project',
+      cost: 'cost-project',
+      stakeholder: 'stakeholder-project',
+      change: 'changelog-project',
+      evm: 'evm-project',
+      quality: 'quality-project',
+      analysis: 'analysis-project',
+      estimator: 'estimator-project',
+    };
+
+    const INTEGRATION_NAMES = {
+      gantt: 'Gantt Chart',
+      quality: 'Quality Register',
+      risk: 'Risk Register',
+      hierarchy: 'Hierarchy Editor',
+      raci: 'RACI Matrix',
+      delphi: 'Delphi Tool',
+      kanban: 'Kanban Board',
+      cost: 'Cost Tracker',
+      stakeholder: 'Stakeholder Map',
+      change: 'Change & Issue Register',
+      evm: 'EVM Dashboard',
+      analysis: 'Integrated Analysis',
+      estimator: 'Estimator',
+    };
+
+    // Template Presets
+    const TEMPLATE_PRESETS = {
+      general: { name: 'General', enabledSections: [], description: 'Core sections only — suitable for most projects.' },
+      it: { name: 'IT / Software', enabledSections: ['testing', 'security', 'config', 'requirements'], description: 'Adds Testing Strategy, Security Plan, Configuration Management, and Requirements.' },
+      construction: { name: 'Construction', enabledSections: ['hse', 'procurement', 'compliance', 'quality'], description: 'Adds HSE Plan, Procurement, Compliance Management, and Quality.' },
+      consulting: { name: 'Consulting', enabledSections: ['benefits', 'lessons', 'closure', 'quality'], description: 'Adds Benefits Realisation, Lessons Learned, Project Closure, and Quality.' },
+    };
+
+    // ============================================
+    // ICONS (inline SVG)
+    // ============================================
+    const icons = {
+      clipboard: (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" /></svg>,
+      target: (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" /></svg>,
+      calendar: (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>,
+      pound: (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 20H6a1 1 0 010-2h1c1 0 2-1 2-2v-4H7m4-4V6a4 4 0 018 0M7 14h6" /></svg>,
+      users: (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87" /><path d="M16 3.13a4 4 0 010 7.75" /></svg>,
+      'alert-triangle': (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>,
+      'message-circle': (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" /></svg>,
+      'user-check': (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="8.5" cy="7" r="4" /><polyline points="17 11 19 13 23 9" /></svg>,
+      'git-branch': (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="6" y1="3" x2="6" y2="15" /><circle cx="18" cy="6" r="3" /><circle cx="6" cy="18" r="3" /><path d="M18 9a9 9 0 01-9 9" /></svg>,
+      award: (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="7" /><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" /></svg>,
+      list: (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" /><line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" /></svg>,
+      layers: (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2" /><polyline points="2 17 12 22 22 17" /><polyline points="2 12 12 17 22 12" /></svg>,
+      clock: (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>,
+      'trending-up': (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18" /><polyline points="17 6 23 6 23 12" /></svg>,
+      'check-circle': (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>,
+      'shopping-cart': (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" /></svg>,
+      'alert-circle': (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>,
+      'book-open': (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" /><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" /></svg>,
+      flag: (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" /><line x1="4" y1="22" x2="4" y2="15" /></svg>,
+      shield: (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>,
+      'file-text': (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" /></svg>,
+      lock: (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0110 0v4" /></svg>,
+      'check-square': (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 11 12 14 22 4" /><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" /></svg>,
+      'bar-chart': (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="20" x2="12" y2="10" /><line x1="18" y1="20" x2="18" y2="4" /><line x1="6" y1="20" x2="6" y2="16" /></svg>,
+      activity: (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>,
+      book: (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" /></svg>,
+      settings: (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" /></svg>,
+      globe: (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" /></svg>,
+      // UI icons
+      home: (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>,
+      eye: (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>,
+      download: (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>,
+      upload: (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>,
+      plus: (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>,
+      x: (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>,
+      trash: (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" /></svg>,
+      save: (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" /><polyline points="17 21 17 13 7 13 7 21" /><polyline points="7 3 7 8 15 8" /></svg>,
+      'chevron-right': (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>,
+      'chevron-left': (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>,
+      'chevron-down': (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>,
+      refresh: (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10" /><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10" /></svg>,
+      'external-link': (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg>,
+      bold: (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 4h8a4 4 0 014 4 4 4 0 01-4 4H6z" /><path d="M6 12h9a4 4 0 014 4 4 4 0 01-4 4H6z" /></svg>,
+      italic: (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="4" x2="10" y2="4" /><line x1="14" y1="20" x2="5" y2="20" /><line x1="15" y1="4" x2="9" y2="20" /></svg>,
+      'sidebar-collapse': (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" /><line x1="9" y1="3" x2="9" y2="21" /></svg>,
+    };
+
+    const Icon = ({ name, size = 16 }) => icons[name] ? icons[name](size) : null;
+
+    // ============================================
+    // DEFAULT STATE
+    // ============================================
+    const createDefaultState = () => {
+      const now = new Date().toISOString();
+      const sections = {};
+      Object.keys(SECTION_DEFS).forEach(id => {
+        sections[id] = { id, status: 'empty', lastModified: null, fields: {}, narrative: '', notes: '', integrationSource: null, integrationTimestamp: null };
+      });
+      return {
+        meta: { name: 'Untitled Project', version: '1.0', created: now, modified: now, author: '', status: 'Draft' },
+        settings: { theme: localStorage.getItem('coffeecup-theme') || 'blueprint', enabledSections: [], sectionOrder: [...TIER1_IDS, ...TIER2_IDS, ...TIER3_IDS], complexity: 'standard' },
+        sections,
+      };
+    };
+
+    // ============================================
+    // RICH TEXT EDITOR COMPONENT
+    // ============================================
+    const RichTextEditor = ({ value, onChange, placeholder }) => {
+      const editorRef = useRef(null);
+      const isInternalChange = useRef(false);
+
+      useEffect(() => {
+        if (editorRef.current && !isInternalChange.current) {
+          if (editorRef.current.innerHTML !== value) {
+            editorRef.current.innerHTML = value || '';
+          }
+        }
+        isInternalChange.current = false;
+      }, [value]);
+
+      const handleInput = () => {
+        isInternalChange.current = true;
+        onChange(editorRef.current.innerHTML);
+      };
+
+      const exec = (cmd, val = null) => {
+        document.execCommand(cmd, false, val);
+        editorRef.current.focus();
+        handleInput();
+      };
+
+      return (
+        <div>
+          <div className="rich-text-toolbar">
+            <button onClick={() => exec('bold')} title="Bold"><Icon name="bold" size={14} /></button>
+            <button onClick={() => exec('italic')} title="Italic"><Icon name="italic" size={14} /></button>
+            <div className="separator" />
+            <button onClick={() => exec('insertUnorderedList')} title="Bullet list">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" /><circle cx="3" cy="6" r="1.5" fill="currentColor" stroke="none" /><circle cx="3" cy="12" r="1.5" fill="currentColor" stroke="none" /><circle cx="3" cy="18" r="1.5" fill="currentColor" stroke="none" /></svg>
+            </button>
+            <button onClick={() => exec('insertOrderedList')} title="Numbered list">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="10" y1="6" x2="21" y2="6" /><line x1="10" y1="12" x2="21" y2="12" /><line x1="10" y1="18" x2="21" y2="18" /><text x="2" y="8" fill="currentColor" stroke="none" fontSize="8" fontWeight="600">1</text><text x="2" y="14" fill="currentColor" stroke="none" fontSize="8" fontWeight="600">2</text><text x="2" y="20" fill="currentColor" stroke="none" fontSize="8" fontWeight="600">3</text></svg>
+            </button>
+            <div className="separator" />
+            <button onClick={() => exec('formatBlock', '<h3>')} title="Heading">H</button>
+          </div>
+          <div
+            ref={editorRef}
+            className="rich-text-content"
+            contentEditable
+            onInput={handleInput}
+            onBlur={handleInput}
+            data-placeholder={placeholder || 'Enter description...'}
+          />
+        </div>
+      );
+    };
+
+    // ============================================
+    // LIST EDITOR COMPONENT
+    // ============================================
+    const ListEditor = ({ items = [], onChange, placeholder = 'Add item...' }) => {
+      const addItem = () => onChange([...items, '']);
+      const updateItem = (i, val) => { const n = [...items]; n[i] = val; onChange(n); };
+      const removeItem = (i) => onChange(items.filter((_, j) => j !== i));
+
+      return (
+        <div className="list-editor">
+          {items.map((item, i) => (
+            <div key={i} className="list-editor-item">
+              <input className="input-refined" value={item} onChange={e => updateItem(i, e.target.value)} placeholder={placeholder} />
+              <button className="remove-btn" onClick={() => removeItem(i)}><Icon name="x" size={14} /></button>
+            </div>
+          ))}
+          <button className="add-row-btn" onClick={addItem}><Icon name="plus" size={14} /> Add item</button>
+        </div>
+      );
+    };
+
+    // ============================================
+    // DATA TABLE COMPONENT
+    // ============================================
+    const DataTable = ({ columns, rows = [], onChange, onAdd, onRemove }) => (
+      <div style={{ overflowX: 'auto' }}>
+        <table className="data-table">
+          <thead><tr>{columns.map(c => <th key={c.key} style={c.width ? { width: c.width } : {}}>{c.label}</th>)}<th style={{ width: 40 }}></th></tr></thead>
+          <tbody>
+            {rows.map((row, ri) => (
+              <tr key={ri}>
+                {columns.map(c => (
+                  <td key={c.key}>
+                    {c.type === 'select' ? (
+                      <select className="select-refined" style={{ width: '100%', padding: '4px 8px', fontSize: 12 }} value={row[c.key] || ''} onChange={e => onChange(ri, c.key, e.target.value)}>
+                        <option value="">—</option>
+                        {c.options.map(o => <option key={o} value={o}>{o}</option>)}
+                      </select>
+                    ) : (
+                      <input className="cell-input" value={row[c.key] || ''} onChange={e => onChange(ri, c.key, e.target.value)} placeholder={c.placeholder || ''} />
+                    )}
+                  </td>
+                ))}
+                <td><button className="remove-btn" onClick={() => onRemove(ri)} style={{ margin: '0 auto' }}><Icon name="trash" size={12} /></button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <button className="add-row-btn" onClick={onAdd}><Icon name="plus" size={14} /> Add row</button>
+      </div>
+    );
+
+    // ============================================
+    // INTEGRATION BANNER
+    // ============================================
+    const IntegrationBanner = ({ sourceKey, onPull }) => {
+      const storageKey = INTEGRATION_KEYS[sourceKey];
+      const name = INTEGRATION_NAMES[sourceKey];
+      const [available, setAvailable] = useState(false);
+
+      useEffect(() => {
+        try { setAvailable(!!localStorage.getItem(storageKey)); } catch (e) { }
+      }, [storageKey]);
+
+      if (!available) return null;
+
+      return (
+        <div className="integration-banner">
+          <Icon name="refresh" size={16} />
+          <div className="banner-text">
+            Data available from <span className="banner-source">{name}</span>.
+          </div>
+          <button className="btn btn-sm btn-primary" onClick={onPull}><Icon name="download" size={12} /> Pull Latest</button>
+        </div>
+      );
+    };
+
+    // ============================================
+    // SECTION EDITORS
+    // ============================================
+
+    // Helper: update a field in a section
+    const useSection = (sectionId, state, setState) => {
+      const section = state.sections[sectionId] || {};
+      const fields = section.fields || {};
+      const setField = (key, val) => {
+        setState(prev => {
+          const now = new Date().toISOString();
+          const sec = { ...prev.sections[sectionId], fields: { ...prev.sections[sectionId].fields, [key]: val }, lastModified: now, status: prev.sections[sectionId].status === 'empty' ? 'draft' : prev.sections[sectionId].status };
+          return { ...prev, meta: { ...prev.meta, modified: now }, sections: { ...prev.sections, [sectionId]: sec } };
+        });
+      };
+      const setNarrative = (val) => {
+        setState(prev => {
+          const now = new Date().toISOString();
+          const sec = { ...prev.sections[sectionId], narrative: val, lastModified: now, status: prev.sections[sectionId].status === 'empty' ? 'draft' : prev.sections[sectionId].status };
+          return { ...prev, meta: { ...prev.meta, modified: now }, sections: { ...prev.sections, [sectionId]: sec } };
+        });
+      };
+      const setNotes = (val) => {
+        setState(prev => {
+          const now = new Date().toISOString();
+          return { ...prev, sections: { ...prev.sections, [sectionId]: { ...prev.sections[sectionId], notes: val, lastModified: now } } };
+        });
+      };
+      const setStatus = (val) => {
+        setState(prev => ({ ...prev, sections: { ...prev.sections, [sectionId]: { ...prev.sections[sectionId], status: val } } }));
+      };
+      return { section, fields, setField, setNarrative, setNotes, setStatus };
+    };
+
+    // Generic section wrapper
+    const SectionWrapper = ({ sectionId, state, setState, children }) => {
+      const def = SECTION_DEFS[sectionId];
+      const { section, setNotes, setStatus } = useSection(sectionId, state, setState);
+
+      return (
+        <div className="section-editor">
+          <div className="section-header">
+            <h2>{def.name}</h2>
+            <p>{def.description}</p>
+            <div className="section-status-bar">
+              <select className="select-refined section-status-select" value={section.status} onChange={e => setStatus(e.target.value)}>
+                <option value="empty">Empty</option>
+                <option value="draft">Draft</option>
+                <option value="complete">Complete</option>
+              </select>
+              {section.lastModified && <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>Last edited: {new Date(section.lastModified).toLocaleDateString('en-GB')}</span>}
+            </div>
+          </div>
+
+          {def.integration && <IntegrationBanner sourceKey={def.integration} onPull={() => pullIntegration(sectionId, def.integration, state, setState)} />}
+          {def.integrationAlt && <IntegrationBanner sourceKey={def.integrationAlt} onPull={() => pullIntegration(sectionId, def.integrationAlt, state, setState)} />}
+
+          <div className="section-content">
+            <div className="section-content-inner">
+              {children}
+            </div>
+            <div className="section-content-inner section-notes">
+              <div className="section-notes-label"><Icon name="file-text" size={12} /> Internal Notes (not exported)</div>
+              <textarea className="textarea-refined" value={section.notes || ''} onChange={e => setNotes(e.target.value)} placeholder="Add internal notes about this section..." rows={2} />
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // Pull integration data
+    const pullIntegration = (sectionId, sourceKey, state, setState) => {
+      const storageKey = INTEGRATION_KEYS[sourceKey];
+      try {
+        const raw = localStorage.getItem(storageKey);
+        if (!raw) return;
+        const data = JSON.parse(raw);
+        const now = new Date().toISOString();
+
+        setState(prev => {
+          const sec = { ...prev.sections[sectionId] };
+          sec.integrationSource = sourceKey;
+          sec.integrationTimestamp = now;
+          sec.lastModified = now;
+          if (sec.status === 'empty') sec.status = 'draft';
+
+          // Map data depending on section type
+          if (sectionId === 'schedule' || sectionId === 'scheduleBase') {
+            const activities = data.activities || [];
+            const milestones = activities.filter(a => a.milestone || a.duration === 0).map(a => ({
+              name: a.name || a.activity || '', date: a.start || '', status: (a.progress || 0) >= 100 ? 'Complete' : 'Pending'
+            }));
+            const allActivities = activities.map(a => ({
+              name: a.name || a.activity || '', start: a.start || '', end: a.end || '', duration: a.duration || '', progress: (a.progress || 0) + '%'
+            }));
+            sec.fields = { ...sec.fields, milestones: milestones.length ? milestones : sec.fields.milestones, activities: allActivities, startDate: data.startDate || sec.fields.startDate };
+          }
+          if (sectionId === 'risk') {
+            const risks = data.risks || [];
+            const topRisks = risks.slice(0, 10).map(r => ({
+              name: r.name || r.title || '', category: r.category || '', probability: r.probability || r.preProb || '', impact: r.impact || r.preCostMost || '', response: r.response || r.strategy || '', owner: r.owner || ''
+            }));
+            sec.fields = { ...sec.fields, risks: topRisks };
+          }
+          if ((sectionId === 'team' || sectionId === 'wbs') && sourceKey === 'hierarchy') {
+            sec.fields = { ...sec.fields, hierarchyData: data };
+          }
+
+          // RACI integration
+          if (sourceKey === 'raci') {
+            const roles = data.roles || [];
+            const groups = data.groups || [];
+            const assignments = data.assignments || {};
+            const codes = data.codes || [];
+            const allTasks = groups.flatMap(g => (g.tasks || []).map(t => ({ ...t, group: g.name })));
+
+            if (sectionId === 'team') {
+              // Map RACI roles to team members, summarise their responsibilities
+              const teamMembers = roles.map(role => {
+                const responsible = allTasks.filter(t => assignments[`${t.id}|${role.id}`] === 'R').map(t => t.name);
+                const accountable = allTasks.filter(t => assignments[`${t.id}|${role.id}`] === 'A').map(t => t.name);
+                const summary = [];
+                if (accountable.length) summary.push('Accountable: ' + accountable.join(', '));
+                if (responsible.length) summary.push('Responsible: ' + responsible.join(', '));
+                return { name: '', role: role.name, responsibility: summary.join('; ') || '—', allocation: '' };
+              });
+              sec.fields = { ...sec.fields, teamMembers };
+            }
+
+            if (sectionId === 'comms') {
+              // Extract Consulted and Informed parties as communication items
+              const commItems = roles.map(role => {
+                const consulted = allTasks.filter(t => assignments[`${t.id}|${role.id}`] === 'C').map(t => t.name);
+                const informed = allTasks.filter(t => assignments[`${t.id}|${role.id}`] === 'I').map(t => t.name);
+                if (consulted.length === 0 && informed.length === 0) return null;
+                const what = [];
+                if (consulted.length) what.push('Consulted on ' + consulted.length + ' tasks');
+                if (informed.length) what.push('Informed on ' + informed.length + ' tasks');
+                return { what: what.join(', '), audience: role.name, frequency: '', owner: '', method: '' };
+              }).filter(Boolean);
+              sec.fields = { ...sec.fields, commItems };
+            }
+
+            if (sectionId === 'stakeholders') {
+              // Map RACI roles to stakeholders with influence based on A/R count
+              const stakeholders = roles.map(role => {
+                const aCount = allTasks.filter(t => assignments[`${t.id}|${role.id}`] === 'A').length;
+                const rCount = allTasks.filter(t => assignments[`${t.id}|${role.id}`] === 'R').length;
+                const cCount = allTasks.filter(t => assignments[`${t.id}|${role.id}`] === 'C').length;
+                const total = aCount + rCount + cCount;
+                const influence = aCount > 2 ? 'High' : (aCount > 0 || rCount > 2) ? 'Medium' : 'Low';
+                const interest = (rCount + aCount) > 3 ? 'High' : total > 2 ? 'Medium' : 'Low';
+                return { name: '', role: role.name, interest, influence, strategy: '' };
+              });
+              sec.fields = { ...sec.fields, stakeholders };
+            }
+          }
+
+          // Cost Tracker integration
+          if (sourceKey === 'cost') {
+            const cats = data.categories || [];
+            const transactions = data.transactions || [];
+            const contingency = data.contingency || {};
+            const mgmtReserve = data.managementReserve || {};
+            const sym = (data.meta && data.meta.currencySymbol) || '£';
+
+            // Calculate EVM metrics (mirrors Cost Tracker's calcEVM)
+            const BAC = cats.reduce((s, c) => s + c.lineItems.reduce((ls, li) => ls + (li.totalCost || 0), 0), 0);
+            const AC = transactions.reduce((s, t) => s + (t.amount || 0), 0);
+            const EV = cats.reduce((s, c) => s + c.lineItems.reduce((ls, li) => ls + ((li.percentComplete || 0) / 100) * (li.totalCost || 0), 0), 0);
+            const CPI = AC !== 0 ? EV / AC : 0;
+            const EAC = CPI !== 0 ? BAC / CPI : 0;
+
+            // Contingency
+            let contingencyAmount = 0;
+            if (contingency.method === 'manual') contingencyAmount = contingency.manualAmount || 0;
+            else if (contingency.method === 'percentage') contingencyAmount = BAC * ((contingency.percentage || 0) / 100);
+            else if (contingency.method === 'emv') contingencyAmount = (contingency.riskBreakdown || []).reduce((s, r) => s + (r.emv || 0), 0);
+            const costBaseline = BAC + contingencyAmount;
+
+            // Management Reserve
+            let mgmtReserveAmount = 0;
+            if (mgmtReserve.method === 'percentage') mgmtReserveAmount = costBaseline * ((mgmtReserve.percentage || 0) / 100);
+            else mgmtReserveAmount = mgmtReserve.manualAmount || 0;
+            const totalBudget = costBaseline + mgmtReserveAmount;
+
+            // Category breakdown
+            const actualsByCategory = {};
+            transactions.forEach(t => { actualsByCategory[t.categoryId] = (actualsByCategory[t.categoryId] || 0) + (t.amount || 0); });
+
+            const budgetLines = cats.map(c => {
+              const planned = c.lineItems.reduce((s, li) => s + (li.totalCost || 0), 0);
+              const actual = actualsByCategory[c.id] || 0;
+              return { category: c.name, description: c.lineItems.length + ' line item' + (c.lineItems.length !== 1 ? 's' : ''), amount: String(planned), actual: String(actual) };
+            });
+
+            const fmt = (v) => sym + v.toLocaleString('en-GB', { maximumFractionDigits: 0 });
+
+            if (sectionId === 'budget') {
+              sec.fields = {
+                ...sec.fields,
+                totalBudget: fmt(totalBudget),
+                contingency: fmt(contingencyAmount) + ' (contingency) + ' + fmt(mgmtReserveAmount) + ' (mgmt reserve)',
+                budgetLines,
+                // EVM summary fields for display
+                costBAC: fmt(BAC),
+                costAC: fmt(AC),
+                costEAC: fmt(EAC),
+                costCPI: CPI ? CPI.toFixed(2) : '—',
+                costContingencyUsed: fmt(contingency.utilised || 0),
+                costContingencyRemaining: fmt(contingencyAmount - (contingency.utilised || 0)),
+                costProjectName: (data.meta && data.meta.name) || '',
+              };
+            }
+
+            if (sectionId === 'costBase') {
+              // Time-phased data
+              const periods = (data.timePhased && data.timePhased.periods) || [];
+              const timePhased = periods.map(p => ({
+                period: p.label, planned: fmt(p.planned || 0), actual: fmt(p.actual || 0), earned: fmt(p.earned || 0)
+              }));
+
+              // Baselines
+              const baselines = (data.baselines || []).map(b => ({
+                name: b.name, date: b.date ? new Date(b.date).toLocaleDateString('en-GB') : '—'
+              }));
+
+              sec.fields = {
+                ...sec.fields,
+                costEstimate: fmt(BAC),
+                contingencyReserve: fmt(contingencyAmount),
+                costBaseline: fmt(costBaseline),
+                managementReserve: fmt(mgmtReserveAmount),
+                totalBudget: fmt(totalBudget),
+                timePhased,
+                baselines,
+                varianceSummary: 'CPI: ' + (CPI ? CPI.toFixed(2) : '—') + ' | Cost Variance: ' + fmt(EV - AC) + ' | EAC: ' + fmt(EAC),
+              };
+            }
+          }
+
+          // Stakeholder Map integration
+          if (sourceKey === 'stakeholder') {
+            const stakeholders = data.stakeholders || [];
+            const QUAD_NAMES = {
+              'manage-closely': 'Manage Closely', 'keep-satisfied': 'Keep Satisfied',
+              'keep-informed': 'Keep Informed', 'monitor': 'Monitor'
+            };
+            if (sectionId === 'stakeholders') {
+              sec.fields = {
+                ...sec.fields,
+                stakeholders: stakeholders.map(s => ({
+                  name: s.name || '', role: s.role || '',
+                  interest: s.interest >= 6 ? 'High' : s.interest >= 4 ? 'Medium' : 'Low',
+                  influence: s.power >= 6 ? 'High' : s.power >= 4 ? 'Medium' : 'Low',
+                  strategy: QUAD_NAMES[s.engagement] || ''
+                }))
+              };
+            }
+          }
+
+          // Change & Issue Register integration
+          if (sourceKey === 'change') {
+            const items = data.items || [];
+
+            if (sectionId === 'change') {
+              // Change Management Section (Tier 1)
+              // Append a summary of open change requests to the narrative.
+              const changes = items.filter(i => i.type === 'change');
+              const openChanges = changes.filter(c => c.status !== 'Implemented' && c.status !== 'Rejected').length;
+
+              const narrativeUpdate = `<p><strong>Integration Update (${new Date().toLocaleDateString()}):</strong> There are currently ${openChanges} open change requests in the register.</p>`;
+              // Only append if not already present to avoid duplication on repeated pulls (simple check)
+              if (!sec.narrative || !sec.narrative.includes('Integration Update')) {
+                sec.narrative = (sec.narrative || '') + narrativeUpdate;
+              }
+            }
+
+            if (sectionId === 'issues') {
+              // Issue Log Section (Tier 2)
+              // Format open issues as an HTML table
+              const issues = items.filter(i => i.type === 'issue');
+              const openIssues = issues.filter(i => i.status !== 'Resolved' && i.status !== 'Closed');
+
+              let html = '<h3>Open Issues from Register</h3>';
+              if (openIssues.length === 0) {
+                html += '<p>No open issues found.</p>';
+              } else {
+                html += '<table class="data-table" style="font-size:12px; margin-top:10px; width:100%; border-collapse: collapse;">';
+                html += '<thead><tr style="background:var(--bg-secondary); text-align:left;"><th style="padding:8px; border:1px solid var(--border-primary);">ID</th><th style="padding:8px; border:1px solid var(--border-primary);">Title</th><th style="padding:8px; border:1px solid var(--border-primary);">Priority</th><th style="padding:8px; border:1px solid var(--border-primary);">Status</th><th style="padding:8px; border:1px solid var(--border-primary);">Owner</th></tr></thead><tbody>';
+                openIssues.forEach(i => {
+                  html += `<tr><td style="padding:8px; border:1px solid var(--border-primary);">${i.id || ''}</td><td style="padding:8px; border:1px solid var(--border-primary);">${i.title || ''}</td><td style="padding:8px; border:1px solid var(--border-primary);">${i.priority || ''}</td><td style="padding:8px; border:1px solid var(--border-primary);">${i.status || ''}</td><td style="padding:8px; border:1px solid var(--border-primary);">${i.owner || ''}</td></tr>`;
+                });
+                html += '</tbody></table>';
+              }
+              sec.narrative = html; // Replace narrative with the issue list for this section
+            }
+          }
+
+          // EVM Dashboard integration
+          if (sourceKey === 'evm') {
+            const sym = data.sym || '£';
+            const fmt = (v) => v != null ? sym + Number(v).toLocaleString('en-GB', { maximumFractionDigits: 0 }) : '—';
+
+            if (sectionId === 'evm') {
+              sec.fields = {
+                ...sec.fields,
+                evm: {
+                  cpi: data.CPI != null ? data.CPI.toFixed(2) : '—',
+                  spi: data.SPI != null ? data.SPI.toFixed(2) : '—',
+                  tcpi: data.TCPI != null ? data.TCPI.toFixed(2) : '—',
+                  cv: fmt(data.CV),
+                  sv: fmt(data.SV),
+                  bac: fmt(data.BAC),
+                  ev: fmt(data.EV),
+                  ac: fmt(data.AC),
+                  pv: fmt(data.PV),
+                  eac: fmt(data.EAC),
+                  etc: fmt(data.ETC),
+                  vac: fmt(data.VAC)
+                },
+                schedule: {
+                  elapsed: data.scheduleElapsed || 0,
+                  total: data.criticalPathLength || 0,
+                  pct: data.schedulePct || 0
+                }
+              };
+
+              // Auto-generate status narrative if empty or update
+              const status = (data.CPI >= 1 && data.SPI >= 1) ? 'ahead of schedule and under budget' :
+                (data.CPI < 1 && data.SPI < 1) ? 'behind schedule and over budget' :
+                  (data.CPI < 1) ? 'over budget' : 'behind schedule';
+
+              const narrativeUpdate = `<p><strong>EVM Status Update (${new Date().toLocaleDateString()}):</strong> Project is currently running ${status}.<br>CPI: ${data.CPI?.toFixed(2)} | SPI: ${data.SPI?.toFixed(2)}<br>Estimate at Completion is ${fmt(data.EAC)} against a Budget at Completion of ${fmt(data.BAC)}.</p>`;
+
+              if (!sec.narrative || !sec.narrative.includes('EVM Status Update')) {
+                sec.narrative = narrativeUpdate + (sec.narrative || '');
+              }
+            }
+          }
+
+          // Quality Register integration
+          if (sourceKey === 'quality') {
+            if (sectionId === 'quality') {
+              const openDefects = (data.defects || []).filter(d => d.status !== 'Closed').length;
+              const criticalDefects = (data.defects || []).filter(d => d.severity === 'Critical' && d.status !== 'Closed').length;
+
+              sec.fields = {
+                ...sec.fields,
+                metrics: { openDefects, criticalDefects },
+                standards: (data.criteria || []).map(c => `${c.category}: ${c.description} (${c.method})`),
+                defects: (data.defects || []).filter(d => d.status !== 'Closed').map(d => `[${d.severity}] ${d.description} (${d.status})`)
+              };
+
+              // Auto-narrative
+              if (!sec.narrative || !sec.narrative.includes('Quality Status Update')) {
+                const status = criticalDefects > 0 ? 'AT RISK' : openDefects > 5 ? 'NEEDS ATTENTION' : 'ON TRACK';
+                sec.narrative = `<p><strong>Quality Status Update (${new Date().toLocaleDateString()}): ${status}</strong><br>There are currently ${openDefects} open defects (${criticalDefects} critical). ${data.approvals?.length || 0} deliverables have been formally accepted.</p>` + (sec.narrative || '');
+              }
+            }
+          }
+
+          // Integrated Analysis integration
+          if (sourceKey === 'analysis') {
+            if (sectionId === 'quantitativeAnalysis') {
+              const lastRun = data.lastRun || {};
+              const det = lastRun.deterministic || {};
+              sec.fields = {
+                ...sec.fields,
+                lastRun: {
+                  timestamp: lastRun.timestamp,
+                  iterations: lastRun.iterations,
+                  scheduleP50: lastRun.scheduleP50,
+                  scheduleP80: lastRun.scheduleP80,
+                  scheduleP90: lastRun.scheduleP90,
+                  costP50: lastRun.costP50,
+                  costP80: lastRun.costP80,
+                  costP90: lastRun.costP90,
+                  deterministicSchedule: det.scheduleDays,
+                  deterministicCost: det.totalCost
+                }
+              };
+
+              // Auto-narrative
+              if (lastRun.timestamp) {
+                const schedContingency = lastRun.scheduleP80 && det.scheduleDays ? Math.round(lastRun.scheduleP80 - det.scheduleDays) : null;
+                const costContingency = lastRun.costP80 && det.totalCost ? Math.round(lastRun.costP80 - det.totalCost) : null;
+                const narrativeUpdate = `<p><strong>Quantitative Analysis Update (${new Date(lastRun.timestamp).toLocaleDateString()}):</strong><br>Monte Carlo simulation (${(lastRun.iterations || 0).toLocaleString()} iterations) produced P80 schedule of ${Math.round(lastRun.scheduleP80 || 0)} days${schedContingency ? ' (+' + schedContingency + ' day contingency)' : ''} and P80 cost of £${Math.round(lastRun.costP80 || 0).toLocaleString()}${costContingency ? ' (+£' + costContingency.toLocaleString() + ' contingency)' : ''}.</p>`;
+                if (!sec.narrative || !sec.narrative.includes('Quantitative Analysis Update')) {
+                  sec.narrative = narrativeUpdate + (sec.narrative || '');
+                }
+              }
+            }
+          }
+
+          // Estimator integration
+          if (sourceKey === 'estimator') {
+            if (sectionId === 'procurement') {
+              // Inline helpers (same logic as Estimator app)
+              function resolveZones(dims) {
+                const zones = (dims && dims.zones) || [];
+                // Legacy flat format fallback
+                if (zones.length === 0 && dims && dims.length !== undefined) {
+                  const l=parseFloat(dims.length)||0, w=parseFloat(dims.width)||0, h=parseFloat(dims.height)||0;
+                  return { floorArea:l*w, wallArea:2*(l+w)*h, ceilingArea:l*w, perimeter:2*(l+w), volume:l*w*h, length:l, width:w, height:h };
+                }
+                let floorArea=0, wallArea=0, perimeter=0, volume=0, totalLength=0, totalWidth=0, totalHeight=0;
+                zones.forEach(z => { const l=parseFloat(z.length)||0, w=parseFloat(z.width)||0, h=parseFloat(z.height)||0; floorArea+=l*w; wallArea+=2*(l+w)*h; perimeter+=2*(l+w); volume+=l*w*h; totalLength+=l; totalWidth+=w; totalHeight=Math.max(totalHeight,h); });
+                return { floorArea, wallArea, ceilingArea:floorArea, perimeter, volume, length:totalLength, width:totalWidth, height:totalHeight };
+              }
+              function resolveDim(dims, src, manualQty) {
+                if (src === 'custom') return parseFloat(manualQty)||0;
+                const r = resolveZones(dims);
+                return r[src]||0;
+              }
+              function calcMatCost(dims, mat) {
+                const dim = resolveDim(dims, mat.dimensionSource, mat.manualQty);
+                const rate = parseFloat(mat.coverageRate)||0;
+                const baseQty = mat.dimensionSource==='custom' ? dim : (rate>0 ? dim/rate : 0);
+                const wasteQty = baseQty * (1 + (parseFloat(mat.wastage)||0)/100);
+                const ps = parseFloat(mat.packSize)||0, pp = parseFloat(mat.packPrice)||0, ur = parseFloat(mat.unitRate)||0;
+                if(ps>0) return Math.ceil(wasteQty/ps)*pp;
+                return wasteQty*ur;
+              }
+
+              const cats = data.categories || [];
+              const sym = (data.meta && data.meta.currencySymbol) || '£';
+              const fmt = (v) => sym + Number(v).toLocaleString('en-GB', { maximumFractionDigits: 2 });
+
+              const procurementItems = cats.map(cat => {
+                const catTotal = (cat.materials || []).reduce((s, mat) => s + calcMatCost(cat.dimensions || {}, mat), 0);
+                return {
+                  description: cat.name || 'Unnamed Category',
+                  estimatedCost: fmt(catTotal),
+                  estimatedCostRaw: catTotal,
+                  materialCount: (cat.materials || []).length,
+                  supplier: 'From Estimator',
+                  status: 'Identified'
+                };
+              });
+
+              const grandTotal = procurementItems.reduce((s, p) => s + (p.estimatedCostRaw || 0), 0);
+
+              sec.fields = {
+                ...sec.fields,
+                procurementItems,
+                estimatorTotal: fmt(grandTotal),
+                estimatorTotalRaw: grandTotal,
+                estimatorProjectName: (data.meta && data.meta.name) || '',
+                estimatorCurrencySymbol: sym
+              };
+
+              // Auto-narrative
+              if (!sec.narrative || !sec.narrative.includes('Estimator Update')) {
+                const narrativeUpdate = `<p><strong>Estimator Update (${new Date().toLocaleDateString()}):</strong> ${cats.length} material categor${cats.length === 1 ? 'y' : 'ies'} pulled from the Estimator with a grand total of ${fmt(grandTotal)}.</p>`;
+                sec.narrative = narrativeUpdate + (sec.narrative || '');
+              }
+            }
+          }
+
+          return { ...prev, meta: { ...prev.meta, modified: now }, sections: { ...prev.sections, [sectionId]: sec } };
+        });
+      } catch (e) { console.error('Integration pull failed:', e); }
+    };
+
+    // --- Individual Section Editors ---
+
+    const OverviewEditor = ({ state, setState }) => {
+      const { fields, setField, setNarrative, section } = useSection('overview', state, setState);
+      return (
+        <SectionWrapper sectionId="overview" state={state} setState={setState}>
+          <div className="form-row">
+            <div className="form-group"><label className="form-label">Project Name</label><input className="input-refined" value={fields.projectName || ''} onChange={e => setField('projectName', e.target.value)} placeholder="Enter project name" /></div>
+            <div className="form-group"><label className="form-label">Project Manager</label><input className="input-refined" value={fields.projectManager || ''} onChange={e => setField('projectManager', e.target.value)} placeholder="PM name" /></div>
+          </div>
+          <div className="form-row">
+            <div className="form-group"><label className="form-label">Sponsor</label><input className="input-refined" value={fields.sponsor || ''} onChange={e => setField('sponsor', e.target.value)} placeholder="Sponsor name" /></div>
+            <div className="form-group"><label className="form-label">Methodology</label>
+              <select className="select-refined" style={{ width: '100%' }} value={fields.methodology || ''} onChange={e => setField('methodology', e.target.value)}>
+                <option value="">Select...</option>
+                {METHODOLOGIES.map(m => <option key={m} value={m}>{m}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="form-row">
+            <div className="form-group"><label className="form-label">Start Date</label><input className="input-refined" type="date" value={fields.startDate || ''} onChange={e => setField('startDate', e.target.value)} /></div>
+            <div className="form-group"><label className="form-label">End Date</label><input className="input-refined" type="date" value={fields.endDate || ''} onChange={e => setField('endDate', e.target.value)} /></div>
+          </div>
+          <div className="form-group"><label className="form-label">Project Description</label>
+            <textarea className="textarea-refined" value={fields.projectDescription || ''} onChange={e => setField('projectDescription', e.target.value)} placeholder="Brief description of the project..." rows={3} />
+          </div>
+          <div className="form-group"><label className="form-label">Objectives</label>
+            <ListEditor items={fields.objectives || []} onChange={v => setField('objectives', v)} placeholder="Project objective" />
+          </div>
+          <div className="form-group"><label className="form-label">Business Justification</label>
+            <RichTextEditor value={section.narrative} onChange={setNarrative} placeholder="Describe the business case and justification for this project..." />
+          </div>
+        </SectionWrapper>
+      );
+    };
+
+    const ScopeEditor = ({ state, setState }) => {
+      const { fields, setField, setNarrative, section } = useSection('scope', state, setState);
+      return (
+        <SectionWrapper sectionId="scope" state={state} setState={setState}>
+          <div className="form-group"><label className="form-label">In-Scope Items</label>
+            <ListEditor items={fields.inScope || []} onChange={v => setField('inScope', v)} placeholder="Scope item" />
+          </div>
+          <div className="form-group"><label className="form-label">Out-of-Scope Items</label>
+            <ListEditor items={fields.outOfScope || []} onChange={v => setField('outOfScope', v)} placeholder="Exclusion" />
+          </div>
+          <div className="form-group"><label className="form-label">Deliverables</label>
+            <ListEditor items={fields.deliverables || []} onChange={v => setField('deliverables', v)} placeholder="Deliverable" />
+          </div>
+          <div className="form-group"><label className="form-label">Assumptions</label>
+            <ListEditor items={fields.assumptions || []} onChange={v => setField('assumptions', v)} placeholder="Assumption" />
+          </div>
+          <div className="form-group"><label className="form-label">Constraints</label>
+            <ListEditor items={fields.constraints || []} onChange={v => setField('constraints', v)} placeholder="Constraint" />
+          </div>
+          <div className="form-group"><label className="form-label">Acceptance Criteria</label>
+            <RichTextEditor value={section.narrative} onChange={setNarrative} placeholder="Describe the acceptance criteria for scope deliverables..." />
+          </div>
+        </SectionWrapper>
+      );
+    };
+
+    const ScheduleEditor = ({ state, setState }) => {
+      const { fields, setField, setNarrative, section } = useSection('schedule', state, setState);
+      const milestones = fields.milestones || [];
+      const updateMilestone = (i, k, v) => { const n = [...milestones]; n[i] = { ...n[i], [k]: v }; setField('milestones', n); };
+      return (
+        <SectionWrapper sectionId="schedule" state={state} setState={setState}>
+          <div className="form-group"><label className="form-label">Key Milestones</label>
+            <DataTable
+              columns={[
+                { key: 'name', label: 'Milestone', placeholder: 'Milestone name' },
+                { key: 'date', label: 'Target Date', placeholder: 'YYYY-MM-DD' },
+                { key: 'status', label: 'Status', type: 'select', options: ['Pending', 'In Progress', 'Complete', 'At Risk'], width: '120px' },
+              ]}
+              rows={milestones}
+              onChange={(i, k, v) => updateMilestone(i, k, v)}
+              onAdd={() => setField('milestones', [...milestones, { name: '', date: '', status: 'Pending' }])}
+              onRemove={i => setField('milestones', milestones.filter((_, j) => j !== i))}
+            />
+          </div>
+          <div className="form-group"><label className="form-label">Schedule Narrative</label>
+            <RichTextEditor value={section.narrative} onChange={setNarrative} placeholder="Describe the scheduling approach, critical path, and key dependencies..." />
+          </div>
+        </SectionWrapper>
+      );
+    };
+
+    const BudgetEditor = ({ state, setState }) => {
+      const { fields, setField, setNarrative, section } = useSection('budget', state, setState);
+      const lines = fields.budgetLines || [];
+      const updateLine = (i, k, v) => { const n = [...lines]; n[i] = { ...n[i], [k]: v }; setField('budgetLines', n); };
+      const total = lines.reduce((s, l) => s + (parseFloat(l.amount) || 0), 0);
+      const hasCostData = !!fields.costBAC;
+      return (
+        <SectionWrapper sectionId="budget" state={state} setState={setState}>
+          {hasCostData && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, marginBottom: 20, padding: 16, background: 'var(--bg-secondary)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-secondary)' }}>
+              {[
+                { label: 'BAC (Cost Estimate)', value: fields.costBAC },
+                { label: 'Actual Cost', value: fields.costAC },
+                { label: 'EAC', value: fields.costEAC },
+                { label: 'CPI', value: fields.costCPI },
+                { label: 'Contingency Used', value: fields.costContingencyUsed },
+                { label: 'Contingency Remaining', value: fields.costContingencyRemaining },
+              ].map(m => (
+                <div key={m.label} style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>{m.label}</div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)' }}>{m.value || '—'}</div>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="form-row">
+            <div className="form-group"><label className="form-label">Total Budget</label><input className="input-refined" value={fields.totalBudget || ''} onChange={e => setField('totalBudget', e.target.value)} placeholder="e.g. £250,000" /></div>
+            <div className="form-group"><label className="form-label">Contingency / Reserves</label><input className="input-refined" value={fields.contingency || ''} onChange={e => setField('contingency', e.target.value)} placeholder="e.g. £25,000 (10%)" /></div>
+          </div>
+          <div className="form-group"><label className="form-label">Cost Breakdown</label>
+            <DataTable
+              columns={[
+                { key: 'category', label: 'Category', placeholder: 'e.g. Labour' },
+                { key: 'description', label: 'Description', placeholder: 'Details' },
+                { key: 'amount', label: 'Planned (£)', placeholder: '0', width: '120px' },
+                ...(lines.some(l => l.actual) ? [{ key: 'actual', label: 'Actual (£)', placeholder: '0', width: '120px' }] : []),
+              ]}
+              rows={lines}
+              onChange={(i, k, v) => updateLine(i, k, v)}
+              onAdd={() => setField('budgetLines', [...lines, { category: '', description: '', amount: '', actual: '' }])}
+              onRemove={i => setField('budgetLines', lines.filter((_, j) => j !== i))}
+            />
+            {lines.length > 0 && <div style={{ textAlign: 'right', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginTop: 8 }}>Total Planned: £{total.toLocaleString()}</div>}
+          </div>
+          <div className="form-group"><label className="form-label">Budget Notes</label>
+            <RichTextEditor value={section.narrative} onChange={setNarrative} placeholder="Describe the budgeting approach, assumptions, and funding schedule..." />
+          </div>
+        </SectionWrapper>
+      );
+    };
+
+    const CostBaseEditor = ({ state, setState }) => {
+      const { fields, setField, setNarrative, section } = useSection('costBase', state, setState);
+      const tp = fields.timePhased || [];
+      const updateTP = (i, k, v) => { const n = [...tp]; n[i] = { ...n[i], [k]: v }; setField('timePhased', n); };
+      const baselines = fields.baselines || [];
+      return (
+        <SectionWrapper sectionId="costBase" state={state} setState={setState}>
+          {fields.costEstimate && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 10, marginBottom: 20, padding: 16, background: 'var(--bg-secondary)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-secondary)' }}>
+              {[
+                { label: 'Cost Estimate', value: fields.costEstimate },
+                { label: 'Contingency Reserve', value: fields.contingencyReserve },
+                { label: 'Cost Baseline', value: fields.costBaseline },
+                { label: 'Management Reserve', value: fields.managementReserve },
+                { label: 'Total Budget', value: fields.totalBudget },
+              ].map(m => (
+                <div key={m.label} style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>{m.label}</div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)' }}>{m.value || '—'}</div>
+                </div>
+              ))}
+            </div>
+          )}
+          {fields.varianceSummary && (
+            <div style={{ padding: '10px 14px', marginBottom: 16, background: 'var(--accent-light)', borderRadius: 'var(--radius-md)', fontSize: 13, color: 'var(--text-primary)' }}>
+              <strong>Variance Summary:</strong> {fields.varianceSummary}
+            </div>
+          )}
+          {tp.length > 0 && (
+            <div className="form-group"><label className="form-label">Time-Phased Budget</label>
+              <DataTable
+                columns={[
+                  { key: 'period', label: 'Period', placeholder: 'Month' },
+                  { key: 'planned', label: 'Planned Value', placeholder: '£0' },
+                  { key: 'actual', label: 'Actual Cost', placeholder: '£0' },
+                  { key: 'earned', label: 'Earned Value', placeholder: '£0' },
+                ]}
+                rows={tp}
+                onChange={(i, k, v) => updateTP(i, k, v)}
+                onAdd={() => setField('timePhased', [...tp, { period: '', planned: '', actual: '', earned: '' }])}
+                onRemove={i => setField('timePhased', tp.filter((_, j) => j !== i))}
+              />
+            </div>
+          )}
+          {baselines.length > 0 && (
+            <div className="form-group"><label className="form-label">Baseline Snapshots</label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {baselines.map((b, i) => (
+                  <div key={i} style={{ display: 'flex', gap: 12, padding: '8px 12px', background: 'var(--bg-card)', border: '1px solid var(--border-secondary)', borderRadius: 'var(--radius-md)', fontSize: 13 }}>
+                    <span style={{ fontWeight: 600 }}>{b.name}</span>
+                    <span style={{ color: 'var(--text-muted)' }}>{b.date}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          <div className="form-group"><label className="form-label">Cost Baseline Notes</label>
+            <RichTextEditor value={section.narrative} onChange={setNarrative} placeholder="Describe the cost baseline, funding requirements, and performance measurement approach..." />
+          </div>
+        </SectionWrapper>
+      );
+    };
+
+    const TeamEditor = ({ state, setState }) => {
+      const { fields, setField, setNarrative, section } = useSection('team', state, setState);
+      const members = fields.teamMembers || [];
+      const updateMember = (i, k, v) => { const n = [...members]; n[i] = { ...n[i], [k]: v }; setField('teamMembers', n); };
+      return (
+        <SectionWrapper sectionId="team" state={state} setState={setState}>
+          <div className="form-group"><label className="form-label">Team Members & Roles</label>
+            <DataTable
+              columns={[
+                { key: 'name', label: 'Name', placeholder: 'Team member' },
+                { key: 'role', label: 'Role', placeholder: 'e.g. Lead Developer' },
+                { key: 'responsibility', label: 'Key Responsibility', placeholder: 'Primary responsibility' },
+                { key: 'allocation', label: '%', placeholder: '100', width: '60px' },
+              ]}
+              rows={members}
+              onChange={(i, k, v) => updateMember(i, k, v)}
+              onAdd={() => setField('teamMembers', [...members, { name: '', role: '', responsibility: '', allocation: '' }])}
+              onRemove={i => setField('teamMembers', members.filter((_, j) => j !== i))}
+            />
+          </div>
+          <div className="form-group"><label className="form-label">Organisation & Governance</label>
+            <RichTextEditor value={section.narrative} onChange={setNarrative} placeholder="Describe the team structure, reporting lines, governance framework, and escalation paths..." />
+          </div>
+        </SectionWrapper>
+      );
+    };
+
+    const RiskEditor = ({ state, setState }) => {
+      const { fields, setField, setNarrative, section } = useSection('risk', state, setState);
+      const risks = fields.risks || [];
+      const updateRisk = (i, k, v) => { const n = [...risks]; n[i] = { ...n[i], [k]: v }; setField('risks', n); };
+      return (
+        <SectionWrapper sectionId="risk" state={state} setState={setState}>
+          <div className="form-group"><label className="form-label">Top Risks</label>
+            <DataTable
+              columns={[
+                { key: 'name', label: 'Risk', placeholder: 'Risk description' },
+                { key: 'probability', label: 'Prob', placeholder: 'H/M/L', width: '70px' },
+                { key: 'impact', label: 'Impact', placeholder: 'H/M/L', width: '70px' },
+                { key: 'response', label: 'Response Strategy', placeholder: 'Mitigate, Avoid...' },
+                { key: 'owner', label: 'Owner', placeholder: 'Name', width: '100px' },
+              ]}
+              rows={risks}
+              onChange={(i, k, v) => updateRisk(i, k, v)}
+              onAdd={() => setField('risks', [...risks, { name: '', probability: '', impact: '', response: '', owner: '' }])}
+              onRemove={i => setField('risks', risks.filter((_, j) => j !== i))}
+            />
+          </div>
+          <div className="form-group"><label className="form-label">Risk Management Approach</label>
+            <RichTextEditor value={section.narrative} onChange={setNarrative} placeholder="Describe the risk management approach, assessment methodology, and monitoring process..." />
+          </div>
+        </SectionWrapper>
+      );
+    };
+
+    const CommsEditor = ({ state, setState }) => {
+      const { fields, setField, setNarrative, section } = useSection('comms', state, setState);
+      const items = fields.commItems || [];
+      const updateItem = (i, k, v) => { const n = [...items]; n[i] = { ...n[i], [k]: v }; setField('commItems', n); };
+      return (
+        <SectionWrapper sectionId="comms" state={state} setState={setState}>
+          <div className="form-group"><label className="form-label">Communication Schedule</label>
+            <DataTable
+              columns={[
+                { key: 'what', label: 'Communication', placeholder: 'e.g. Status Report' },
+                { key: 'audience', label: 'Audience', placeholder: 'Stakeholder group' },
+                { key: 'frequency', label: 'Frequency', type: 'select', options: ['Daily', 'Weekly', 'Fortnightly', 'Monthly', 'Quarterly', 'Ad Hoc'], width: '110px' },
+                { key: 'owner', label: 'Owner', placeholder: 'Name', width: '100px' },
+                { key: 'method', label: 'Method', placeholder: 'Email, Meeting...', width: '100px' },
+              ]}
+              rows={items}
+              onChange={(i, k, v) => updateItem(i, k, v)}
+              onAdd={() => setField('commItems', [...items, { what: '', audience: '', frequency: '', owner: '', method: '' }])}
+              onRemove={i => setField('commItems', items.filter((_, j) => j !== i))}
+            />
+          </div>
+          <div className="form-group"><label className="form-label">Escalation Procedures</label>
+            <RichTextEditor value={section.narrative} onChange={setNarrative} placeholder="Describe escalation paths, decision-making authority, and communication protocols..." />
+          </div>
+        </SectionWrapper>
+      );
+    };
+
+    const StakeholderEditor = ({ state, setState }) => {
+      const { fields, setField, setNarrative, section } = useSection('stakeholders', state, setState);
+      const items = fields.stakeholders || [];
+      const updateItem = (i, k, v) => { const n = [...items]; n[i] = { ...n[i], [k]: v }; setField('stakeholders', n); };
+      return (
+        <SectionWrapper sectionId="stakeholders" state={state} setState={setState}>
+          <div className="form-group"><label className="form-label">Stakeholder Register</label>
+            <DataTable
+              columns={[
+                { key: 'name', label: 'Stakeholder', placeholder: 'Name / Group' },
+                { key: 'role', label: 'Role', placeholder: 'Title / Function' },
+                { key: 'interest', label: 'Interest', type: 'select', options: ['High', 'Medium', 'Low'], width: '85px' },
+                { key: 'influence', label: 'Influence', type: 'select', options: ['High', 'Medium', 'Low'], width: '85px' },
+                { key: 'strategy', label: 'Engagement Strategy', placeholder: 'Manage closely...' },
+              ]}
+              rows={items}
+              onChange={(i, k, v) => updateItem(i, k, v)}
+              onAdd={() => setField('stakeholders', [...items, { name: '', role: '', interest: '', influence: '', strategy: '' }])}
+              onRemove={i => setField('stakeholders', items.filter((_, j) => j !== i))}
+            />
+          </div>
+          <div className="form-group"><label className="form-label">Engagement Approach</label>
+            <RichTextEditor value={section.narrative} onChange={setNarrative} placeholder="Describe the overall stakeholder engagement approach and conflict resolution process..." />
+          </div>
+        </SectionWrapper>
+      );
+    };
+
+    const ChangeEditor = ({ state, setState }) => {
+      const { fields, setField, setNarrative, section } = useSection('change', state, setState);
+      return (
+        <SectionWrapper sectionId="change" state={state} setState={setState}>
+          <div className="form-group"><label className="form-label">Change Authority Levels</label>
+            <DataTable
+              columns={[
+                { key: 'level', label: 'Change Type', placeholder: 'e.g. Minor scope change' },
+                { key: 'approver', label: 'Approval Authority', placeholder: 'PM / Steering Committee' },
+                { key: 'threshold', label: 'Threshold', placeholder: 'e.g. < £5,000' },
+              ]}
+              rows={fields.authorities || []}
+              onChange={(i, k, v) => { const n = [...(fields.authorities || [])]; n[i] = { ...n[i], [k]: v }; setField('authorities', n); }}
+              onAdd={() => setField('authorities', [...(fields.authorities || []), { level: '', approver: '', threshold: '' }])}
+              onRemove={i => setField('authorities', (fields.authorities || []).filter((_, j) => j !== i))}
+            />
+          </div>
+          <div className="form-group"><label className="form-label">Change Management Process</label>
+            <RichTextEditor value={section.narrative} onChange={setNarrative} placeholder="Describe the change request process: submission, evaluation, approval, and communication..." />
+          </div>
+        </SectionWrapper>
+      );
+    };
+
+    const SuccessEditor = ({ state, setState }) => {
+      const { fields, setField, setNarrative, section } = useSection('success', state, setState);
+      return (
+        <SectionWrapper sectionId="success" state={state} setState={setState}>
+          <div className="form-group"><label className="form-label">Key Performance Indicators</label>
+            <DataTable
+              columns={[
+                { key: 'kpi', label: 'KPI', placeholder: 'e.g. On-time delivery' },
+                { key: 'target', label: 'Target', placeholder: 'e.g. 95%' },
+                { key: 'measurement', label: 'How Measured', placeholder: 'Method of measurement' },
+                { key: 'frequency', label: 'Frequency', type: 'select', options: ['Weekly', 'Monthly', 'Quarterly', 'At Closure'], width: '100px' },
+              ]}
+              rows={fields.kpis || []}
+              onChange={(i, k, v) => { const n = [...(fields.kpis || [])]; n[i] = { ...n[i], [k]: v }; setField('kpis', n); }}
+              onAdd={() => setField('kpis', [...(fields.kpis || []), { kpi: '', target: '', measurement: '', frequency: '' }])}
+              onRemove={i => setField('kpis', (fields.kpis || []).filter((_, j) => j !== i))}
+            />
+          </div>
+          <div className="form-group"><label className="form-label">Success Criteria</label>
+            <ListEditor items={fields.criteria || []} onChange={v => setField('criteria', v)} placeholder="Measurable success criterion" />
+          </div>
+          <div className="form-group"><label className="form-label">Additional Notes</label>
+            <RichTextEditor value={section.narrative} onChange={setNarrative} placeholder="Describe how success will be measured and reported..." />
+          </div>
+        </SectionWrapper>
+      );
+    };
+
+    // Generic editor for Tier 2 and Tier 3 sections (narrative + notes only)
+    const GenericEditor = ({ sectionId, state, setState }) => {
+      const { section, setNarrative } = useSection(sectionId, state, setState);
+      return (
+        <SectionWrapper sectionId={sectionId} state={state} setState={setState}>
+          <div className="form-group">
+            <RichTextEditor value={section.narrative} onChange={setNarrative} placeholder={`Describe the ${SECTION_DEFS[sectionId].name.toLowerCase()} approach, methods, and key details...`} />
+          </div>
+        </SectionWrapper>
+      );
+    };
+
+    const EvmEditor = ({ state, setState }) => {
+      const { fields, setField, setNarrative, section } = useSection('evm', state, setState);
+      const evm = fields.evm || {};
+
+      const MetricCard = ({ label, value, sub }) => (
+        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-secondary)', borderRadius: 'var(--radius-md)', padding: '12px', textAlign: 'center' }}>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>{label}</div>
+          <div style={{ fontSize: 18, fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--text-primary)' }}>{value || '—'}</div>
+          {sub && <div style={{ fontSize: 10, color: 'var(--text-faint)', marginTop: 2 }}>{sub}</div>}
+        </div>
+      );
+
+      return (
+        <SectionWrapper sectionId="evm" state={state} setState={setState}>
+          {fields.evm ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: 12, marginBottom: 20, background: 'var(--bg-secondary)', padding: 16, borderRadius: 'var(--radius-lg)' }}>
+              <MetricCard label="CPI" value={evm.cpi} sub="Cost Perf." />
+              <MetricCard label="SPI" value={evm.spi} sub="Sched. Perf." />
+              <MetricCard label="CV" value={evm.cv} sub="Cost Var." />
+              <MetricCard label="SV" value={evm.sv} sub="Sched. Var." />
+              <MetricCard label="EAC" value={evm.eac} sub="Est. at Comp." />
+              <MetricCard label="VAC" value={evm.vac} sub="Var. at Comp." />
+              <MetricCard label="TCPI" value={evm.tcpi} sub="To Complete" />
+            </div>
+          ) : (
+            <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontStyle: 'italic', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-lg)', marginBottom: 20 }}>
+              Connect EVM Dashboard to see live metrics.
+            </div>
+          )}
+
+          <div className="form-group"><label className="form-label">Performance Analysis</label>
+            <RichTextEditor value={section.narrative} onChange={setNarrative} placeholder="Provide analysis of the current EVM metrics, root causes of variances, and corrective actions..." />
+          </div>
+        </SectionWrapper>
+      );
+    };
+
+    const QualityEditor = ({ state, setState }) => {
+      const { fields, setField, setNarrative, section } = useSection('quality', state, setState);
+
+      return (
+        <SectionWrapper sectionId="quality" state={state} setState={setState}>
+          {fields.metrics && (
+            <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
+              <div className="card" style={{ padding: 12, flex: 1, textAlign: 'center', background: fields.metrics.criticalDefects > 0 ? '#fee2e2' : 'var(--bg-secondary)' }}>
+                <div style={{ fontSize: 24, fontWeight: 'bold', color: fields.metrics.criticalDefects > 0 ? '#dc2626' : 'inherit' }}>{fields.metrics.criticalDefects}</div>
+                <div style={{ fontSize: 11, textTransform: 'uppercase', color: 'var(--text-muted)' }}>Critical Defects</div>
+              </div>
+              <div className="card" style={{ padding: 12, flex: 1, textAlign: 'center', background: 'var(--bg-secondary)' }}>
+                <div style={{ fontSize: 24, fontWeight: 'bold' }}>{fields.metrics.openDefects}</div>
+                <div style={{ fontSize: 11, textTransform: 'uppercase', color: 'var(--text-muted)' }}>Total Open Issues</div>
+              </div>
+            </div>
+          )}
+
+          <div className="form-group"><label className="form-label">Key Quality Standards</label>
+            <ListEditor items={fields.standards || []} onChange={v => setField('standards', v)} placeholder="Quality standard..." />
+          </div>
+
+          <div className="form-group"><label className="form-label">Open Defects Summary</label>
+            <ListEditor items={fields.defects || []} onChange={v => setField('defects', v)} placeholder="Defect description..." />
+          </div>
+
+          <div className="form-group"><label className="form-label">Quality Assurance Strategy</label>
+            <RichTextEditor value={section.narrative} onChange={setNarrative} placeholder="Describe quality assurance activities, tools, and techniques..." />
+          </div>
+        </SectionWrapper>
+      );
+    };
+
+    const QuantitativeAnalysisEditor = ({ state, setState }) => {
+      const { fields, setField, setNarrative, section } = useSection('quantitativeAnalysis', state, setState);
+      const lr = fields.lastRun || {};
+      const fmt = (v) => v != null ? '£' + Number(v).toLocaleString('en-GB', { maximumFractionDigits: 0 }) : '—';
+
+      const MetricCard = ({ label, value, sub }) => (
+        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-secondary)', borderRadius: 'var(--radius-md)', padding: '12px', textAlign: 'center' }}>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>{label}</div>
+          <div style={{ fontSize: 18, fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--text-primary)' }}>{value || '—'}</div>
+          {sub && <div style={{ fontSize: 10, color: 'var(--text-faint)', marginTop: 2 }}>{sub}</div>}
+        </div>
+      );
+
+      return (
+        <SectionWrapper sectionId="quantitativeAnalysis" state={state} setState={setState}>
+          {lr.timestamp ? (
+            <>
+              <div style={{ fontSize: 11, color: 'var(--text-faint)', marginBottom: 12 }}>
+                Last simulation: {new Date(lr.timestamp).toLocaleString('en-GB')} — {(lr.iterations || 0).toLocaleString()} iterations
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 8 }}>Schedule Confidence</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: 12 }}>
+                  <MetricCard label="Deterministic" value={lr.deterministicSchedule != null ? lr.deterministicSchedule + 'd' : '—'} sub="Base Plan" />
+                  <MetricCard label="P50" value={lr.scheduleP50 != null ? Math.round(lr.scheduleP50) + 'd' : '—'} sub="Most Likely" />
+                  <MetricCard label="P80" value={lr.scheduleP80 != null ? Math.round(lr.scheduleP80) + 'd' : '—'} sub="Recommended" />
+                  <MetricCard label="P90" value={lr.scheduleP90 != null ? Math.round(lr.scheduleP90) + 'd' : '—'} sub="Conservative" />
+                </div>
+              </div>
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 8 }}>Cost Confidence</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: 12 }}>
+                  <MetricCard label="Deterministic" value={fmt(lr.deterministicCost)} sub="Base Budget" />
+                  <MetricCard label="P50" value={fmt(lr.costP50)} sub="Most Likely" />
+                  <MetricCard label="P80" value={fmt(lr.costP80)} sub="Recommended" />
+                  <MetricCard label="P90" value={fmt(lr.costP90)} sub="Conservative" />
+                </div>
+              </div>
+            </>
+          ) : (
+            <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontStyle: 'italic', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-lg)', marginBottom: 20 }}>
+              Connect Integrated Analysis to see Monte Carlo simulation results (P50/P80 schedule and cost confidence levels).
+            </div>
+          )}
+
+          <div className="form-group"><label className="form-label">Analysis Commentary</label>
+            <RichTextEditor value={section.narrative} onChange={setNarrative} placeholder="Provide commentary on the quantitative analysis results, contingency recommendations, and confidence levels..." />
+          </div>
+        </SectionWrapper>
+      );
+    };
+
+    const EstimatorProcurementEditor = ({ state, setState }) => {
+      const { fields, setField, setNarrative, section } = useSection('procurement', state, setState);
+      const items = fields.procurementItems || [];
+      const sym = fields.estimatorCurrencySymbol || '£';
+      const fmt = (v) => v != null ? sym + Number(v).toLocaleString('en-GB', { maximumFractionDigits: 2 }) : '—';
+
+      return (
+        <SectionWrapper sectionId="procurement" state={state} setState={setState}>
+          {items.length > 0 ? (
+            <>
+              {fields.estimatorProjectName && (
+                <div style={{ fontSize: 11, color: 'var(--text-faint)', marginBottom: 12 }}>
+                  Source: <strong>{fields.estimatorProjectName}</strong>
+                </div>
+              )}
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, marginBottom: 16 }}>
+                <thead>
+                  <tr style={{ background: 'var(--bg-secondary)', textAlign: 'left' }}>
+                    <th style={{ padding: '8px 10px', borderBottom: '2px solid var(--border-primary)', fontWeight: 600 }}>Category</th>
+                    <th style={{ padding: '8px 10px', borderBottom: '2px solid var(--border-primary)', fontWeight: 600, textAlign: 'center' }}>Materials</th>
+                    <th style={{ padding: '8px 10px', borderBottom: '2px solid var(--border-primary)', fontWeight: 600, textAlign: 'right' }}>Estimated Cost</th>
+                    <th style={{ padding: '8px 10px', borderBottom: '2px solid var(--border-primary)', fontWeight: 600 }}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.map((item, i) => (
+                    <tr key={i} style={{ borderBottom: '1px solid var(--border-primary)' }}>
+                      <td style={{ padding: '8px 10px' }}>{item.description}</td>
+                      <td style={{ padding: '8px 10px', textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: 12 }}>{item.materialCount}</td>
+                      <td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'var(--font-mono)', fontSize: 12 }}>{item.estimatedCost}</td>
+                      <td style={{ padding: '8px 10px' }}>
+                        <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 'var(--radius-full)', background: 'var(--accent-light)', color: 'var(--accent-primary)', fontWeight: 600 }}>{item.status}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr style={{ background: 'var(--bg-secondary)', fontWeight: 700 }}>
+                    <td style={{ padding: '8px 10px' }}>Grand Total</td>
+                    <td style={{ padding: '8px 10px', textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: 12 }}>{items.reduce((s, p) => s + (p.materialCount || 0), 0)}</td>
+                    <td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'var(--font-mono)', fontSize: 12 }}>{fields.estimatorTotal || '—'}</td>
+                    <td style={{ padding: '8px 10px' }}></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </>
+          ) : (
+            <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontStyle: 'italic', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-lg)', marginBottom: 20 }}>
+              Connect the Estimator to see material categories and procurement costs.
+            </div>
+          )}
+
+          <div className="form-group"><label className="form-label">Procurement Commentary</label>
+            <RichTextEditor value={section.narrative} onChange={setNarrative} placeholder="Describe procurement strategy, make-or-buy decisions, vendor selection criteria, and contract types..." />
+          </div>
+        </SectionWrapper>
+      );
+    };
+
+    // Section router
+    const SECTION_EDITORS = {
+      overview: OverviewEditor,
+      scope: ScopeEditor,
+      schedule: ScheduleEditor,
+      budget: BudgetEditor,
+      costBase: CostBaseEditor,
+      team: TeamEditor,
+      risk: RiskEditor,
+      comms: CommsEditor,
+      stakeholders: StakeholderEditor,
+      change: ChangeEditor,
+      success: SuccessEditor,
+      evm: EvmEditor,
+      quality: QualityEditor,
+      quantitativeAnalysis: QuantitativeAnalysisEditor,
+      procurement: EstimatorProcurementEditor,
+    };
+
+    const renderSection = (sectionId, state, setState) => {
+      const Editor = SECTION_EDITORS[sectionId] || GenericEditor;
+      if (Editor === GenericEditor) return <GenericEditor sectionId={sectionId} state={state} setState={setState} />;
+      return <Editor state={state} setState={setState} />;
+    };
+
+    // ============================================
+    // DASHBOARD
+    // ============================================
+    const Dashboard = ({ state, setState, onNavigate }) => {
+      const activeSections = getActiveSections(state);
+      const completed = activeSections.filter(id => state.sections[id]?.status === 'complete').length;
+      const drafts = activeSections.filter(id => state.sections[id]?.status === 'draft').length;
+      const empty = activeSections.filter(id => state.sections[id]?.status === 'empty').length;
+      const pct = activeSections.length > 0 ? Math.round((completed / activeSections.length) * 100) : 0;
+
+      // Check integrations
+      const integrationStatus = Object.entries(INTEGRATION_KEYS).map(([key, storageKey]) => {
+        let available = false;
+        try { available = !!localStorage.getItem(storageKey); } catch (e) { }
+        return { key, name: INTEGRATION_NAMES[key], available };
+      });
+
+      // Recent activity
+      const recentSections = activeSections
+        .filter(id => state.sections[id]?.lastModified)
+        .sort((a, b) => new Date(state.sections[b].lastModified) - new Date(state.sections[a].lastModified))
+        .slice(0, 5);
+
+      return (
+        <div style={{ animation: 'fadeIn 0.3s ease' }}>
+          <div style={{ marginBottom: 24 }}>
+            <h2 style={{ fontSize: 22, fontWeight: 700, margin: '0 0 4px' }}>{state.meta.name || 'Untitled Project'}</h2>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: 0 }}>
+              Plan Status: <span className={`plan-status-badge ${state.meta.status.toLowerCase().replace(' ', '-')}`}>{state.meta.status}</span>
+              {state.meta.modified && <span style={{ marginLeft: 12, fontSize: 11, color: 'var(--text-faint)' }}>Last modified: {new Date(state.meta.modified).toLocaleDateString('en-GB')}</span>}
+            </p>
+          </div>
+
+          {/* Stats */}
+          <div className="dashboard-grid">
+            <div className="stat-card">
+              <div className="stat-card-label">Plan Completeness</div>
+              <div className="stat-card-value">{pct}%</div>
+              <div className="completeness-bar"><div className="completeness-bar-fill" style={{ width: pct + '%' }} /></div>
+              <div className="stat-card-sub">{completed} of {activeSections.length} sections complete</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-card-label">Sections</div>
+              <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
+                <div><div style={{ fontSize: 24, fontWeight: 700, color: 'var(--success)' }}>{completed}</div><div style={{ fontSize: 11, color: 'var(--text-faint)' }}>Complete</div></div>
+                <div><div style={{ fontSize: 24, fontWeight: 700, color: 'var(--warning)' }}>{drafts}</div><div style={{ fontSize: 11, color: 'var(--text-faint)' }}>Draft</div></div>
+                <div><div style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-faint)' }}>{empty}</div><div style={{ fontSize: 11, color: 'var(--text-faint)' }}>Empty</div></div>
+              </div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-card-label">Integrations</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 8 }}>
+                {integrationStatus.map(i => (
+                  <div key={i.key} className="integration-card" style={{ padding: '6px 10px', border: 'none', background: 'transparent' }}>
+                    <div className={`integration-dot ${i.available ? 'available' : 'unavailable'}`} />
+                    <span style={{ fontSize: 12, color: i.available ? 'var(--text-primary)' : 'var(--text-faint)' }}>{i.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Section Status Grid */}
+          <div style={{ marginBottom: 24 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-secondary)', margin: '0 0 12px' }}>Sections</h3>
+            <div className="section-status-grid">
+              {activeSections.map(id => {
+                const def = SECTION_DEFS[id];
+                const sec = state.sections[id];
+                return (
+                  <div key={id} className="section-status-card" onClick={() => onNavigate(id)}>
+                    <div className={`sidebar-item-status ${sec?.status || 'empty'}`} />
+                    <Icon name={def.icon} size={14} />
+                    <span style={{ fontSize: 13, flex: 1 }}>{def.name}</span>
+                    <span style={{ fontSize: 10, color: 'var(--text-faint)', textTransform: 'uppercase' }}>{sec?.status || 'empty'}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Recent Activity */}
+          {recentSections.length > 0 && (
+            <div>
+              <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-secondary)', margin: '0 0 12px' }}>Recent Activity</h3>
+              {recentSections.map(id => (
+                <div key={id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid var(--border-secondary)', cursor: 'pointer' }} onClick={() => onNavigate(id)}>
+                  <Icon name={SECTION_DEFS[id].icon} size={14} />
+                  <span style={{ fontSize: 13, flex: 1 }}>{SECTION_DEFS[id].name}</span>
+                  <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>{new Date(state.sections[id].lastModified).toLocaleDateString('en-GB')}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    // ============================================
+    // PREVIEW MODE
+    // ============================================
+    const PreviewMode = ({ state, onNavigate }) => {
+      const activeSections = getActiveSections(state);
+      const filledSections = activeSections.filter(id => state.sections[id]?.status !== 'empty');
+
+      const renderFieldValue = (val) => {
+        if (Array.isArray(val)) return val.filter(v => v).map((v, i) => <li key={i}>{typeof v === 'object' ? JSON.stringify(v) : v}</li>);
+        return val;
+      };
+
+      return (
+        <div className="preview-mode">
+          <div className="preview-cover">
+            <h1>{state.meta.name || 'Untitled Project'}</h1>
+            <div className="subtitle">Project Management Plan</div>
+            <div className="meta">
+              {state.meta.author && <div>Author: {state.meta.author}</div>}
+              <div>Status: {state.meta.status} | Version: {state.meta.version}</div>
+              <div>Created: {new Date(state.meta.created).toLocaleDateString('en-GB')} | Last Modified: {new Date(state.meta.modified).toLocaleDateString('en-GB')}</div>
+            </div>
+          </div>
+
+          <div className="preview-toc">
+            <h2>Table of Contents</h2>
+            {filledSections.map((id, i) => (
+              <div key={id} className="preview-toc-item" onClick={() => onNavigate(id)}>
+                <span>{i + 1}. {SECTION_DEFS[id].name}</span>
+              </div>
+            ))}
+          </div>
+
+          {filledSections.map((id, i) => {
+            const def = SECTION_DEFS[id];
+            const sec = state.sections[id];
+            const fields = sec.fields || {};
+            return (
+              <div key={id} className="preview-section">
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <h2>{i + 1}. {def.name}</h2>
+                  <span className="preview-edit-link no-print" onClick={() => onNavigate(id)}>Edit</span>
+                </div>
+                {Object.entries(fields).map(([key, val]) => {
+                  if (!val || (Array.isArray(val) && val.length === 0)) return null;
+                  const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
+                  if (Array.isArray(val) && val.length > 0 && typeof val[0] === 'object') {
+                    const cols = Object.keys(val[0]);
+                    return (
+                      <div key={key} style={{ marginBottom: 16 }}>
+                        <div className="field-label">{label}</div>
+                        <table className="data-table" style={{ fontSize: 12 }}>
+                          <thead><tr>{cols.map(c => <th key={c}>{c.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())}</th>)}</tr></thead>
+                          <tbody>{val.map((row, ri) => <tr key={ri}>{cols.map(c => <td key={c}>{row[c]}</td>)}</tr>)}</tbody>
+                        </table>
+                      </div>
+                    );
+                  }
+                  return (
+                    <div key={key} style={{ marginBottom: 12 }}>
+                      <div className="field-label">{label}</div>
+                      <div className="field-value">
+                        {Array.isArray(val) ? <ul style={{ margin: 0, paddingLeft: 20 }}>{renderFieldValue(val)}</ul> : val}
+                      </div>
+                    </div>
+                  );
+                })}
+                {sec.narrative && <div className="field-value" dangerouslySetInnerHTML={{ __html: sec.narrative }} />}
+              </div>
+            );
+          })}
+        </div>
+      );
+    };
+
+    // ============================================
+    // EXPORT FUNCTIONS
+    // ============================================
+    const exportJSON = (state) => {
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${(state.meta.name || 'pmplan').replace(/\s+/g, '_')}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+
+    const importJSON = (file, setState) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (data.meta && data.sections) {
+            setState(data);
+          }
+        } catch (err) { alert('Invalid JSON file.'); }
+      };
+      reader.readAsText(file);
+    };
+
+    const saveVersion = (state) => {
+      try {
+        const versions = JSON.parse(localStorage.getItem(VERSIONS_KEY) || '[]');
+        const versionName = prompt('Version name:', `v${state.meta.version} — ${new Date().toLocaleDateString('en-GB')}`);
+        if (!versionName) return;
+        versions.push({ name: versionName, date: new Date().toISOString(), data: state });
+        localStorage.setItem(VERSIONS_KEY, JSON.stringify(versions));
+        alert(`Version "${versionName}" saved.`);
+      } catch (e) { alert('Failed to save version.'); }
+    };
+
+    // ============================================
+    // SETTINGS DRAWER
+    // ============================================
+    const SettingsDrawer = ({ isOpen, onClose, state, setState }) => {
+      const fileRef = useRef();
+
+      const setTheme = (t) => setState(prev => ({ ...prev, settings: { ...prev.settings, theme: t } }));
+      const toggleSection = (id) => {
+        setState(prev => {
+          const enabled = prev.settings.enabledSections.includes(id)
+            ? prev.settings.enabledSections.filter(s => s !== id)
+            : [...prev.settings.enabledSections, id];
+          return { ...prev, settings: { ...prev.settings, enabledSections: enabled } };
+        });
+      };
+      const loadPreset = (key) => {
+        const preset = TEMPLATE_PRESETS[key];
+        if (confirm(`Load "${preset.name}" template? This will update enabled sections.`)) {
+          setState(prev => ({ ...prev, settings: { ...prev.settings, enabledSections: [...preset.enabledSections] } }));
+        }
+      };
+
+      return (
+        <>
+          <div className={`drawer-overlay ${isOpen ? 'open' : ''}`} onClick={onClose} />
+          <div className={`drawer ${isOpen ? 'open' : ''}`}>
+            <div className="drawer-header">
+              <h2>Settings</h2>
+              <button className="drawer-close" onClick={onClose}><Icon name="x" /></button>
+            </div>
+            <div className="drawer-body">
+              {/* Project Meta */}
+              <div className="drawer-section">
+                <div className="drawer-section-title">Project Details</div>
+                <div className="form-group"><label className="form-label">Project Name</label><input className="input-refined" value={state.meta.name} onChange={e => setState(prev => ({ ...prev, meta: { ...prev.meta, name: e.target.value } }))} /></div>
+                <div className="form-group"><label className="form-label">Author</label><input className="input-refined" value={state.meta.author} onChange={e => setState(prev => ({ ...prev, meta: { ...prev.meta, author: e.target.value } }))} /></div>
+                <div className="form-group"><label className="form-label">Version</label><input className="input-refined" value={state.meta.version} onChange={e => setState(prev => ({ ...prev, meta: { ...prev.meta, version: e.target.value } }))} /></div>
+                <div className="form-group"><label className="form-label">Status</label>
+                  <select className="select-refined" style={{ width: '100%' }} value={state.meta.status} onChange={e => setState(prev => ({ ...prev, meta: { ...prev.meta, status: e.target.value } }))}>
+                    {PLAN_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              {/* Theme */}
+              <div className="drawer-section">
+                <div className="drawer-section-title">Theme</div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {THEMES.map(t => (
+                    <button key={t.id} className={`btn btn-sm ${state.settings.theme === t.id ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setTheme(t.id)}>{t.name}</button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Template Presets */}
+              <div className="drawer-section">
+                <div className="drawer-section-title">Template Presets</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {Object.entries(TEMPLATE_PRESETS).map(([key, preset]) => (
+                    <button key={key} className="btn btn-secondary btn-sm" onClick={() => loadPreset(key)} style={{ justifyContent: 'flex-start', textAlign: 'left' }}>
+                      <strong>{preset.name}</strong><span style={{ color: 'var(--text-faint)', marginLeft: 8, fontSize: 11 }}>{preset.description}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Extended Sections Toggle */}
+              <div className="drawer-section">
+                <div className="drawer-section-title">Extended Sections (Tier 2)</div>
+                {TIER2_IDS.map(id => (
+                  <div key={id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0' }}>
+                    <span style={{ fontSize: 13 }}>{SECTION_DEFS[id].name}</span>
+                    <label className="toggle-switch"><input type="checkbox" checked={state.settings.enabledSections.includes(id)} onChange={() => toggleSection(id)} /><span className="toggle-slider" /></label>
+                  </div>
+                ))}
+              </div>
+
+              <div className="drawer-section">
+                <div className="drawer-section-title">Specialist Sections (Tier 3)</div>
+                {TIER3_IDS.map(id => (
+                  <div key={id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0' }}>
+                    <span style={{ fontSize: 13 }}>{SECTION_DEFS[id].name}</span>
+                    <label className="toggle-switch"><input type="checkbox" checked={state.settings.enabledSections.includes(id)} onChange={() => toggleSection(id)} /><span className="toggle-slider" /></label>
+                  </div>
+                ))}
+              </div>
+
+              {/* Data Management */}
+              <div className="drawer-section">
+                <div className="drawer-section-title">Data</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <button className="btn btn-secondary btn-sm" onClick={() => exportJSON(state)}><Icon name="download" size={14} /> Export JSON</button>
+                  <button className="btn btn-secondary btn-sm" onClick={() => fileRef.current?.click()}><Icon name="upload" size={14} /> Import JSON</button>
+                  <input ref={fileRef} type="file" accept=".json" style={{ display: 'none' }} onChange={e => { if (e.target.files[0]) importJSON(e.target.files[0], setState); }} />
+                  <button className="btn btn-secondary btn-sm" onClick={() => saveVersion(state)}><Icon name="save" size={14} /> Save Version</button>
+                  <button className="btn btn-danger btn-sm" onClick={() => { if (confirm('Clear all plan data and start fresh?')) setState(createDefaultState()); }}>New Project</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      );
+    };
+
+    // ============================================
+    // HELPERS
+    // ============================================
+    const getActiveSections = (state) => {
+      return [...TIER1_IDS, ...state.settings.enabledSections.filter(id => !TIER1_IDS.includes(id))];
+    };
+
+    // ============================================
+    // MAIN APP
+    // ============================================
+    const App = () => {
+      const loadSaved = () => {
+        try { const s = localStorage.getItem(STORAGE_KEY); if (s) return JSON.parse(s); } catch (e) { }
+        return createDefaultState();
+      };
+
+      const [state, setState] = useState(loadSaved);
+      const [activeView, setActiveView] = useState('dashboard'); // 'dashboard' | 'preview' | sectionId
+      const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+      const [drawerOpen, setDrawerOpen] = useState(false);
+      const [moreOpen, setMoreOpen] = useState(false);
+
+      // On mount: apply shared suite theme if available
+      useEffect(() => {
+        const shared = localStorage.getItem('coffeecup-theme');
+        if (shared && shared !== state.settings.theme) setState(prev => ({ ...prev, settings: { ...prev.settings, theme: shared } }));
+      }, []);
+
+      // Theme — sync shared key
+      useEffect(() => { document.documentElement.setAttribute('data-theme', state.settings.theme); localStorage.setItem('coffeecup-theme', state.settings.theme); }, [state.settings.theme]);
+
+      // Auto-save
+      useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }, [state]);
+
+      // Keyboard shortcuts
+      useEffect(() => {
+        const handler = (e) => {
+          if (e.ctrlKey && e.key === 'p') { e.preventDefault(); window.print(); }
+        };
+        document.addEventListener('keydown', handler);
+        return () => document.removeEventListener('keydown', handler);
+      }, []);
+
+      const activeSections = getActiveSections(state);
+      const enabledExtended = state.settings.enabledSections.filter(id => !TIER1_IDS.includes(id));
+
+      const navigate = (view) => setActiveView(view);
+
+      return (
+        <div className="app-layout">
+          {/* Sidebar */}
+          <nav className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
+            <div className="sidebar-header">
+              <div className="sidebar-header-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>
+              </div>
+              <div className="sidebar-header-text">
+                <h1>PMPlan</h1>
+                <p>{state.meta.name || 'Untitled Project'}</p>
+              </div>
+              <button className="sidebar-collapse-btn" onClick={() => setSidebarCollapsed(!sidebarCollapsed)} title={sidebarCollapsed ? 'Expand' : 'Collapse'}>
+                <Icon name={sidebarCollapsed ? 'chevron-right' : 'chevron-left'} size={14} />
+              </button>
+            </div>
+
+            <div className="sidebar-nav">
+              {/* Dashboard */}
+              <div className={`sidebar-item ${activeView === 'dashboard' ? 'active' : ''}`} onClick={() => navigate('dashboard')} title="Dashboard">
+                <div className="sidebar-item-icon"><Icon name="home" /></div>
+                <span className="sidebar-item-label">Dashboard</span>
+              </div>
+
+              <div className="sidebar-divider" />
+              <div className="sidebar-section-label">Core Sections</div>
+
+              {/* Tier 1 sections */}
+              {TIER1_IDS.map(id => {
+                const def = SECTION_DEFS[id];
+                const sec = state.sections[id];
+                return (
+                  <div key={id} className={`sidebar-item ${activeView === id ? 'active' : ''}`} onClick={() => navigate(id)} title={def.name}>
+                    <div className="sidebar-item-icon"><Icon name={def.icon} /></div>
+                    <span className="sidebar-item-label">{def.name}</span>
+                    <div className={`sidebar-item-status ${sec?.status || 'empty'}`} />
+                  </div>
+                );
+              })}
+
+              {/* Extended sections */}
+              {enabledExtended.length > 0 && (
+                <>
+                  <div className="sidebar-divider" />
+                  <div className={`sidebar-more-toggle ${moreOpen ? 'open' : ''}`} onClick={() => setMoreOpen(!moreOpen)}>
+                    <Icon name="chevron-right" size={12} />
+                    <span className="sidebar-item-label">Extended ({enabledExtended.length})</span>
+                  </div>
+                  {moreOpen && enabledExtended.map(id => {
+                    const def = SECTION_DEFS[id];
+                    const sec = state.sections[id];
+                    return (
+                      <div key={id} className={`sidebar-item ${activeView === id ? 'active' : ''}`} onClick={() => navigate(id)} title={def.name}>
+                        <div className="sidebar-item-icon"><Icon name={def.icon} /></div>
+                        <span className="sidebar-item-label">{def.name}</span>
+                        <div className={`sidebar-item-status ${sec?.status || 'empty'}`} />
+                      </div>
+                    );
+                  })}
+                </>
+              )}
+
+              <div className="sidebar-divider" />
+
+              {/* Preview */}
+              <div className={`sidebar-item ${activeView === 'preview' ? 'active' : ''}`} onClick={() => navigate('preview')} title="Preview">
+                <div className="sidebar-item-icon"><Icon name="eye" /></div>
+                <span className="sidebar-item-label">Preview</span>
+              </div>
+            </div>
+
+            {/* Sidebar Footer */}
+            <div className="sidebar-footer">
+              <div className="sidebar-item" onClick={() => setDrawerOpen(true)} title="Settings">
+                <div className="sidebar-item-icon"><Icon name="settings" /></div>
+                <span className="sidebar-item-label">Settings</span>
+              </div>
+            </div>
+          </nav>
+
+          {/* Main Content */}
+          <div className="main-content">
+            <header className="app-header">
+              <span className="app-header-title">
+                {activeView === 'dashboard' ? 'Dashboard' : activeView === 'preview' ? 'Preview' : SECTION_DEFS[activeView]?.name || ''}
+              </span>
+              <span className="app-header-spacer" />
+              <span className={`plan-status-badge ${state.meta.status.toLowerCase().replace(' ', '-')}`}>{state.meta.status}</span>
+              <div className="theme-selector">
+                <label>Theme</label>
+                <select className="select-refined" style={{ padding: '4px 28px 4px 8px', fontSize: 12 }} value={state.settings.theme} onChange={e => setState(prev => ({ ...prev, settings: { ...prev.settings, theme: e.target.value } }))}>
+                  {THEMES.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                </select>
+              </div>
+              <button className="settings-btn" onClick={() => setDrawerOpen(true)} title="Settings"><Icon name="settings" /></button>
+            </header>
+
+            <div className="content-area">
+              {activeView === 'dashboard' && <Dashboard state={state} setState={setState} onNavigate={navigate} />}
+              {activeView === 'preview' && <PreviewMode state={state} onNavigate={navigate} />}
+              {activeView !== 'dashboard' && activeView !== 'preview' && SECTION_DEFS[activeView] && renderSection(activeView, state, setState)}
+            </div>
+          </div>
+
+          {/* Settings Drawer */}
+          <SettingsDrawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} state={state} setState={setState} />
+        </div>
+      );
+    };
+
+    // ============================================
+    // MOUNT
+    // ============================================
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+
+</html>

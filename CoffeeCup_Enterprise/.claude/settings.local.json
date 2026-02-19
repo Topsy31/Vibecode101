@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir:*)",
+      "Bash(ls:*)",
+      "Bash(xargs:*)",
+      "Bash(test:*)",
+      "Bash(echo:*)",
+      "Bash(git add:*)",
+      "Bash(icacls:*)",
+      "Bash(git fsck:*)"
+    ]
+  }
+}

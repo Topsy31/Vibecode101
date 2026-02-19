@@ -1,0 +1,1893 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="blueprint">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CoffeeCup — Cost Tracker</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%2322c55e'/%3E%3Cstop offset='100%25' stop-color='%2316a34a'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='6' fill='url(%23g)'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='white' stroke-width='2'/%3E%3Ctext x='16' y='20' text-anchor='middle' fill='white' font-size='12' font-weight='bold' font-family='sans-serif'%3E%C2%A3%3C/text%3E%3C/svg%3E">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Chart.js (primary CDN with fallback) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script>if (typeof Chart === 'undefined') { document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.7/chart.umd.min.js"><\/script>'); }</script>
+
+  <!-- React -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useCallback, useMemo } = React;
+
+    // ============================================
+    // CONSTANTS
+    // ============================================
+    const STORAGE_KEY = 'cost-project';
+    const RISK_STORAGE_KEY = 'risk-register';
+    const THEMES = ['blueprint', 'fun', 'dark', 'traditional'];
+    const THEME_LABELS = { blueprint: 'Blueprint', fun: 'Fun & Vibrant', dark: 'Dark Mode', traditional: 'Traditional' };
+    const UNITS = ['hours', 'days', 'units', 'lump'];
+    const UNIT_LABELS = { hours: 'Hours', days: 'Days', units: 'Units', lump: 'Lump Sum' };
+
+    const DEFAULT_CATEGORIES = [
+      { id: uid(), name: 'Labour', colour: '#6366f1', sortOrder: 0, lineItems: [] },
+      { id: uid(), name: 'Materials', colour: '#22c55e', sortOrder: 1, lineItems: [] },
+      { id: uid(), name: 'Equipment', colour: '#f59e0b', sortOrder: 2, lineItems: [] },
+      { id: uid(), name: 'Subcontractors', colour: '#ec4899', sortOrder: 3, lineItems: [] },
+      { id: uid(), name: 'Travel', colour: '#14b8a6', sortOrder: 4, lineItems: [] },
+      { id: uid(), name: 'Overheads', colour: '#8b5cf6', sortOrder: 5, lineItems: [] },
+      { id: uid(), name: 'Professional Services', colour: '#f97316', sortOrder: 6, lineItems: [] },
+    ];
+
+    // ============================================
+    // UTILITIES
+    // ============================================
+    function uid() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 9); }
+
+    function formatCurrency(amount, symbol = '£', abbreviated = false) {
+      if (amount == null || isNaN(amount)) return `${symbol}0`;
+      const abs = Math.abs(amount);
+      if (abbreviated && abs >= 1000000) return `${amount < 0 ? '-' : ''}${symbol}${(abs / 1000000).toFixed(1)}m`;
+      if (abbreviated && abs >= 1000) return `${amount < 0 ? '-' : ''}${symbol}${(abs / 1000).toFixed(0)}k`;
+      const formatted = abs.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+      return `${amount < 0 ? '-' : ''}${symbol}${formatted}`;
+    }
+
+    function formatCurrencyFull(amount, symbol = '£') {
+      if (amount == null || isNaN(amount)) return `${symbol}0.00`;
+      const abs = Math.abs(amount);
+      const formatted = abs.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      return `${amount < 0 ? '-' : ''}${symbol}${formatted}`;
+    }
+
+    function formatPercent(value) {
+      if (value == null || isNaN(value)) return '—';
+      return `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`;
+    }
+
+    function formatDate(iso) {
+      if (!iso) return '';
+      const d = new Date(iso);
+      return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    function toISODate(d) { return d ? new Date(d).toISOString().split('T')[0] : ''; }
+    function today() { return new Date().toISOString().split('T')[0]; }
+
+    function varianceClass(variance, baseline, amberPct = -5, redPct = -10) {
+      if (!baseline || baseline === 0) return '';
+      const pct = (variance / baseline) * 100;
+      if (pct >= 0) return 'var-positive';
+      if (pct >= redPct) return 'var-warn';
+      return 'var-negative';
+    }
+
+    function getMonthsBetween(start, end) {
+      const s = new Date(start);
+      const e = new Date(end);
+      const months = [];
+      let current = new Date(s.getFullYear(), s.getMonth(), 1);
+      while (current <= e) {
+        const mEnd = new Date(current.getFullYear(), current.getMonth() + 1, 0);
+        months.push({
+          id: `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`,
+          label: current.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }),
+          startDate: current.toISOString().split('T')[0],
+          endDate: mEnd.toISOString().split('T')[0],
+          planned: 0, actual: 0, earned: 0
+        });
+        current = new Date(current.getFullYear(), current.getMonth() + 1, 1);
+      }
+      return months;
+    }
+
+    // ============================================
+    // DEFAULT PROJECT
+    // ============================================
+    function createDefaultProject() {
+      const now = new Date().toISOString();
+      return {
+        meta: { name: 'New Project', startDate: today(), endDate: toISODate(new Date(Date.now() + 365 * 86400000)), currencySymbol: '£', created: now, modified: now },
+        settings: { theme: localStorage.getItem('coffeecup-theme') || 'blueprint', amberThreshold: -5, redThreshold: -10, periodType: 'monthly' },
+        categories: DEFAULT_CATEGORIES.map(c => ({ ...c, id: uid(), lineItems: [] })),
+        contingency: { method: 'manual', manualAmount: 0, percentage: 10, emvPulledDate: null, riskBreakdown: [], utilised: 0, utilisedLog: [] },
+        managementReserve: { method: 'percentage', percentage: 10, manualAmount: null },
+        timePhased: { periods: [] },
+        transactions: [],
+        baselines: []
+      };
+    }
+
+    // ============================================
+    // PERSISTENCE
+    // ============================================
+    function loadProject() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) return JSON.parse(raw);
+      } catch (e) { console.error('Failed to load project:', e); }
+      return createDefaultProject();
+    }
+
+    function saveProject(proj) {
+      try {
+        proj.meta.modified = new Date().toISOString();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(proj));
+      } catch (e) { console.error('Failed to save project:', e); }
+    }
+
+    // ============================================
+    // SVG ICONS
+    // ============================================
+    const Icons = {
+      pound: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="22" x2="21" y2="22"/><path d="M5 22V9a5 5 0 0 1 10 0v1M4 15h8"/></svg>,
+      plus: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+      trash: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>,
+      edit: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
+      settings: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.32 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
+      chevronRight: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>,
+      close: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+      download: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
+      upload: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>,
+      save: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>,
+      refresh: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>,
+      barChart: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>,
+      table: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>,
+      alertTriangle: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>,
+      info: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>,
+    };
+
+    // ============================================
+    // EVM CALCULATIONS
+    // ============================================
+    function calcEVM(project) {
+      const cats = project.categories || [];
+      const transactions = project.transactions || [];
+      const periods = (project.timePhased && project.timePhased.periods) || [];
+      const contingency = project.contingency || {};
+      const mgmtReserve = project.managementReserve || {};
+      const sym = project.meta.currencySymbol || '£';
+
+      // BAC = sum of all line item totalCost
+      const BAC = cats.reduce((s, c) => s + c.lineItems.reduce((ls, li) => ls + (li.totalCost || 0), 0), 0);
+
+      // AC = sum of all transactions
+      const AC = transactions.reduce((s, t) => s + (t.amount || 0), 0);
+
+      // EV = sum of (percentComplete / 100 * totalCost) per line item
+      const EV = cats.reduce((s, c) => s + c.lineItems.reduce((ls, li) => ls + ((li.percentComplete || 0) / 100) * (li.totalCost || 0), 0), 0);
+
+      // PV = cumulative planned to current date
+      const now = new Date();
+      const PV = periods.filter(p => new Date(p.endDate) <= now).reduce((s, p) => s + (p.planned || 0), 0);
+
+      const CV = EV - AC;
+      const SV = EV - PV;
+      const CPI = AC !== 0 ? EV / AC : 0;
+      const SPI = PV !== 0 ? EV / PV : 0;
+      const EAC = CPI !== 0 ? BAC / CPI : 0;
+      const ETC = EAC - AC;
+      const VAC = BAC - EAC;
+      const TCPI = (BAC - AC) !== 0 ? (BAC - EV) / (BAC - AC) : 0;
+
+      // Contingency
+      let contingencyAmount = 0;
+      if (contingency.method === 'manual') contingencyAmount = contingency.manualAmount || 0;
+      else if (contingency.method === 'percentage') contingencyAmount = BAC * ((contingency.percentage || 0) / 100);
+      else if (contingency.method === 'emv') contingencyAmount = (contingency.riskBreakdown || []).reduce((s, r) => s + (r.emv || 0), 0);
+
+      const costBaseline = BAC + contingencyAmount;
+
+      // Management Reserve
+      let mgmtReserveAmount = 0;
+      if (mgmtReserve.method === 'percentage') mgmtReserveAmount = costBaseline * ((mgmtReserve.percentage || 0) / 100);
+      else mgmtReserveAmount = mgmtReserve.manualAmount || 0;
+
+      const totalBudget = costBaseline + mgmtReserveAmount;
+
+      // Actuals per category
+      const actualsByCategory = {};
+      transactions.forEach(t => {
+        actualsByCategory[t.categoryId] = (actualsByCategory[t.categoryId] || 0) + (t.amount || 0);
+      });
+
+      return { BAC, AC, EV, PV, CV, SV, CPI, SPI, EAC, ETC, VAC, TCPI, contingencyAmount, costBaseline, mgmtReserveAmount, totalBudget, actualsByCategory };
+    }
+
+    // ============================================
+    // STABLE INPUT — manages local state to prevent focus loss
+    // ============================================
+    function StableInput({ value, onChange, type = 'text', ...props }) {
+      const [local, setLocal] = React.useState(value);
+      const ref = React.useRef(null);
+      React.useEffect(() => { setLocal(value); }, [value]);
+      return React.createElement('input', {
+        ...props, type, ref,
+        value: local,
+        onChange: e => {
+          setLocal(e.target.value);
+          if (type === 'number' || type === 'date' || type === 'color') onChange(e);
+        },
+        onBlur: e => { if (type === 'text' && local !== value) onChange(e); },
+        onKeyDown: e => { if (e.key === 'Enter' && type === 'text') { onChange(e); ref.current?.blur(); } }
+      });
+    }
+
+    // ============================================
+    // MAIN APP
+    // ============================================
+    function App() {
+      const [project, setProject] = useState(() => loadProject());
+      const [view, setView] = useState('dashboard');
+      const [drawerOpen, setDrawerOpen] = useState(false);
+      const [modal, setModal] = useState(null);
+      const [expandedCats, setExpandedCats] = useState({});
+      const [selectedPeriod, setSelectedPeriod] = useState(null);
+      const [showCumulative, setShowCumulative] = useState(true);
+      const chartRefs = useRef({});
+
+      const sym = project.meta.currencySymbol || '£';
+      const evm = useMemo(() => calcEVM(project), [project]);
+
+      // Auto-save
+      useEffect(() => { saveProject(project); }, [project]);
+
+      // On mount: apply shared suite theme if available
+      useEffect(() => {
+        const shared = localStorage.getItem('coffeecup-theme');
+        if (shared && shared !== project.settings.theme) update(d => { d.settings.theme = shared; });
+      }, []);
+
+      // Theme — sync shared key
+      useEffect(() => {
+        document.documentElement.setAttribute('data-theme', project.settings.theme);
+        localStorage.setItem('coffeecup-theme', project.settings.theme);
+      }, [project.settings.theme]);
+
+      // Auto-generate periods when dates change
+      useEffect(() => {
+        if (project.meta.startDate && project.meta.endDate) {
+          const newPeriods = getMonthsBetween(project.meta.startDate, project.meta.endDate);
+          const existing = project.timePhased.periods || [];
+          // Merge: keep existing data for matching periods
+          const merged = newPeriods.map(np => {
+            const ex = existing.find(e => e.id === np.id);
+            return ex ? { ...np, planned: ex.planned, actual: ex.actual, earned: ex.earned } : np;
+          });
+          if (JSON.stringify(merged.map(m => m.id)) !== JSON.stringify(existing.map(e => e.id))) {
+            update(d => { d.timePhased.periods = merged; });
+          }
+        }
+      }, [project.meta.startDate, project.meta.endDate]);
+
+      function update(fn) {
+        setProject(prev => {
+          const next = JSON.parse(JSON.stringify(prev));
+          fn(next);
+          return next;
+        });
+      }
+
+      function toggleCategory(catId) {
+        setExpandedCats(prev => ({ ...prev, [catId]: !prev[catId] }));
+      }
+
+      // ============================================
+      // HEADER
+      // ============================================
+      function Header() {
+        return (
+          <header className="app-header">
+            <div className="app-header-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+              </svg>
+            </div>
+            <span className="app-header-title">Cost Tracker</span>
+            <div className="app-header-spacer" />
+
+            <div className="view-toggle no-print">
+              <button className={view === 'dashboard' ? 'active' : ''} onClick={() => setView('dashboard')}>
+                {Icons.barChart} Dashboard
+              </button>
+              <button className={view === 'table' ? 'active' : ''} onClick={() => setView('table')}>
+                {Icons.table} Budget Table
+              </button>
+            </div>
+
+            <div className="theme-selector no-print">
+              <label>Theme</label>
+              <select className="select-refined" value={project.settings.theme}
+                onChange={e => update(d => { d.settings.theme = e.target.value; })} style={{ width: 130 }}>
+                {THEMES.map(t => <option key={t} value={t}>{THEME_LABELS[t]}</option>)}
+              </select>
+            </div>
+
+            <button className="settings-btn no-print" onClick={() => setDrawerOpen(true)} title="Settings">
+              {Icons.settings}
+            </button>
+          </header>
+        );
+      }
+
+      // ============================================
+      // SETTINGS DRAWER
+      // ============================================
+      function SettingsDrawer() {
+        return (
+          <>
+            <div className={`drawer-overlay ${drawerOpen ? 'open' : ''}`} onClick={() => setDrawerOpen(false)} />
+            <div className={`drawer ${drawerOpen ? 'open' : ''}`}>
+              <div className="drawer-header">
+                <h2>Settings</h2>
+                <button className="drawer-close" onClick={() => setDrawerOpen(false)}>{Icons.close}</button>
+              </div>
+              <div className="drawer-body">
+
+                {/* Project Details */}
+                <div className="drawer-section">
+                  <div className="drawer-section-title">Project Details</div>
+                  <div className="form-group">
+                    <label className="form-label">Project Name</label>
+                    <StableInput className="input-refined" value={project.meta.name}
+                      onChange={e => update(d => { d.meta.name = e.target.value; })} />
+                  </div>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label className="form-label">Start Date</label>
+                      <input type="date" className="input-refined" value={project.meta.startDate}
+                        onChange={e => update(d => { d.meta.startDate = e.target.value; })} />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">End Date</label>
+                      <input type="date" className="input-refined" value={project.meta.endDate}
+                        onChange={e => update(d => { d.meta.endDate = e.target.value; })} />
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Currency Symbol</label>
+                    <select className="select-refined" value={sym}
+                      onChange={e => update(d => { d.meta.currencySymbol = e.target.value; })}>
+                      <option value="£">£ (GBP)</option>
+                      <option value="$">$ (USD)</option>
+                      <option value="€">€ (EUR)</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Categories */}
+                <div className="drawer-section">
+                  <div className="drawer-section-title">Budget Categories</div>
+                  {project.categories.map((cat, i) => (
+                    <div key={cat.id} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                      <input type="color" value={cat.colour} style={{ width: 28, height: 28, border: 'none', cursor: 'pointer', borderRadius: 4 }}
+                        onChange={e => update(d => { d.categories[i].colour = e.target.value; })} />
+                      <StableInput className="input-refined" value={cat.name} style={{ flex: 1 }}
+                        onChange={e => update(d => { d.categories[i].name = e.target.value; })} />
+                      <button className="btn btn-icon btn-sm btn-danger" onClick={() => {
+                        if (cat.lineItems.length > 0 && !confirm(`Delete "${cat.name}" and its ${cat.lineItems.length} line items?`)) return;
+                        update(d => { d.categories.splice(i, 1); });
+                      }}>{Icons.trash}</button>
+                    </div>
+                  ))}
+                  <button className="btn btn-secondary btn-sm" style={{ marginTop: 6 }}
+                    onClick={() => update(d => { d.categories.push({ id: uid(), name: 'New Category', colour: '#94a3b8', sortOrder: d.categories.length, lineItems: [] }); })}>
+                    {Icons.plus} Add Category
+                  </button>
+                </div>
+
+                {/* Thresholds */}
+                <div className="drawer-section">
+                  <div className="drawer-section-title">Variance Thresholds</div>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label className="form-label">Amber (%)</label>
+                      <input type="number" className="input-refined" value={project.settings.amberThreshold}
+                        onChange={e => update(d => { d.settings.amberThreshold = parseFloat(e.target.value) || -5; })} />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Red (%)</label>
+                      <input type="number" className="input-refined" value={project.settings.redThreshold}
+                        onChange={e => update(d => { d.settings.redThreshold = parseFloat(e.target.value) || -10; })} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Contingency */}
+                <div className="drawer-section">
+                  <div className="drawer-section-title">Contingency Reserve</div>
+                  <div className="form-group">
+                    <label className="form-label">Method</label>
+                    <select className="select-refined" value={project.contingency.method}
+                      onChange={e => update(d => { d.contingency.method = e.target.value; })}>
+                      <option value="manual">Manual Amount</option>
+                      <option value="percentage">Percentage of Cost Estimate</option>
+                      <option value="emv">From Risk Register (EMV)</option>
+                    </select>
+                  </div>
+                  {project.contingency.method === 'manual' && (
+                    <div className="form-group">
+                      <label className="form-label">Amount ({sym})</label>
+                      <div className="input-currency-wrap">
+                        <span className="currency-symbol">{sym}</span>
+                        <input type="number" className="input-refined input-currency" value={project.contingency.manualAmount || ''}
+                          onChange={e => update(d => { d.contingency.manualAmount = parseFloat(e.target.value) || 0; })} />
+                      </div>
+                    </div>
+                  )}
+                  {project.contingency.method === 'percentage' && (
+                    <div className="form-group">
+                      <label className="form-label">Percentage (%)</label>
+                      <input type="number" className="input-refined" value={project.contingency.percentage || ''}
+                        onChange={e => update(d => { d.contingency.percentage = parseFloat(e.target.value) || 0; })} />
+                    </div>
+                  )}
+                  {project.contingency.method === 'emv' && (
+                    <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+                      Contingency will be pulled from the Risk Register EMV data.
+                      {project.contingency.emvPulledDate && (
+                        <div style={{ marginTop: 4, fontSize: 11 }}>Last pulled: {formatDate(project.contingency.emvPulledDate)}</div>
+                      )}
+                      <button className="btn btn-secondary btn-sm" style={{ marginTop: 8 }} onClick={pullFromRiskRegister}>
+                        {Icons.refresh} Pull from Risk Register
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Management Reserve */}
+                <div className="drawer-section">
+                  <div className="drawer-section-title">Management Reserve</div>
+                  <div className="form-group">
+                    <label className="form-label">Method</label>
+                    <select className="select-refined" value={project.managementReserve.method}
+                      onChange={e => update(d => { d.managementReserve.method = e.target.value; })}>
+                      <option value="percentage">Percentage of Cost Baseline</option>
+                      <option value="manual">Manual Amount</option>
+                    </select>
+                  </div>
+                  {project.managementReserve.method === 'percentage' ? (
+                    <div className="form-group">
+                      <label className="form-label">Percentage (%)</label>
+                      <input type="number" className="input-refined" value={project.managementReserve.percentage || ''}
+                        onChange={e => update(d => { d.managementReserve.percentage = parseFloat(e.target.value) || 0; })} />
+                    </div>
+                  ) : (
+                    <div className="form-group">
+                      <label className="form-label">Amount ({sym})</label>
+                      <div className="input-currency-wrap">
+                        <span className="currency-symbol">{sym}</span>
+                        <input type="number" className="input-refined input-currency" value={project.managementReserve.manualAmount || ''}
+                          onChange={e => update(d => { d.managementReserve.manualAmount = parseFloat(e.target.value) || 0; })} />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Data */}
+                <div className="drawer-section">
+                  <div className="drawer-section-title">Data</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <button className="btn btn-secondary" onClick={exportJSON}>{Icons.download} Export JSON</button>
+                    <button className="btn btn-secondary" onClick={importJSON}>{Icons.upload} Import JSON</button>
+                    <button className="btn btn-primary" onClick={() => setModal('baseline')}>{Icons.save} Save Baseline</button>
+                    <button className="btn btn-danger" onClick={() => {
+                      if (confirm('Start a new project? This will clear all data.')) {
+                        const fresh = createDefaultProject();
+                        fresh.settings.theme = project.settings.theme;
+                        setProject(fresh);
+                      }
+                    }}>{Icons.trash} New Project</button>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </>
+        );
+      }
+
+      // ============================================
+      // RISK REGISTER INTEGRATION
+      // ============================================
+      function pullFromRiskRegister() {
+        try {
+          const raw = localStorage.getItem(RISK_STORAGE_KEY);
+          if (!raw) { alert('No Risk Register data found in localStorage.'); return; }
+          const riskData = JSON.parse(raw);
+          const risks = riskData.risks || [];
+          const breakdown = risks
+            .filter(r => r.type === 'threat' || !r.type)
+            .map(r => {
+              const prob = (r.probability || r.likelihood || 0) / 100;
+              const impact = r.costImpact || r.impact || 0;
+              return { riskId: r.id, riskName: r.name || r.title || 'Unknown', emv: prob * impact };
+            })
+            .filter(r => r.emv > 0);
+
+          update(d => {
+            d.contingency.riskBreakdown = breakdown;
+            d.contingency.emvPulledDate = new Date().toISOString();
+            if (d.contingency.method === 'emv') {
+              d.contingency.manualAmount = null;
+            }
+          });
+          alert(`Pulled ${breakdown.length} risk(s). Total EMV: ${formatCurrency(breakdown.reduce((s, r) => s + r.emv, 0), sym)}`);
+        } catch (e) {
+          alert('Failed to read Risk Register data: ' + e.message);
+        }
+      }
+
+      // ============================================
+      // EXPORT / IMPORT
+      // ============================================
+      function exportJSON() {
+        const blob = new Blob([JSON.stringify(project, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${project.meta.name.replace(/\s+/g, '_')}_cost_tracker.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      function importJSON() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.onchange = e => {
+          const file = e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = ev => {
+            try {
+              const data = JSON.parse(ev.target.result);
+              if (!data.meta || !data.categories) { alert('Invalid Cost Tracker file.'); return; }
+              setProject(data);
+            } catch (err) { alert('Failed to parse JSON: ' + err.message); }
+          };
+          reader.readAsText(file);
+        };
+        input.click();
+      }
+
+      // ============================================
+      // BASELINE MODAL
+      // ============================================
+      // ============================================
+      // CONTINGENCY UTILISATION MODAL
+      // ============================================
+      function ContingencyModal() {
+        const [form, setForm] = useState({ date: today(), amount: '', description: '', riskId: '' });
+        const allocated = evm.contingencyAmount;
+        const currentUtilised = project.contingency.utilised || 0;
+        const remaining = allocated - currentUtilised;
+
+        // Live-read risks from Risk Register for linking, regardless of contingency method
+        const risks = useMemo(() => {
+          try {
+            const raw = localStorage.getItem(RISK_STORAGE_KEY);
+            if (!raw) return [];
+            const data = JSON.parse(raw);
+            return (data.risks || []).map(r => ({
+              id: r.id,
+              name: r.name || r.title || 'Unnamed risk',
+              emv: ((r.probability || r.likelihood || 0) / 100) * (r.costImpact || r.impact || 0)
+            }));
+          } catch { return []; }
+        }, []);
+
+        // Merge: show stored breakdown risks + any additional live risks
+        const storedRisks = project.contingency.riskBreakdown || [];
+        const allRisks = [...storedRisks];
+        risks.forEach(r => {
+          if (!allRisks.find(sr => sr.riskId === r.id)) {
+            allRisks.push({ riskId: r.id, riskName: r.name, emv: r.emv });
+          }
+        });
+
+        return (
+          <div className="modal-overlay" onClick={() => setModal(null)}>
+            <div className="modal animate-in" onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>Use Contingency Reserve</h2>
+                <button className="btn btn-icon" onClick={() => setModal(null)}>{Icons.close}</button>
+              </div>
+              <div className="modal-body">
+                <div style={{ display: 'flex', gap: 16, marginBottom: 16, padding: '10px 14px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)', fontSize: 12 }}>
+                  <div><span style={{ color: 'var(--text-faint)' }}>Allocated:</span> <strong>{formatCurrency(allocated, sym)}</strong></div>
+                  <div><span style={{ color: 'var(--text-faint)' }}>Used:</span> <strong style={{ color: 'var(--danger)' }}>{formatCurrency(currentUtilised, sym)}</strong></div>
+                  <div><span style={{ color: 'var(--text-faint)' }}>Remaining:</span> <strong style={{ color: 'var(--success)' }}>{formatCurrency(remaining, sym)}</strong></div>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Date</label>
+                    <input type="date" className="input-refined" value={form.date}
+                      onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Amount ({sym})</label>
+                    <div className="input-currency-wrap">
+                      <span className="currency-symbol">{sym}</span>
+                      <input type="number" className="input-refined input-currency" value={form.amount}
+                        onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} autoFocus />
+                    </div>
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Related Risk (optional)</label>
+                  {allRisks.length > 0 ? (
+                    <select className="select-refined" value={form.riskId}
+                      onChange={e => setForm(f => ({ ...f, riskId: e.target.value }))}>
+                      <option value="">— No specific risk —</option>
+                      {allRisks.map(r => (
+                        <option key={r.riskId} value={r.riskId}>
+                          {r.riskName}{r.emv > 0 ? ` (EMV: ${formatCurrency(r.emv, sym)})` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <div style={{ fontSize: 12, color: 'var(--text-faint)', padding: '8px 0' }}>
+                      No risks found. Add risks in the <strong>Risk Register</strong> app to link contingency releases to specific risk events.
+                    </div>
+                  )}
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Description</label>
+                  <input className="input-refined" value={form.description} placeholder="What triggered this reserve release?"
+                    onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
+                </div>
+                {parseFloat(form.amount) > remaining && remaining >= 0 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--danger)', marginTop: 8 }}>
+                    {Icons.alertTriangle} This exceeds the remaining contingency reserve.
+                  </div>
+                )}
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={() => setModal(null)}>Cancel</button>
+                <button className="btn btn-danger" disabled={!form.amount || parseFloat(form.amount) <= 0}
+                  onClick={() => {
+                    const amount = parseFloat(form.amount) || 0;
+                    update(d => {
+                      d.contingency.utilised = (d.contingency.utilised || 0) + amount;
+                      if (!d.contingency.utilisedLog) d.contingency.utilisedLog = [];
+                      d.contingency.utilisedLog.push({
+                        date: form.date, amount, riskId: form.riskId, description: form.description
+                      });
+                    });
+                    setModal(null);
+                  }}>
+                  Release {form.amount ? formatCurrency(parseFloat(form.amount), sym) : ''}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      // ============================================
+      // MANAGEMENT RESERVE RELEASE MODAL
+      // ============================================
+      function MgmtReserveModal() {
+        const [form, setForm] = useState({ date: today(), amount: '', description: '', target: 'contingency', approvedBy: '' });
+        const mgmtTotal = evm.mgmtReserveAmount;
+        // Sum of previous releases
+        const previousReleases = (project.managementReserve.releaseLog || []).reduce((s, r) => s + (r.amount || 0), 0);
+        const mgmtRemaining = mgmtTotal - previousReleases;
+
+        return (
+          <div className="modal-overlay" onClick={() => setModal(null)}>
+            <div className="modal animate-in" onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>Release Management Reserve</h2>
+                <button className="btn btn-icon" onClick={() => setModal(null)}>{Icons.close}</button>
+              </div>
+              <div className="modal-body">
+                <div style={{ display: 'flex', gap: 16, marginBottom: 16, padding: '10px 14px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)', fontSize: 12 }}>
+                  <div><span style={{ color: 'var(--text-faint)' }}>Total Reserve:</span> <strong>{formatCurrency(mgmtTotal, sym)}</strong></div>
+                  <div><span style={{ color: 'var(--text-faint)' }}>Released:</span> <strong style={{ color: 'var(--warning)' }}>{formatCurrency(previousReleases, sym)}</strong></div>
+                  <div><span style={{ color: 'var(--text-faint)' }}>Remaining:</span> <strong style={{ color: 'var(--success)' }}>{formatCurrency(mgmtRemaining, sym)}</strong></div>
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14, lineHeight: 1.5 }}>
+                  Management reserve is controlled by the sponsor/PMO. Releasing it transfers funds into the cost baseline, increasing the contingency reserve or the cost estimate directly.
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Date</label>
+                    <input type="date" className="input-refined" value={form.date}
+                      onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Amount ({sym})</label>
+                    <div className="input-currency-wrap">
+                      <span className="currency-symbol">{sym}</span>
+                      <input type="number" className="input-refined input-currency" value={form.amount}
+                        onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} autoFocus />
+                    </div>
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Transfer To</label>
+                  <select className="select-refined" value={form.target}
+                    onChange={e => setForm(f => ({ ...f, target: e.target.value }))}>
+                    <option value="contingency">Contingency Reserve (increases cost baseline)</option>
+                    <option value="estimate">Cost Estimate (direct budget increase)</option>
+                  </select>
+                </div>
+                <div className="form-row">
+                  <div className="form-group" style={{ flex: 2 }}>
+                    <label className="form-label">Justification</label>
+                    <input className="input-refined" value={form.description} placeholder="Why is this release needed?"
+                      onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
+                  </div>
+                  <div className="form-group" style={{ flex: 1 }}>
+                    <label className="form-label">Approved By</label>
+                    <input className="input-refined" value={form.approvedBy} placeholder="Sponsor / PMO"
+                      onChange={e => setForm(f => ({ ...f, approvedBy: e.target.value }))} />
+                  </div>
+                </div>
+                {parseFloat(form.amount) > mgmtRemaining && mgmtRemaining >= 0 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--danger)', marginTop: 8 }}>
+                    {Icons.alertTriangle} This exceeds the remaining management reserve.
+                  </div>
+                )}
+
+                {/* Audit Log */}
+                {(project.managementReserve.releaseLog || []).length > 0 && (
+                  <div style={{ marginTop: 20, borderTop: '1px solid var(--border-secondary)', paddingTop: 14 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 8 }}>Release Audit Log</div>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                      <thead>
+                        <tr style={{ borderBottom: '1px solid var(--border-secondary)' }}>
+                          <th style={{ textAlign: 'left', padding: '6px 8px', color: 'var(--text-muted)', fontWeight: 500 }}>Date</th>
+                          <th style={{ textAlign: 'right', padding: '6px 8px', color: 'var(--text-muted)', fontWeight: 500 }}>Amount</th>
+                          <th style={{ textAlign: 'left', padding: '6px 8px', color: 'var(--text-muted)', fontWeight: 500 }}>Target</th>
+                          <th style={{ textAlign: 'left', padding: '6px 8px', color: 'var(--text-muted)', fontWeight: 500 }}>Justification</th>
+                          <th style={{ textAlign: 'left', padding: '6px 8px', color: 'var(--text-muted)', fontWeight: 500 }}>Approved By</th>
+                          <th style={{ width: 30, padding: '6px 4px' }}></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(project.managementReserve.releaseLog || []).slice().reverse().map((entry, idx, arr) => (
+                          <tr key={idx} style={{ borderBottom: '1px solid var(--border-secondary)' }}>
+                            <td style={{ padding: '6px 8px', whiteSpace: 'nowrap' }}>{entry.date ? new Date(entry.date).toLocaleDateString('en-GB') : '—'}</td>
+                            <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 600, fontFamily: 'var(--font-mono)' }}>{formatCurrency(entry.amount || 0, sym)}</td>
+                            <td style={{ padding: '6px 8px' }}>{entry.target === 'contingency' ? 'Contingency Reserve' : 'Cost Estimate'}</td>
+                            <td style={{ padding: '6px 8px', color: 'var(--text-muted)', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.description || '—'}</td>
+                            <td style={{ padding: '6px 8px', color: 'var(--text-muted)' }}>{entry.approvedBy || '—'}</td>
+                            <td style={{ padding: '6px 4px' }}>
+                              <button className="btn btn-icon btn-sm" title="Remove entry"
+                                style={{ width: 22, height: 22, padding: 0, opacity: 0.5 }}
+                                onClick={() => {
+                                  const realIdx = (project.managementReserve.releaseLog || []).length - 1 - idx;
+                                  const entry = project.managementReserve.releaseLog[realIdx];
+                                  if (!confirm(`Remove release of ${formatCurrency(entry.amount || 0, sym)} on ${entry.date ? new Date(entry.date).toLocaleDateString('en-GB') : '—'}? This will reverse the transfer.`)) return;
+                                  update(d => {
+                                    const removed = d.managementReserve.releaseLog.splice(realIdx, 1)[0];
+                                    // Reverse the transfer
+                                    if (removed.target === 'contingency' && d.contingency.method === 'manual') {
+                                      d.contingency.manualAmount = Math.max(0, (d.contingency.manualAmount || 0) - (removed.amount || 0));
+                                    }
+                                  });
+                                }}>
+                                {Icons.close}
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot>
+                        <tr style={{ fontWeight: 600 }}>
+                          <td style={{ padding: '8px 8px' }}>Total</td>
+                          <td style={{ padding: '8px 8px', textAlign: 'right', fontFamily: 'var(--font-mono)' }}>{formatCurrency(previousReleases, sym)}</td>
+                          <td colSpan={4}></td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                )}
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={() => setModal(null)}>Cancel</button>
+                <button className="btn btn-primary" disabled={!form.amount || parseFloat(form.amount) <= 0}
+                  onClick={() => {
+                    const amount = parseFloat(form.amount) || 0;
+                    update(d => {
+                      // Initialise release log if needed
+                      if (!d.managementReserve.releaseLog) d.managementReserve.releaseLog = [];
+                      d.managementReserve.releaseLog.push({
+                        date: form.date, amount, target: form.target, description: form.description, approvedBy: form.approvedBy
+                      });
+
+                      if (form.target === 'contingency') {
+                        // Increase contingency — if manual, add to manual amount; otherwise add as manual override
+                        if (d.contingency.method === 'manual') {
+                          d.contingency.manualAmount = (d.contingency.manualAmount || 0) + amount;
+                        } else {
+                          // Switch to manual and set amount to current calculated + release
+                          const currentContingency = d.contingency.method === 'percentage'
+                            ? d.categories.reduce((s, c) => s + c.lineItems.reduce((ls, li) => ls + (li.totalCost || 0), 0), 0) * ((d.contingency.percentage || 0) / 100)
+                            : (d.contingency.riskBreakdown || []).reduce((s, r) => s + (r.emv || 0), 0);
+                          d.contingency.method = 'manual';
+                          d.contingency.manualAmount = currentContingency + amount;
+                        }
+                      }
+                      // If target is 'estimate', no automatic action — user manually adds to their line items
+                    });
+                    setModal(null);
+                  }}>
+                  Release {form.amount ? formatCurrency(parseFloat(form.amount), sym) : ''}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      function BaselineModal() {
+        const [name, setName] = useState(`Baseline ${project.baselines.length + 1}`);
+        return (
+          <div className="modal-overlay" onClick={() => setModal(null)}>
+            <div className="modal animate-in" onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>Save Baseline</h2>
+                <button className="btn btn-icon" onClick={() => setModal(null)}>{Icons.close}</button>
+              </div>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label className="form-label">Baseline Name</label>
+                  <input className="input-refined" value={name} onChange={e => setName(e.target.value)} autoFocus />
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
+                  This will save a snapshot of the current budget for future comparison.
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={() => setModal(null)}>Cancel</button>
+                <button className="btn btn-primary" onClick={() => {
+                  update(d => {
+                    d.baselines.push({
+                      name, date: new Date().toISOString(),
+                      snapshot: { categories: JSON.parse(JSON.stringify(d.categories)), contingency: JSON.parse(JSON.stringify(d.contingency)), managementReserve: JSON.parse(JSON.stringify(d.managementReserve)) }
+                    });
+                  });
+                  setModal(null);
+                }}>Save Baseline</button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      // ============================================
+      // TRANSACTION MODAL
+      // ============================================
+      function TransactionModal() {
+        const editing = modal && modal.type === 'editTransaction' ? modal.transaction : null;
+        const [form, setForm] = useState(editing ? { ...editing } : {
+          date: today(), categoryId: project.categories[0]?.id || '', lineItemId: '',
+          description: '', amount: '', vendor: '', invoiceRef: '', notes: ''
+        });
+
+        const selectedCat = project.categories.find(c => c.id === form.categoryId);
+
+        return (
+          <div className="modal-overlay" onClick={() => setModal(null)}>
+            <div className="modal animate-in" onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>{editing ? 'Edit Transaction' : 'Add Transaction'}</h2>
+                <button className="btn btn-icon" onClick={() => setModal(null)}>{Icons.close}</button>
+              </div>
+              <div className="modal-body">
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Date</label>
+                    <input type="date" className="input-refined" value={form.date}
+                      onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Amount ({sym})</label>
+                    <div className="input-currency-wrap">
+                      <span className="currency-symbol">{sym}</span>
+                      <input type="number" className="input-refined input-currency" value={form.amount}
+                        onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} autoFocus />
+                    </div>
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Category</label>
+                    <select className="select-refined" value={form.categoryId}
+                      onChange={e => setForm(f => ({ ...f, categoryId: e.target.value, lineItemId: '' }))}>
+                      {project.categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Line Item (optional)</label>
+                    <select className="select-refined" value={form.lineItemId}
+                      onChange={e => setForm(f => ({ ...f, lineItemId: e.target.value }))}>
+                      <option value="">— General —</option>
+                      {selectedCat && selectedCat.lineItems.map(li => <option key={li.id} value={li.id}>{li.description}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Description</label>
+                  <input className="input-refined" value={form.description}
+                    onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="What was this spend for?" />
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Vendor</label>
+                    <input className="input-refined" value={form.vendor}
+                      onChange={e => setForm(f => ({ ...f, vendor: e.target.value }))} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Invoice Ref</label>
+                    <input className="input-refined" value={form.invoiceRef}
+                      onChange={e => setForm(f => ({ ...f, invoiceRef: e.target.value }))} />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Notes</label>
+                  <textarea className="textarea-refined" value={form.notes} rows={2}
+                    onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} />
+                </div>
+              </div>
+              <div className="modal-footer">
+                {editing && (
+                  <button className="btn btn-danger" style={{ marginRight: 'auto' }} onClick={() => {
+                    update(d => { d.transactions = d.transactions.filter(t => t.id !== editing.id); });
+                    setModal(null);
+                  }}>Delete</button>
+                )}
+                <button className="btn btn-secondary" onClick={() => setModal(null)}>Cancel</button>
+                <button className="btn btn-primary" disabled={!form.amount || !form.categoryId}
+                  onClick={() => {
+                    const amount = parseFloat(form.amount) || 0;
+                    if (editing) {
+                      update(d => {
+                        const idx = d.transactions.findIndex(t => t.id === editing.id);
+                        if (idx >= 0) d.transactions[idx] = { ...form, amount };
+                      });
+                    } else {
+                      update(d => { d.transactions.push({ ...form, id: uid(), amount }); });
+                    }
+                    setModal(null);
+                  }}>
+                  {editing ? 'Update' : 'Add Transaction'}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      // ============================================
+      // LINE ITEM MODAL
+      // ============================================
+      function LineItemModal() {
+        const { categoryId, lineItem: editing } = modal;
+        const [form, setForm] = useState(editing ? { ...editing } : {
+          description: '', quantity: 1, unit: 'hours', unitCost: 0, totalCost: 0,
+          startDate: '', endDate: '', responsible: '', percentComplete: 0
+        });
+
+        useEffect(() => {
+          if (form.unit !== 'lump') {
+            setForm(f => ({ ...f, totalCost: (f.quantity || 0) * (f.unitCost || 0) }));
+          }
+        }, [form.quantity, form.unitCost, form.unit]);
+
+        return (
+          <div className="modal-overlay" onClick={() => setModal(null)}>
+            <div className="modal animate-in" onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>{editing ? 'Edit Line Item' : 'Add Line Item'}</h2>
+                <button className="btn btn-icon" onClick={() => setModal(null)}>{Icons.close}</button>
+              </div>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label className="form-label">Description</label>
+                  <input className="input-refined" value={form.description}
+                    onChange={e => setForm(f => ({ ...f, description: e.target.value }))} autoFocus />
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Unit</label>
+                    <select className="select-refined" value={form.unit}
+                      onChange={e => setForm(f => ({ ...f, unit: e.target.value }))}>
+                      {UNITS.map(u => <option key={u} value={u}>{UNIT_LABELS[u]}</option>)}
+                    </select>
+                  </div>
+                  {form.unit !== 'lump' && (
+                    <div className="form-group">
+                      <label className="form-label">Quantity</label>
+                      <input type="number" className="input-refined" value={form.quantity}
+                        onChange={e => setForm(f => ({ ...f, quantity: parseFloat(e.target.value) || 0 }))} />
+                    </div>
+                  )}
+                  <div className="form-group">
+                    <label className="form-label">{form.unit === 'lump' ? `Total (${sym})` : `Rate (${sym})`}</label>
+                    <div className="input-currency-wrap">
+                      <span className="currency-symbol">{sym}</span>
+                      {form.unit === 'lump' ? (
+                        <input type="number" className="input-refined input-currency" value={form.totalCost}
+                          onChange={e => setForm(f => ({ ...f, totalCost: parseFloat(e.target.value) || 0 }))} />
+                      ) : (
+                        <input type="number" className="input-refined input-currency" value={form.unitCost}
+                          onChange={e => setForm(f => ({ ...f, unitCost: parseFloat(e.target.value) || 0 }))} />
+                      )}
+                    </div>
+                  </div>
+                </div>
+                {form.unit !== 'lump' && (
+                  <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 12, fontFamily: 'var(--font-mono)' }}>
+                    Total: {formatCurrency(form.totalCost, sym)}
+                  </div>
+                )}
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Start Date</label>
+                    <input type="date" className="input-refined" value={form.startDate || ''}
+                      onChange={e => setForm(f => ({ ...f, startDate: e.target.value }))} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">End Date</label>
+                    <input type="date" className="input-refined" value={form.endDate || ''}
+                      onChange={e => setForm(f => ({ ...f, endDate: e.target.value }))} />
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Responsible</label>
+                    <input className="input-refined" value={form.responsible || ''}
+                      onChange={e => setForm(f => ({ ...f, responsible: e.target.value }))} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">% Complete</label>
+                    <input type="number" className="input-refined" min="0" max="100" value={form.percentComplete || 0}
+                      onChange={e => setForm(f => ({ ...f, percentComplete: Math.min(100, Math.max(0, parseFloat(e.target.value) || 0)) }))} />
+                  </div>
+                </div>
+              </div>
+              <div className="modal-footer">
+                {editing && (
+                  <button className="btn btn-danger" style={{ marginRight: 'auto' }} onClick={() => {
+                    update(d => {
+                      const cat = d.categories.find(c => c.id === categoryId);
+                      if (cat) cat.lineItems = cat.lineItems.filter(li => li.id !== editing.id);
+                    });
+                    setModal(null);
+                  }}>Delete</button>
+                )}
+                <button className="btn btn-secondary" onClick={() => setModal(null)}>Cancel</button>
+                <button className="btn btn-primary" disabled={!form.description}
+                  onClick={() => {
+                    update(d => {
+                      const cat = d.categories.find(c => c.id === categoryId);
+                      if (!cat) return;
+                      if (editing) {
+                        const idx = cat.lineItems.findIndex(li => li.id === editing.id);
+                        if (idx >= 0) cat.lineItems[idx] = { ...form };
+                      } else {
+                        cat.lineItems.push({ ...form, id: uid() });
+                      }
+                    });
+                    setModal(null);
+                  }}>
+                  {editing ? 'Update' : 'Add Line Item'}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      // ============================================
+      // DASHBOARD VIEW
+      // ============================================
+      function DashboardView() {
+        return (
+          <div className="content-area animate-in">
+            <MetricsPanel />
+            <ChartsGrid />
+            <RecentTransactions />
+          </div>
+        );
+      }
+
+      // ============================================
+      // METRICS PANEL
+      // ============================================
+      function MetricsPanel() {
+        const metrics = [
+          { label: 'BAC', value: formatCurrency(evm.BAC, sym, true), sub: 'Budget at Completion' },
+          { label: 'Actual Cost', value: formatCurrency(evm.AC, sym, true), sub: 'Total Spend' },
+          { label: 'Earned Value', value: formatCurrency(evm.EV, sym, true), sub: 'Work Completed' },
+          { label: 'CPI', value: evm.CPI ? evm.CPI.toFixed(2) : '—', cls: evm.CPI >= 1 ? 'positive' : evm.CPI > 0 ? 'negative' : '', sub: evm.CPI >= 1 ? 'Under budget' : 'Over budget' },
+          { label: 'EAC', value: formatCurrency(evm.EAC, sym, true), sub: 'Estimate at Completion', cls: evm.EAC > evm.BAC ? 'negative' : 'positive' },
+          { label: 'VAC', value: formatCurrency(evm.VAC, sym, true), sub: 'Variance at Completion', cls: evm.VAC >= 0 ? 'positive' : 'negative' },
+        ];
+        return (
+          <div className="metrics-panel">
+            {metrics.map(m => (
+              <div key={m.label} className="metric-card">
+                <div className="metric-card-label">{m.label}</div>
+                <div className={`metric-card-value ${m.cls || ''}`}>{m.value}</div>
+                <div className="metric-card-sub">{m.sub}</div>
+              </div>
+            ))}
+          </div>
+        );
+      }
+
+      // ============================================
+      // CHARTS GRID
+      // ============================================
+      function ChartsGrid() {
+        return (
+          <div className="charts-grid">
+            <SCurveChart />
+            <CategoryDonutChart />
+            <BurnDownChart />
+            <ContingencyGauge />
+          </div>
+        );
+      }
+
+      // ============================================
+      // S-CURVE CHART
+      // ============================================
+      function SCurveChart() {
+        const canvasRef = useRef(null);
+        const chartRef = useRef(null);
+
+        useEffect(() => {
+          if (typeof Chart === 'undefined') return;
+          const periods = project.timePhased.periods || [];
+          if (!periods.length) return;
+
+          const labels = periods.map(p => p.label);
+          const transactions = project.transactions || [];
+          let cumPV = 0, cumAC = 0, cumEV = 0;
+          const pvData = periods.map(p => { cumPV += p.planned || 0; return cumPV; });
+          const acData = periods.map(p => {
+            const pStart = new Date(p.startDate);
+            const pEnd = new Date(p.endDate);
+            const periodActual = transactions
+              .filter(t => { const td = new Date(t.date); return td >= pStart && td <= pEnd; })
+              .reduce((s, t) => s + (t.amount || 0), 0);
+            cumAC += periodActual;
+            return cumAC;
+          });
+          const evData = periods.map(p => { cumEV += p.earned || 0; return cumEV; });
+
+          const style = getComputedStyle(document.documentElement);
+          const textCol = style.getPropertyValue('--text-muted').trim();
+          const borderCol = style.getPropertyValue('--border-primary').trim();
+
+          if (chartRef.current) chartRef.current.destroy();
+          chartRef.current = new Chart(canvasRef.current, {
+            type: 'line',
+            data: {
+              labels,
+              datasets: [
+                { label: 'Planned Value (PV)', data: pvData, borderColor: style.getPropertyValue('--chart-1').trim(), backgroundColor: 'transparent', tension: 0.3, pointRadius: 3, borderWidth: 2 },
+                { label: 'Actual Cost (AC)', data: acData, borderColor: style.getPropertyValue('--chart-2').trim(), backgroundColor: 'transparent', tension: 0.3, pointRadius: 3, borderWidth: 2 },
+                { label: 'Earned Value (EV)', data: evData, borderColor: style.getPropertyValue('--chart-3').trim(), backgroundColor: 'transparent', tension: 0.3, pointRadius: 3, borderWidth: 2, borderDash: [5, 5] },
+              ]
+            },
+            options: {
+              responsive: true, maintainAspectRatio: false,
+              plugins: { legend: { position: 'bottom', labels: { color: textCol, font: { size: 11 }, boxWidth: 12, padding: 16 } } },
+              scales: {
+                x: { ticks: { color: textCol, font: { size: 10 } }, grid: { color: borderCol } },
+                y: { ticks: { color: textCol, font: { size: 10 }, callback: v => formatCurrency(v, sym, true) }, grid: { color: borderCol } }
+              }
+            }
+          });
+          return () => { if (chartRef.current) chartRef.current.destroy(); };
+        }, [project.timePhased.periods, project.transactions, project.settings.theme]);
+
+        const hasPeriods = (project.timePhased.periods || []).length > 0;
+        return (
+          <div className="chart-card full-width">
+            <div className="chart-card-header">S-Curve (Cumulative PV / AC / EV)</div>
+            <div className="chart-card-body" style={{ height: 280 }}>
+              {hasPeriods ? <canvas ref={canvasRef} /> : (
+                <div className="empty-state" style={{ padding: '24px 0' }}>
+                  <p>Set project dates and add time-phased budget to see the S-curve.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      }
+
+      // ============================================
+      // CATEGORY DONUT CHART
+      // ============================================
+      function CategoryDonutChart() {
+        const canvasRef = useRef(null);
+        const chartRef = useRef(null);
+
+        useEffect(() => {
+          if (typeof Chart === 'undefined') return;
+          const cats = project.categories.filter(c => c.lineItems.length > 0);
+          if (!cats.length) return;
+
+          const labels = cats.map(c => c.name);
+          const data = cats.map(c => c.lineItems.reduce((s, li) => s + (li.totalCost || 0), 0));
+          const colours = cats.map(c => c.colour);
+
+          const style = getComputedStyle(document.documentElement);
+          const textCol = style.getPropertyValue('--text-muted').trim();
+
+          if (chartRef.current) chartRef.current.destroy();
+          chartRef.current = new Chart(canvasRef.current, {
+            type: 'doughnut',
+            data: { labels, datasets: [{ data, backgroundColor: colours, borderWidth: 2, borderColor: style.getPropertyValue('--bg-card').trim() }] },
+            options: {
+              responsive: true, maintainAspectRatio: false, cutout: '60%',
+              plugins: {
+                legend: { position: 'bottom', labels: { color: textCol, font: { size: 11 }, boxWidth: 12, padding: 12 } },
+                tooltip: { callbacks: { label: ctx => `${ctx.label}: ${formatCurrency(ctx.parsed, sym)}` } }
+              }
+            }
+          });
+          return () => { if (chartRef.current) chartRef.current.destroy(); };
+        }, [project.categories, project.settings.theme]);
+
+        const hasCats = project.categories.some(c => c.lineItems.length > 0);
+        return (
+          <div className="chart-card">
+            <div className="chart-card-header">Budget by Category</div>
+            <div className="chart-card-body" style={{ height: 260 }}>
+              {hasCats ? <canvas ref={canvasRef} /> : (
+                <div className="empty-state" style={{ padding: '24px 0' }}><p>Add line items to see category breakdown.</p></div>
+              )}
+            </div>
+          </div>
+        );
+      }
+
+      // ============================================
+      // BURN-DOWN CHART
+      // ============================================
+      function BurnDownChart() {
+        const canvasRef = useRef(null);
+        const chartRef = useRef(null);
+
+        useEffect(() => {
+          if (typeof Chart === 'undefined') return;
+          const periods = project.timePhased.periods || [];
+          if (!periods.length) return;
+
+          const totalBudget = evm.totalBudget || evm.BAC;
+          const labels = periods.map(p => p.label);
+
+          // Calculate actuals per period from transactions
+          const transactions = project.transactions || [];
+          let cumSpend = 0;
+          const remainData = periods.map(p => {
+            const pStart = new Date(p.startDate);
+            const pEnd = new Date(p.endDate);
+            const periodActual = transactions
+              .filter(t => { const td = new Date(t.date); return td >= pStart && td <= pEnd; })
+              .reduce((s, t) => s + (t.amount || 0), 0);
+            cumSpend += periodActual;
+            return totalBudget - cumSpend;
+          });
+          let cumPlanned = 0;
+          const baselineData = periods.map(p => { cumPlanned += p.planned || 0; return totalBudget - cumPlanned; });
+
+          const style = getComputedStyle(document.documentElement);
+          const textCol = style.getPropertyValue('--text-muted').trim();
+          const borderCol = style.getPropertyValue('--border-primary').trim();
+
+          if (chartRef.current) chartRef.current.destroy();
+          chartRef.current = new Chart(canvasRef.current, {
+            type: 'line',
+            data: {
+              labels,
+              datasets: [
+                { label: 'Baseline', data: baselineData, borderColor: style.getPropertyValue('--text-faint').trim(), borderDash: [5, 5], backgroundColor: 'transparent', tension: 0.2, pointRadius: 2, borderWidth: 2 },
+                { label: 'Actual Remaining', data: remainData, borderColor: style.getPropertyValue('--chart-2').trim(), backgroundColor: 'transparent', tension: 0.2, pointRadius: 3, borderWidth: 2 },
+              ]
+            },
+            options: {
+              responsive: true, maintainAspectRatio: false,
+              plugins: { legend: { position: 'bottom', labels: { color: textCol, font: { size: 11 }, boxWidth: 12, padding: 16 } } },
+              scales: {
+                x: { ticks: { color: textCol, font: { size: 10 } }, grid: { color: borderCol } },
+                y: { ticks: { color: textCol, font: { size: 10 }, callback: v => formatCurrency(v, sym, true) }, grid: { color: borderCol } }
+              }
+            }
+          });
+          return () => { if (chartRef.current) chartRef.current.destroy(); };
+        }, [project.timePhased.periods, project.transactions, project.settings.theme, evm.totalBudget]);
+
+        const hasPeriods = (project.timePhased.periods || []).length > 0;
+        return (
+          <div className="chart-card">
+            <div className="chart-card-header">Budget Burn-down</div>
+            <div className="chart-card-body" style={{ height: 260 }}>
+              {hasPeriods ? <canvas ref={canvasRef} /> : (
+                <div className="empty-state" style={{ padding: '24px 0' }}><p>Add time-phased data to see burn-down.</p></div>
+              )}
+            </div>
+          </div>
+        );
+      }
+
+      // ============================================
+      // CONTINGENCY GAUGE
+      // ============================================
+      function ContingencyGauge() {
+        const canvasRef = useRef(null);
+        const chartRef = useRef(null);
+        const utilised = project.contingency.utilised || 0;
+        const allocated = evm.contingencyAmount;
+        const remaining = allocated - utilised;
+        const pct = allocated > 0 ? (utilised / allocated) * 100 : 0;
+
+        useEffect(() => {
+          if (typeof Chart === 'undefined') return;
+          if (!canvasRef.current || !allocated) return;
+
+          const style = getComputedStyle(document.documentElement);
+          const successCol = style.getPropertyValue('--success').trim();
+          const dangerCol = style.getPropertyValue('--danger').trim();
+          const warnCol = style.getPropertyValue('--warning').trim();
+          const bgCol = style.getPropertyValue('--bg-secondary').trim();
+
+          const gaugeCol = pct < 50 ? successCol : pct < 80 ? warnCol : dangerCol;
+
+          if (chartRef.current) chartRef.current.destroy();
+          chartRef.current = new Chart(canvasRef.current, {
+            type: 'doughnut',
+            data: {
+              labels: ['Utilised', 'Remaining'],
+              datasets: [{ data: [utilised, Math.max(0, remaining)], backgroundColor: [gaugeCol, bgCol], borderWidth: 0 }]
+            },
+            options: {
+              responsive: true, maintainAspectRatio: true, cutout: '70%',
+              rotation: -90, circumference: 180,
+              plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `${ctx.label}: ${formatCurrency(ctx.parsed, sym)}` } } }
+            }
+          });
+          return () => { if (chartRef.current) chartRef.current.destroy(); };
+        }, [utilised, allocated, project.settings.theme]);
+
+        const logEntries = project.contingency.utilisedLog || [];
+
+        return (
+          <div className="chart-card">
+            <div className="chart-card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span>Contingency Reserve</span>
+              {allocated > 0 && (
+                <button className="btn btn-sm btn-secondary" style={{ marginTop: -4, marginBottom: -4 }}
+                  onClick={() => setModal({ type: 'contingency' })}>
+                  Use Reserve
+                </button>
+              )}
+            </div>
+            <div className="chart-card-body">
+              {allocated > 0 ? (
+                <>
+                  <div className="gauge-container">
+                    <div className="gauge-ring">
+                      <canvas ref={canvasRef} />
+                      <div style={{ position: 'absolute', bottom: 4, left: '50%', transform: 'translateX(-50%)', fontSize: 14, fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--text-primary)' }}>
+                        {pct.toFixed(0)}%
+                      </div>
+                    </div>
+                    <div className="gauge-stats">
+                      <div className="gauge-stat">
+                        <div className="gauge-stat-label">Allocated</div>
+                        <div className="gauge-stat-value">{formatCurrency(allocated, sym)}</div>
+                      </div>
+                      <div className="gauge-stat">
+                        <div className="gauge-stat-label">Utilised</div>
+                        <div className="gauge-stat-value" style={{ color: 'var(--danger)' }}>{formatCurrency(utilised, sym)}</div>
+                      </div>
+                      <div className="gauge-stat">
+                        <div className="gauge-stat-label">Remaining</div>
+                        <div className="gauge-stat-value" style={{ color: 'var(--success)' }}>{formatCurrency(remaining, sym)}</div>
+                      </div>
+                    </div>
+                  </div>
+                  {logEntries.length > 0 && (
+                    <div style={{ borderTop: '1px solid var(--border-secondary)', marginTop: 10, paddingTop: 10 }}>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6 }}>Release Log</div>
+                      {logEntries.slice(-4).map((entry, i) => (
+                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--text-secondary)', marginBottom: 4 }}>
+                          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-faint)', width: 70, flexShrink: 0, fontSize: 11 }}>{formatDate(entry.date)}</span>
+                          <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.description}</span>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, color: 'var(--danger)', flexShrink: 0 }}>{formatCurrency(entry.amount, sym)}</span>
+                        </div>
+                      ))}
+                      {logEntries.length > 4 && (
+                        <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4 }}>+{logEntries.length - 4} more entries</div>
+                      )}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="empty-state" style={{ padding: '24px 0' }}><p>Configure contingency reserve in Settings to see the gauge.</p></div>
+              )}
+            </div>
+          </div>
+        );
+      }
+
+      // ============================================
+      // RECENT TRANSACTIONS (DASHBOARD)
+      // ============================================
+      function RecentTransactions() {
+        const sorted = [...project.transactions].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 8);
+        return (
+          <div className="transactions-section">
+            <div className="transactions-header">
+              <h3>Recent Transactions</h3>
+              <button className="btn btn-primary btn-sm" onClick={() => setModal({ type: 'transaction' })}>
+                {Icons.plus} Add Transaction
+              </button>
+            </div>
+            {sorted.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-state-icon">{Icons.pound}</div>
+                <h3>No Transactions Yet</h3>
+                <p>Record actual spend against your budget categories.</p>
+                <button className="btn btn-primary" onClick={() => setModal({ type: 'transaction' })}>
+                  {Icons.plus} Add First Transaction
+                </button>
+              </div>
+            ) : (
+              <div className="transaction-list">
+                {sorted.map(t => {
+                  const cat = project.categories.find(c => c.id === t.categoryId);
+                  return (
+                    <div key={t.id} className="transaction-item" onClick={() => setModal({ type: 'editTransaction', transaction: t })} style={{ cursor: 'pointer' }}>
+                      <span className="transaction-date">{formatDate(t.date)}</span>
+                      <span className="transaction-cat">{cat ? cat.name : '—'}</span>
+                      <span className="transaction-desc">{t.description || '—'}</span>
+                      <span className="transaction-amount">{formatCurrency(t.amount, sym)}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      // ============================================
+      // TABLE VIEW
+      // ============================================
+      // TableView is rendered inline in the main render block below
+
+      // ============================================
+      // BUDGET TABLE
+      // ============================================
+      function BudgetTable() {
+        const cats = project.categories;
+        const amberPct = project.settings.amberThreshold;
+        const redPct = project.settings.redThreshold;
+
+        return (
+          <div className="budget-table-wrap">
+            <table className="budget-table">
+              <thead>
+                <tr>
+                  <th style={{ width: '30%' }}>Category / Line Item</th>
+                  <th className="num">Baseline ({sym})</th>
+                  <th className="num">Actuals ({sym})</th>
+                  <th className="num">Variance ({sym})</th>
+                  <th className="num">% Var</th>
+                  <th className="num">% Complete</th>
+                  <th className="num">EAC ({sym})</th>
+                  <th style={{ width: 60 }}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {cats.map(cat => {
+                  const catBaseline = cat.lineItems.reduce((s, li) => s + (li.totalCost || 0), 0);
+                  const catActual = evm.actualsByCategory[cat.id] || 0;
+                  const catVariance = catBaseline - catActual;
+                  const catVarPct = catBaseline ? (catVariance / catBaseline) * 100 : 0;
+                  const catPctComplete = catBaseline ? cat.lineItems.reduce((s, li) => s + ((li.percentComplete || 0) / 100) * (li.totalCost || 0), 0) / catBaseline * 100 : 0;
+                  const catCPI = catActual > 0 ? (catPctComplete / 100 * catBaseline) / catActual : 0;
+                  const catEAC = catCPI > 0 ? catBaseline / catCPI : catBaseline;
+                  const isExpanded = expandedCats[cat.id];
+
+                  return (
+                    <React.Fragment key={cat.id}>
+                      <tr className="category-row" onClick={() => toggleCategory(cat.id)}>
+                        <td>
+                          <span className={`expand-chevron ${isExpanded ? 'open' : ''}`}>{Icons.chevronRight}</span>
+                          <span style={{ color: cat.colour, marginRight: 6 }}>●</span>
+                          {cat.name}
+                          <span style={{ fontSize: 11, color: 'var(--text-faint)', marginLeft: 6 }}>({cat.lineItems.length})</span>
+                        </td>
+                        <td className="num">{formatCurrency(catBaseline, sym)}</td>
+                        <td className="num">{formatCurrency(catActual, sym)}</td>
+                        <td className={`num ${varianceClass(catVariance, catBaseline, amberPct, redPct)}`}>
+                          {catVariance >= 0 ? '+' : ''}{formatCurrency(catVariance, sym)}
+                        </td>
+                        <td className={`num ${varianceClass(catVariance, catBaseline, amberPct, redPct)}`}>
+                          {catBaseline ? formatPercent(catVarPct) : '—'}
+                        </td>
+                        <td className="num">
+                          <div className="progress-inline">
+                            <div className="progress-bar-sm"><div className="progress-bar-sm-fill" style={{ width: `${catPctComplete}%` }} /></div>
+                            <span className="progress-text">{catPctComplete.toFixed(0)}%</span>
+                          </div>
+                        </td>
+                        <td className="num">{formatCurrency(catEAC, sym, true)}</td>
+                        <td>
+                          <button className="btn btn-icon btn-sm btn-secondary" title="Add line item"
+                            onClick={e => { e.stopPropagation(); setModal({ type: 'lineItem', categoryId: cat.id }); }}>
+                            {Icons.plus}
+                          </button>
+                        </td>
+                      </tr>
+                      {isExpanded && cat.lineItems.map(li => {
+                        const liActual = project.transactions.filter(t => t.lineItemId === li.id).reduce((s, t) => s + (t.amount || 0), 0);
+                        const liVariance = (li.totalCost || 0) - liActual;
+                        const liVarPct = li.totalCost ? (liVariance / li.totalCost) * 100 : 0;
+                        return (
+                          <tr key={li.id} className="line-item">
+                            <td>{li.description}</td>
+                            <td className="num">{formatCurrency(li.totalCost, sym)}</td>
+                            <td className="num">{formatCurrency(liActual, sym)}</td>
+                            <td className={`num ${varianceClass(liVariance, li.totalCost, amberPct, redPct)}`}>
+                              {liVariance >= 0 ? '+' : ''}{formatCurrency(liVariance, sym)}
+                            </td>
+                            <td className={`num ${varianceClass(liVariance, li.totalCost, amberPct, redPct)}`}>
+                              {li.totalCost ? formatPercent(liVarPct) : '—'}
+                            </td>
+                            <td className="num">
+                              <div className="progress-inline">
+                                <div className="progress-bar-sm"><div className="progress-bar-sm-fill" style={{ width: `${li.percentComplete || 0}%` }} /></div>
+                                <span className="progress-text">{li.percentComplete || 0}%</span>
+                              </div>
+                            </td>
+                            <td className="num">—</td>
+                            <td>
+                              <button className="btn btn-icon btn-sm btn-secondary" title="Edit"
+                                onClick={() => setModal({ type: 'lineItem', categoryId: cat.id, lineItem: li })}>
+                                {Icons.edit}
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                      {isExpanded && cat.lineItems.length === 0 && (
+                        <tr className="line-item">
+                          <td colSpan={8} style={{ textAlign: 'center', color: 'var(--text-faint)', fontStyle: 'italic', padding: '12px 14px' }}>
+                            No line items. <span style={{ color: 'var(--accent-primary)', cursor: 'pointer' }}
+                              onClick={() => setModal({ type: 'lineItem', categoryId: cat.id })}>Add one</span>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+
+                {/* Summary rows */}
+                <tr className="subtotal-row">
+                  <td>Cost Estimate</td>
+                  <td className="num">{formatCurrency(evm.BAC, sym)}</td>
+                  <td className="num">{formatCurrency(evm.AC, sym)}</td>
+                  <td className={`num ${varianceClass(evm.BAC - evm.AC, evm.BAC, amberPct, redPct)}`}>
+                    {evm.BAC - evm.AC >= 0 ? '+' : ''}{formatCurrency(evm.BAC - evm.AC, sym)}
+                  </td>
+                  <td className={`num ${varianceClass(evm.BAC - evm.AC, evm.BAC, amberPct, redPct)}`}>
+                    {evm.BAC ? formatPercent(((evm.BAC - evm.AC) / evm.BAC) * 100) : '—'}
+                  </td>
+                  <td className="num"></td>
+                  <td className="num">{formatCurrency(evm.EAC, sym, true)}</td>
+                  <td></td>
+                </tr>
+                <tr className="reserve-row">
+                  <td>Contingency Reserve</td>
+                  <td className="num">{formatCurrency(evm.contingencyAmount, sym)}</td>
+                  <td className="num" colSpan={2} style={{ fontStyle: 'normal' }}>
+                    {(project.contingency.utilised || 0) > 0 ? (
+                      <span>({formatCurrency(project.contingency.utilised, sym)} utilised, {formatCurrency(evm.contingencyAmount - (project.contingency.utilised || 0), sym)} remaining)</span>
+                    ) : null}
+                  </td>
+                  <td className="num"></td>
+                  <td className="num"></td>
+                  <td className="num"></td>
+                  <td>
+                    <button className="btn btn-icon btn-sm btn-secondary" title="Use contingency reserve"
+                      onClick={() => setModal({ type: 'contingency' })}>
+                      {Icons.download}
+                    </button>
+                  </td>
+                </tr>
+                <tr className="subtotal-row">
+                  <td>Cost Baseline</td>
+                  <td className="num">{formatCurrency(evm.costBaseline, sym)}</td>
+                  <td className="num"></td>
+                  <td className="num"></td>
+                  <td className="num"></td>
+                  <td className="num"></td>
+                  <td className="num"></td>
+                  <td></td>
+                </tr>
+                <tr className="reserve-row">
+                  <td>
+                    Management Reserve
+                    {(() => {
+                      const released = (project.managementReserve.releaseLog || []).reduce((s, r) => s + (r.amount || 0), 0);
+                      return released > 0 ? <span style={{ fontSize: 11, color: 'var(--warning)', marginLeft: 6 }}>({formatCurrency(released, sym)} released)</span> : null;
+                    })()}
+                  </td>
+                  <td className="num">{formatCurrency(evm.mgmtReserveAmount, sym)}</td>
+                  <td className="num" colSpan={2} style={{ fontStyle: 'normal' }}>
+                    {(() => {
+                      const remaining = evm.mgmtReserveAmount - (project.managementReserve.releaseLog || []).reduce((s, r) => s + (r.amount || 0), 0);
+                      return remaining < evm.mgmtReserveAmount ? <span style={{ fontSize: 11 }}>{formatCurrency(remaining, sym)} remaining</span> : null;
+                    })()}
+                  </td>
+                  <td className="num"></td>
+                  <td className="num"></td>
+                  <td className="num"></td>
+                  <td>
+                    <button className="btn btn-icon btn-sm btn-secondary" title="Release management reserve"
+                      onClick={() => setModal({ type: 'mgmtReserve' })}>
+                      {Icons.download}
+                    </button>
+                  </td>
+                </tr>
+                <tr className="summary-row">
+                  <td>Total Project Budget</td>
+                  <td className="num">{formatCurrency(evm.totalBudget, sym)}</td>
+                  <td className="num"></td>
+                  <td className="num"></td>
+                  <td className="num"></td>
+                  <td className="num"></td>
+                  <td className="num"></td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        );
+      }
+
+      // ============================================
+      // TRANSACTIONS LIST (TABLE VIEW)
+      // ============================================
+      function TransactionsList() {
+        const sorted = [...project.transactions].sort((a, b) => b.date.localeCompare(a.date));
+        if (!sorted.length) return null;
+
+        return (
+          <div className="transactions-section" style={{ marginTop: 24 }}>
+            <div className="transactions-header">
+              <h3>All Transactions ({sorted.length})</h3>
+            </div>
+            <div className="transaction-list">
+              {sorted.map(t => {
+                const cat = project.categories.find(c => c.id === t.categoryId);
+                const li = cat ? cat.lineItems.find(l => l.id === t.lineItemId) : null;
+                return (
+                  <div key={t.id} className="transaction-item" onClick={() => setModal({ type: 'editTransaction', transaction: t })} style={{ cursor: 'pointer' }}>
+                    <span className="transaction-date">{formatDate(t.date)}</span>
+                    <span className="transaction-cat">{cat ? cat.name : '—'}</span>
+                    <span className="transaction-desc">
+                      {t.description || '—'}
+                      {li && <span style={{ fontSize: 11, color: 'var(--text-faint)', marginLeft: 6 }}>({li.description})</span>}
+                      {t.vendor && <span style={{ fontSize: 11, color: 'var(--text-faint)', marginLeft: 6 }}>• {t.vendor}</span>}
+                    </span>
+                    <span className="transaction-amount">{formatCurrency(t.amount, sym)}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      }
+
+      // ============================================
+      // TIME PHASING EDITOR
+      // ============================================
+      function TimePhasingSection() {
+        const periods = project.timePhased.periods || [];
+        if (!periods.length) return null;
+
+        function distributeEvenly() {
+          const totalPlanned = evm.BAC;
+          const perPeriod = periods.length > 0 ? totalPlanned / periods.length : 0;
+          update(d => {
+            d.timePhased.periods.forEach(p => { p.planned = Math.round(perPeriod); });
+          });
+        }
+
+        function calcActualsPerPeriod() {
+          update(d => {
+            d.timePhased.periods.forEach(p => {
+              const periodStart = new Date(p.startDate);
+              const periodEnd = new Date(p.endDate);
+              const periodActual = d.transactions
+                .filter(t => { const td = new Date(t.date); return td >= periodStart && td <= periodEnd; })
+                .reduce((s, t) => s + (t.amount || 0), 0);
+              p.actual = periodActual;
+            });
+          });
+        }
+
+        return (
+          <div style={{ marginTop: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+              <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-secondary)', margin: 0 }}>Time-Phased Budget</h3>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <button className="btn btn-secondary btn-sm" onClick={distributeEvenly}>Even Spread</button>
+                <button className="btn btn-secondary btn-sm" onClick={calcActualsPerPeriod}>{Icons.refresh} Calc Actuals</button>
+              </div>
+            </div>
+            <div className="budget-table-wrap">
+              <table className="budget-table">
+                <thead>
+                  <tr>
+                    <th>Period</th>
+                    <th className="num">Planned ({sym})</th>
+                    <th className="num">Actual ({sym})</th>
+                    <th className="num">Earned ({sym})</th>
+                    <th className="num">Variance ({sym})</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {periods.map((p, i) => {
+                    const variance = (p.planned || 0) - (p.actual || 0);
+                    return (
+                      <tr key={p.id}>
+                        <td>{p.label}</td>
+                        <td className="num">
+                          <input type="number" className="cell-input" value={p.planned || ''}
+                            onChange={e => update(d => { d.timePhased.periods[i].planned = parseFloat(e.target.value) || 0; })}
+                            placeholder="0" />
+                        </td>
+                        <td className="num" style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }}>
+                          {formatCurrency(p.actual || 0, sym)}
+                        </td>
+                        <td className="num">
+                          <input type="number" className="cell-input" value={p.earned || ''}
+                            onChange={e => update(d => { d.timePhased.periods[i].earned = parseFloat(e.target.value) || 0; })}
+                            placeholder="0" />
+                        </td>
+                        <td className={`num ${varianceClass(variance, p.planned || 1, project.settings.amberThreshold, project.settings.redThreshold)}`}>
+                          {variance >= 0 ? '+' : ''}{formatCurrency(variance, sym)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
+      }
+
+      // ============================================
+      // BASELINES LIST
+      // ============================================
+      function BaselinesSection() {
+        if (!project.baselines.length) return null;
+        return (
+          <div style={{ marginTop: 24 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 12 }}>Saved Baselines</h3>
+            <div className="transaction-list">
+              {project.baselines.map((bl, i) => {
+                const snapBAC = bl.snapshot.categories.reduce((s, c) => s + c.lineItems.reduce((ls, li) => ls + (li.totalCost || 0), 0), 0);
+                return (
+                  <div key={i} className="transaction-item">
+                    <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{bl.name}</span>
+                    <span className="transaction-date">{formatDate(bl.date)}</span>
+                    <span style={{ flex: 1 }} />
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text-muted)' }}>
+                      BAC: {formatCurrency(snapBAC, sym)}
+                    </span>
+                    <button className="btn btn-icon btn-sm btn-danger" title="Delete baseline"
+                      onClick={() => { if (confirm(`Delete baseline "${bl.name}"?`)) update(d => { d.baselines.splice(i, 1); }); }}>
+                      {Icons.trash}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      }
+
+      // ============================================
+      // RENDER
+      // ============================================
+      return (
+        <div>
+          <Header />
+          <SettingsDrawer />
+          {view === 'dashboard' ? <DashboardView /> : (
+            <div className="content-area animate-in">
+              <div className="budget-toolbar">
+                <button className="btn btn-primary btn-sm" onClick={() => setModal({ type: 'transaction' })}>
+                  {Icons.plus} Add Transaction
+                </button>
+                {(project.timePhased.periods || []).length > 0 && (
+                  <select className="select-refined" value={selectedPeriod || ''} style={{ width: 160 }}
+                    onChange={e => setSelectedPeriod(e.target.value || null)}>
+                    <option value="">All Periods</option>
+                    {(project.timePhased.periods || []).map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
+                  </select>
+                )}
+                <div style={{ flex: 1 }} />
+                {project.contingency.method === 'emv' && (
+                  <button className="btn btn-secondary btn-sm" onClick={pullFromRiskRegister}>
+                    {Icons.refresh} Pull from Risk Register
+                  </button>
+                )}
+              </div>
+
+              <BudgetTable />
+              <TimePhasingSection />
+              <BaselinesSection />
+              <TransactionsList />
+            </div>
+          )}
+
+          {/* Modals */}
+          {modal && modal.type === 'baseline' && <BaselineModal />}
+          {modal && (modal.type === 'transaction' || modal.type === 'editTransaction') && <TransactionModal />}
+          {modal && modal.type === 'lineItem' && <LineItemModal />}
+          {modal && modal.type === 'contingency' && <ContingencyModal />}
+          {modal && modal.type === 'mgmtReserve' && <MgmtReserveModal />}
+        </div>
+      );
+    }
+
+    // ============================================
+    // MOUNT
+    // ============================================
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>

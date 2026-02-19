@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="blueprint">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CoffeeCup — Estimator</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23f59e0b'/%3E%3Cstop offset='100%25' stop-color='%23d97706'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='6' fill='url(%23g)'/%3E%3Cpath d='M8 24l16-16M8 8v16h16' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Disable Tailwind CDN's MutationObserver which steals focus from inputs on re-render
+    tailwind.config = { corePlugins: { preflight: false } };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useMemo, useCallback } = React;
+
+    // === CONSTANTS ===
+    const STORAGE_KEY = 'estimator-project';
+    const RATES_KEY = 'estimator-rates';
+    const THEMES = ['blueprint', 'fun', 'dark', 'traditional'];
+    const THEME_LABELS = { blueprint: 'Blueprint', fun: 'Fun & Vibrant', dark: 'Dark Mode', traditional: 'Traditional' };
+    const TABS = [{ id: 'estimate', label: 'Estimate' }, { id: 'summary', label: 'Summary' }, { id: 'rates', label: 'Rate Library' }];
+    const DIM_SOURCES = [
+      { id: 'floorArea', label: 'Floor Area' }, { id: 'wallArea', label: 'Wall Area' },
+      { id: 'ceilingArea', label: 'Ceiling Area' }, { id: 'perimeter', label: 'Perimeter' },
+      { id: 'volume', label: 'Volume' }, { id: 'length', label: 'Length' },
+      { id: 'width', label: 'Width' }, { id: 'height', label: 'Height' },
+      { id: 'custom', label: 'Manual Qty' }
+    ];
+    const REGION_CONFIG = {
+      UK: { sym: '£', dimLabels: { length: 'Length (m)', width: 'Width (m)', height: 'Height (m)' } },
+      USA: { sym: '$', dimLabels: { length: 'Length (ft)', width: 'Width (ft)', height: 'Height (ft)' } }
+    };
+
+    // === UTILITIES ===
+    function uid() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 9); }
+    function formatCurrency(a, s='£') { if(a==null||isNaN(a))return s+'0'; const ab=Math.abs(a); if(ab>=1e6)return (a<0?'-':'')+s+(ab/1e6).toFixed(1)+'m'; if(ab>=1e3)return (a<0?'-':'')+s+(ab/1e3).toFixed(0)+'k'; return (a<0?'-':'')+s+ab.toLocaleString('en-GB',{minimumFractionDigits:0,maximumFractionDigits:0}); }
+    function formatCurrencyFull(a, s='£') { if(a==null||isNaN(a))return s+'0.00'; return (a<0?'-':'')+s+Math.abs(a).toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+    function fmtNum(n, dp=1) { if(n==null||isNaN(n))return '0'; return n.toLocaleString('en-GB',{minimumFractionDigits:dp,maximumFractionDigits:dp}); }
+
+    // === CALCULATION ENGINE ===
+    // Composite zones: sums L×W, 2(L+W)×H, etc. across all rectangular zones
+    function resolveZones(dims) {
+      const zones = (dims && dims.zones) || [];
+      let floorArea=0, wallArea=0, perimeter=0, volume=0, totalLength=0, totalWidth=0, totalHeight=0;
+      zones.forEach(z => {
+        const l=parseFloat(z.length)||0, w=parseFloat(z.width)||0, h=parseFloat(z.height)||0;
+        floorArea += l*w;
+        wallArea += 2*(l+w)*h;
+        perimeter += 2*(l+w);
+        volume += l*w*h;
+        totalLength += l;
+        totalWidth += w;
+        totalHeight = Math.max(totalHeight, h); // height: use tallest zone
+      });
+      return { floorArea, wallArea, ceilingArea: floorArea, perimeter, volume, length: totalLength, width: totalWidth, height: totalHeight };
+    }
+    function resolveDim(dims, src, manualQty) {
+      if (src === 'custom') return parseFloat(manualQty) || 0;
+      const r = resolveZones(dims);
+      return r[src] || 0;
+    }
+    function calcMat(dims, mat) {
+      const dim = resolveDim(dims, mat.dimensionSource, mat.manualQty);
+      const rate = parseFloat(mat.coverageRate)||0;
+      if(rate===0 && mat.dimensionSource!=='custom') return {dim,baseQty:0,wasteQty:0,packs:0,totalUnits:0,cost:0};
+      const baseQty = mat.dimensionSource==='custom' ? dim : (rate>0 ? dim/rate : 0);
+      const wasteQty = baseQty * (1 + (parseFloat(mat.wastage)||0)/100);
+      const ps = parseFloat(mat.packSize)||0, pp = parseFloat(mat.packPrice)||0, ur = parseFloat(mat.unitRate)||0;
+      let packs=0, totalUnits=0, cost=0;
+      if(ps>0) { packs=Math.ceil(wasteQty/ps); totalUnits=packs*ps; cost=packs*pp; }
+      else { totalUnits=wasteQty; cost=wasteQty*ur; }
+      return {dim,baseQty,wasteQty,packs,totalUnits,cost};
+    }
+
+    // === STABLEINPUT ===
+    // All input types use local state + commit on blur/Enter to prevent re-render focus loss
+    function StableInput({value,onChange,type='text',...props}) {
+      const [local,setLocal]=useState(String(value ?? ''));
+      const ref=useRef(null);
+      const valueStr = String(value ?? '');
+      useEffect(()=>{
+        // Only sync from parent if the input is NOT focused (prevents overwriting mid-edit)
+        if(ref.current && ref.current === document.activeElement) return;
+        setLocal(valueStr);
+      },[valueStr]);
+      const commit = useCallback((e) => {
+        if(local !== valueStr) onChange(e);
+      }, [local, valueStr, onChange]);
+      return React.createElement('input',{...props,type,ref,value:local,
+        onChange:e=>{setLocal(e.target.value);},
+        onBlur:commit,
+        onKeyDown:e=>{if(e.key==='Enter'){commit(e);ref.current?.blur();}}
+      });
+    }
+
+    // === TEMPLATES ===
+    const TEMPLATES = [
+      { id:'bathroom', name:'Bathroom', group:'Room / Fit-Out', colour:'#3b82f6',
+        materials_uk:[
+          {description:'Floor Tiles (300x300mm)',dimensionSource:'floorArea',coverageRate:0.09,coverageUnit:'m²/tile',wastage:10,packSize:10,packPrice:24.99,unitRate:null,notes:''},
+          {description:'Wall Tiles (250x400mm)',dimensionSource:'wallArea',coverageRate:0.1,coverageUnit:'m²/tile',wastage:10,packSize:10,packPrice:29.99,unitRate:null,notes:''},
+          {description:'Tile Adhesive (20kg)',dimensionSource:'floorArea',coverageRate:5,coverageUnit:'m²/bag',wastage:5,packSize:0,packPrice:0,unitRate:16.99,notes:'Also covers walls'},
+          {description:'Tile Grout (5kg)',dimensionSource:'floorArea',coverageRate:8,coverageUnit:'m²/bag',wastage:5,packSize:0,packPrice:0,unitRate:8.99,notes:''},
+          {description:'Silicone Sealant',dimensionSource:'perimeter',coverageRate:6,coverageUnit:'m/tube',wastage:10,packSize:0,packPrice:0,unitRate:5.49,notes:''},
+          {description:'Plasterboard (2400x1200)',dimensionSource:'wallArea',coverageRate:2.88,coverageUnit:'m²/sheet',wastage:10,packSize:0,packPrice:0,unitRate:8.50,notes:''},
+          {description:'Bathroom Paint (2.5L)',dimensionSource:'ceilingArea',coverageRate:13,coverageUnit:'m²/tin',wastage:5,packSize:0,packPrice:0,unitRate:22.00,notes:'Moisture-resistant'}
+        ],
+        materials_usa:[
+          {description:'Floor Tiles (12x12in)',dimensionSource:'floorArea',coverageRate:1,coverageUnit:'ft²/tile',wastage:10,packSize:10,packPrice:24.99,unitRate:null,notes:''},
+          {description:'Wall Tiles (10x16in)',dimensionSource:'wallArea',coverageRate:1.11,coverageUnit:'ft²/tile',wastage:10,packSize:10,packPrice:29.99,unitRate:null,notes:''},
+          {description:'Thinset Mortar (50lb)',dimensionSource:'floorArea',coverageRate:50,coverageUnit:'ft²/bag',wastage:5,packSize:0,packPrice:0,unitRate:18.99,notes:''},
+          {description:'Tile Grout (10lb)',dimensionSource:'floorArea',coverageRate:80,coverageUnit:'ft²/bag',wastage:5,packSize:0,packPrice:0,unitRate:9.99,notes:''},
+          {description:'Silicone Caulk',dimensionSource:'perimeter',coverageRate:20,coverageUnit:'ft/tube',wastage:10,packSize:0,packPrice:0,unitRate:5.99,notes:''},
+          {description:'Drywall (4x8ft)',dimensionSource:'wallArea',coverageRate:32,coverageUnit:'ft²/sheet',wastage:10,packSize:0,packPrice:0,unitRate:12.50,notes:'Moisture-resistant'},
+          {description:'Bathroom Paint (1 gal)',dimensionSource:'ceilingArea',coverageRate:350,coverageUnit:'ft²/gal',wastage:5,packSize:0,packPrice:0,unitRate:34.99,notes:''}
+        ]},
+      { id:'kitchen', name:'Kitchen', group:'Room / Fit-Out', colour:'#f59e0b',
+        materials_uk:[
+          {description:'Base Units (600mm)',dimensionSource:'perimeter',coverageRate:0.6,coverageUnit:'m/unit',wastage:0,packSize:0,packPrice:0,unitRate:180.00,notes:''},
+          {description:'Wall Units (600mm)',dimensionSource:'perimeter',coverageRate:0.6,coverageUnit:'m/unit',wastage:0,packSize:0,packPrice:0,unitRate:120.00,notes:''},
+          {description:'Worktop (laminate, per m)',dimensionSource:'perimeter',coverageRate:1,coverageUnit:'m/length',wastage:10,packSize:0,packPrice:0,unitRate:45.00,notes:''},
+          {description:'Splashback Tiles',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:10,packSize:20,packPrice:18.99,unitRate:null,notes:'Estimate ~2m²'},
+          {description:'Vinyl Flooring (m²)',dimensionSource:'floorArea',coverageRate:1,coverageUnit:'m²/m²',wastage:10,packSize:0,packPrice:0,unitRate:18.50,notes:''},
+          {description:'Plumbing Kit',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:85.00,notes:''}
+        ],
+        materials_usa:[
+          {description:'Base Cabinets (24in)',dimensionSource:'perimeter',coverageRate:2,coverageUnit:'ft/unit',wastage:0,packSize:0,packPrice:0,unitRate:250.00,notes:''},
+          {description:'Wall Cabinets (24in)',dimensionSource:'perimeter',coverageRate:2,coverageUnit:'ft/unit',wastage:0,packSize:0,packPrice:0,unitRate:180.00,notes:''},
+          {description:'Countertop (laminate, per ft)',dimensionSource:'perimeter',coverageRate:1,coverageUnit:'ft/length',wastage:10,packSize:0,packPrice:0,unitRate:25.00,notes:''},
+          {description:'Backsplash Tiles',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:10,packSize:20,packPrice:22.99,unitRate:null,notes:'Estimate ~20ft²'},
+          {description:'Vinyl Flooring (ft²)',dimensionSource:'floorArea',coverageRate:1,coverageUnit:'ft²/ft²',wastage:10,packSize:0,packPrice:0,unitRate:3.50,notes:''},
+          {description:'Plumbing Kit',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:95.00,notes:''}
+        ]},
+      { id:'bedroom', name:'Bedroom', group:'Room / Fit-Out', colour:'#8b5cf6',
+        materials_uk:[
+          {description:'Emulsion Paint (5L)',dimensionSource:'wallArea',coverageRate:17,coverageUnit:'m²/tin',wastage:5,packSize:0,packPrice:0,unitRate:28.00,notes:'2 coats'},
+          {description:'Ceiling Paint (5L)',dimensionSource:'ceilingArea',coverageRate:17,coverageUnit:'m²/tin',wastage:5,packSize:0,packPrice:0,unitRate:24.00,notes:''},
+          {description:'Laminate Flooring',dimensionSource:'floorArea',coverageRate:1,coverageUnit:'m²/m²',wastage:10,packSize:0,packPrice:0,unitRate:14.99,notes:''},
+          {description:'Underlay (m²)',dimensionSource:'floorArea',coverageRate:1,coverageUnit:'m²/m²',wastage:5,packSize:15,packPrice:29.99,unitRate:null,notes:''},
+          {description:'Skirting Board (3m)',dimensionSource:'perimeter',coverageRate:3,coverageUnit:'m/length',wastage:10,packSize:0,packPrice:0,unitRate:6.99,notes:''},
+          {description:'Coving (2.4m)',dimensionSource:'perimeter',coverageRate:2.4,coverageUnit:'m/length',wastage:10,packSize:0,packPrice:0,unitRate:4.50,notes:''}
+        ],
+        materials_usa:[
+          {description:'Interior Paint (1 gal)',dimensionSource:'wallArea',coverageRate:350,coverageUnit:'ft²/gal',wastage:5,packSize:0,packPrice:0,unitRate:38.00,notes:'2 coats'},
+          {description:'Ceiling Paint (1 gal)',dimensionSource:'ceilingArea',coverageRate:350,coverageUnit:'ft²/gal',wastage:5,packSize:0,packPrice:0,unitRate:32.00,notes:''},
+          {description:'Laminate Flooring (ft²)',dimensionSource:'floorArea',coverageRate:1,coverageUnit:'ft²/ft²',wastage:10,packSize:0,packPrice:0,unitRate:2.49,notes:''},
+          {description:'Underlayment (ft²)',dimensionSource:'floorArea',coverageRate:1,coverageUnit:'ft²/ft²',wastage:5,packSize:100,packPrice:24.99,unitRate:null,notes:''},
+          {description:'Baseboard (8ft)',dimensionSource:'perimeter',coverageRate:8,coverageUnit:'ft/length',wastage:10,packSize:0,packPrice:0,unitRate:8.99,notes:''},
+          {description:'Crown Molding (8ft)',dimensionSource:'perimeter',coverageRate:8,coverageUnit:'ft/length',wastage:10,packSize:0,packPrice:0,unitRate:7.50,notes:''}
+        ]},
+      { id:'livingroom', name:'Living Room', group:'Room / Fit-Out', colour:'#ec4899',
+        materials_uk:[
+          {description:'Emulsion Paint (5L)',dimensionSource:'wallArea',coverageRate:17,coverageUnit:'m²/tin',wastage:5,packSize:0,packPrice:0,unitRate:28.00,notes:'2 coats'},
+          {description:'Ceiling Paint (5L)',dimensionSource:'ceilingArea',coverageRate:17,coverageUnit:'m²/tin',wastage:5,packSize:0,packPrice:0,unitRate:24.00,notes:''},
+          {description:'Engineered Wood Flooring',dimensionSource:'floorArea',coverageRate:1,coverageUnit:'m²/m²',wastage:10,packSize:0,packPrice:0,unitRate:29.99,notes:''},
+          {description:'Underlay (m²)',dimensionSource:'floorArea',coverageRate:1,coverageUnit:'m²/m²',wastage:5,packSize:15,packPrice:44.99,unitRate:null,notes:''},
+          {description:'Skirting Board (3m)',dimensionSource:'perimeter',coverageRate:3,coverageUnit:'m/length',wastage:10,packSize:0,packPrice:0,unitRate:6.99,notes:''},
+          {description:'Feature Wallpaper',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:15,packSize:0,packPrice:0,unitRate:35.00,notes:'Feature wall only'}
+        ],
+        materials_usa:[
+          {description:'Interior Paint (1 gal)',dimensionSource:'wallArea',coverageRate:350,coverageUnit:'ft²/gal',wastage:5,packSize:0,packPrice:0,unitRate:38.00,notes:'2 coats'},
+          {description:'Ceiling Paint (1 gal)',dimensionSource:'ceilingArea',coverageRate:350,coverageUnit:'ft²/gal',wastage:5,packSize:0,packPrice:0,unitRate:32.00,notes:''},
+          {description:'Engineered Hardwood (ft²)',dimensionSource:'floorArea',coverageRate:1,coverageUnit:'ft²/ft²',wastage:10,packSize:0,packPrice:0,unitRate:4.99,notes:''},
+          {description:'Underlayment (ft²)',dimensionSource:'floorArea',coverageRate:1,coverageUnit:'ft²/ft²',wastage:5,packSize:100,packPrice:39.99,unitRate:null,notes:''},
+          {description:'Baseboard (8ft)',dimensionSource:'perimeter',coverageRate:8,coverageUnit:'ft/length',wastage:10,packSize:0,packPrice:0,unitRate:8.99,notes:''},
+          {description:'Accent Wallpaper',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:15,packSize:0,packPrice:0,unitRate:45.00,notes:'Feature wall only'}
+        ]},
+      { id:'utility', name:'Utility Room', group:'Room / Fit-Out', colour:'#14b8a6',
+        materials_uk:[
+          {description:'Vinyl Flooring (m²)',dimensionSource:'floorArea',coverageRate:1,coverageUnit:'m²/m²',wastage:10,packSize:0,packPrice:0,unitRate:15.99,notes:''},
+          {description:'Emulsion Paint (2.5L)',dimensionSource:'wallArea',coverageRate:13,coverageUnit:'m²/tin',wastage:5,packSize:0,packPrice:0,unitRate:18.00,notes:''},
+          {description:'Ceiling Paint (2.5L)',dimensionSource:'ceilingArea',coverageRate:13,coverageUnit:'m²/tin',wastage:5,packSize:0,packPrice:0,unitRate:16.00,notes:''},
+          {description:'Plumbing Supplies',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:65.00,notes:'Washing machine'},
+          {description:'Shelving',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:18.00,notes:''}
+        ],
+        materials_usa:[
+          {description:'Vinyl Flooring (ft²)',dimensionSource:'floorArea',coverageRate:1,coverageUnit:'ft²/ft²',wastage:10,packSize:0,packPrice:0,unitRate:2.99,notes:''},
+          {description:'Interior Paint (1 gal)',dimensionSource:'wallArea',coverageRate:350,coverageUnit:'ft²/gal',wastage:5,packSize:0,packPrice:0,unitRate:32.00,notes:''},
+          {description:'Ceiling Paint (1 gal)',dimensionSource:'ceilingArea',coverageRate:350,coverageUnit:'ft²/gal',wastage:5,packSize:0,packPrice:0,unitRate:28.00,notes:''},
+          {description:'Plumbing Supplies',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:75.00,notes:'Washer hookup'},
+          {description:'Wire Shelving',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:22.00,notes:''}
+        ]},
+      { id:'painting', name:'Painting & Decorating', group:'Room / Fit-Out', colour:'#fb923c',
+        materials_uk:[
+          {description:'Matt Emulsion (5L)',dimensionSource:'wallArea',coverageRate:17,coverageUnit:'m²/tin',wastage:5,packSize:0,packPrice:0,unitRate:28.00,notes:'2 coats'},
+          {description:'Gloss Paint (750ml)',dimensionSource:'perimeter',coverageRate:9,coverageUnit:'m/tin',wastage:5,packSize:0,packPrice:0,unitRate:12.99,notes:'Woodwork'},
+          {description:'Primer/Undercoat (2.5L)',dimensionSource:'wallArea',coverageRate:16,coverageUnit:'m²/tin',wastage:5,packSize:0,packPrice:0,unitRate:19.99,notes:''},
+          {description:'Filler (1kg)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:6.99,notes:''},
+          {description:'Sandpaper (pack)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:10,packPrice:5.99,unitRate:null,notes:'Assorted grit'},
+          {description:'Masking Tape (50m)',dimensionSource:'perimeter',coverageRate:50,coverageUnit:'m/roll',wastage:10,packSize:0,packPrice:0,unitRate:3.49,notes:''}
+        ],
+        materials_usa:[
+          {description:'Interior Paint (1 gal)',dimensionSource:'wallArea',coverageRate:350,coverageUnit:'ft²/gal',wastage:5,packSize:0,packPrice:0,unitRate:38.00,notes:'2 coats'},
+          {description:'Semi-Gloss Trim (qt)',dimensionSource:'perimeter',coverageRate:30,coverageUnit:'ft/qt',wastage:5,packSize:0,packPrice:0,unitRate:18.99,notes:'Woodwork'},
+          {description:'Primer (1 gal)',dimensionSource:'wallArea',coverageRate:350,coverageUnit:'ft²/gal',wastage:5,packSize:0,packPrice:0,unitRate:24.99,notes:''},
+          {description:'Spackle (qt)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:8.99,notes:''},
+          {description:'Sandpaper (pack)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:10,packPrice:6.99,unitRate:null,notes:'Assorted grit'},
+          {description:"Painter's Tape (60yd)",dimensionSource:'perimeter',coverageRate:55,coverageUnit:'ft/roll',wastage:10,packSize:0,packPrice:0,unitRate:5.99,notes:''}
+        ]},
+      { id:'flooring', name:'Flooring (General)', group:'Room / Fit-Out', colour:'#d946ef',
+        materials_uk:[
+          {description:'Underlay (m²)',dimensionSource:'floorArea',coverageRate:1,coverageUnit:'m²/m²',wastage:5,packSize:15,packPrice:29.99,unitRate:null,notes:''},
+          {description:'Laminate/Vinyl (m²)',dimensionSource:'floorArea',coverageRate:1,coverageUnit:'m²/m²',wastage:10,packSize:0,packPrice:0,unitRate:18.99,notes:''},
+          {description:'Scotia Trim (2.4m)',dimensionSource:'perimeter',coverageRate:2.4,coverageUnit:'m/length',wastage:10,packSize:0,packPrice:0,unitRate:3.49,notes:''},
+          {description:'Adhesive (per m²)',dimensionSource:'floorArea',coverageRate:1,coverageUnit:'m²',wastage:5,packSize:0,packPrice:0,unitRate:4.99,notes:'If glue-down'},
+          {description:'Threshold Strip',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:8.99,notes:'Per doorway'}
+        ],
+        materials_usa:[
+          {description:'Underlayment (ft²)',dimensionSource:'floorArea',coverageRate:1,coverageUnit:'ft²/ft²',wastage:5,packSize:100,packPrice:24.99,unitRate:null,notes:''},
+          {description:'Laminate/LVP (ft²)',dimensionSource:'floorArea',coverageRate:1,coverageUnit:'ft²/ft²',wastage:10,packSize:0,packPrice:0,unitRate:2.99,notes:''},
+          {description:'Quarter Round (8ft)',dimensionSource:'perimeter',coverageRate:8,coverageUnit:'ft/length',wastage:10,packSize:0,packPrice:0,unitRate:4.49,notes:''},
+          {description:'Flooring Adhesive (gal)',dimensionSource:'floorArea',coverageRate:40,coverageUnit:'ft²/gal',wastage:5,packSize:0,packPrice:0,unitRate:29.99,notes:'If glue-down'},
+          {description:'Transition Strip',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:12.99,notes:'Per doorway'}
+        ]},
+      { id:'patio', name:'Garden/Patio', group:'External / Garden', colour:'#22c55e',
+        materials_uk:[
+          {description:'Paving Slabs (450x450mm)',dimensionSource:'floorArea',coverageRate:0.2025,coverageUnit:'m²/slab',wastage:5,packSize:0,packPrice:0,unitRate:3.50,notes:''},
+          {description:'Sharp Sand (bulk bag)',dimensionSource:'floorArea',coverageRate:12,coverageUnit:'m²/bag',wastage:10,packSize:0,packPrice:0,unitRate:45.00,notes:'25mm bed'},
+          {description:'Cement (25kg)',dimensionSource:'floorArea',coverageRate:6,coverageUnit:'m²/bag',wastage:10,packSize:0,packPrice:0,unitRate:5.99,notes:''},
+          {description:'Gravel Sub-base (bulk bag)',dimensionSource:'floorArea',coverageRate:8,coverageUnit:'m²/bag',wastage:5,packSize:0,packPrice:0,unitRate:50.00,notes:'100mm depth'},
+          {description:'Edging Stones (600mm)',dimensionSource:'perimeter',coverageRate:0.6,coverageUnit:'m/unit',wastage:5,packSize:0,packPrice:0,unitRate:4.50,notes:''}
+        ],
+        materials_usa:[
+          {description:'Patio Pavers (12x12in)',dimensionSource:'floorArea',coverageRate:1,coverageUnit:'ft²/paver',wastage:5,packSize:0,packPrice:0,unitRate:2.50,notes:''},
+          {description:'Paver Base Sand (50lb)',dimensionSource:'floorArea',coverageRate:8,coverageUnit:'ft²/bag',wastage:10,packSize:0,packPrice:0,unitRate:4.99,notes:''},
+          {description:'Portland Cement (94lb)',dimensionSource:'floorArea',coverageRate:50,coverageUnit:'ft²/bag',wastage:10,packSize:0,packPrice:0,unitRate:7.99,notes:''},
+          {description:'Gravel Base (cu yd)',dimensionSource:'floorArea',coverageRate:80,coverageUnit:'ft²/yd',wastage:5,packSize:0,packPrice:0,unitRate:45.00,notes:'4in depth'},
+          {description:'Edging (per ft)',dimensionSource:'perimeter',coverageRate:1,coverageUnit:'ft/unit',wastage:5,packSize:0,packPrice:0,unitRate:5.50,notes:''}
+        ]},
+      { id:'fencing', name:'Fencing', group:'External / Garden', colour:'#a3a29e',
+        materials_uk:[
+          {description:'Fence Panels (6ft)',dimensionSource:'length',coverageRate:1.83,coverageUnit:'m/panel',wastage:0,packSize:0,packPrice:0,unitRate:32.00,notes:''},
+          {description:'Fence Posts (2.4m)',dimensionSource:'length',coverageRate:1.83,coverageUnit:'m/post',wastage:0,packSize:0,packPrice:0,unitRate:14.00,notes:'1 per panel +1'},
+          {description:'Gravel Boards (6ft)',dimensionSource:'length',coverageRate:1.83,coverageUnit:'m/board',wastage:0,packSize:0,packPrice:0,unitRate:8.50,notes:''},
+          {description:'Postcrete (20kg)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:6.49,notes:'1 per post'},
+          {description:'Post Caps',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:2.99,notes:'1 per post'}
+        ],
+        materials_usa:[
+          {description:'Fence Panels (6x8ft)',dimensionSource:'length',coverageRate:8,coverageUnit:'ft/panel',wastage:0,packSize:0,packPrice:0,unitRate:65.00,notes:''},
+          {description:'Fence Posts (4x4, 8ft)',dimensionSource:'length',coverageRate:8,coverageUnit:'ft/post',wastage:0,packSize:0,packPrice:0,unitRate:12.00,notes:'Pressure-treated'},
+          {description:'Kick Boards (2x6, 8ft)',dimensionSource:'length',coverageRate:8,coverageUnit:'ft/board',wastage:0,packSize:0,packPrice:0,unitRate:9.50,notes:''},
+          {description:'Quick-Set Concrete (50lb)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:5.49,notes:'2 per post'},
+          {description:'Post Caps',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:3.99,notes:'1 per post'}
+        ]},
+      { id:'decking', name:'Decking', group:'External / Garden', colour:'#78716c',
+        materials_uk:[
+          {description:'Deck Boards (3.6m)',dimensionSource:'floorArea',coverageRate:0.504,coverageUnit:'m²/board',wastage:10,packSize:0,packPrice:0,unitRate:12.99,notes:''},
+          {description:'Joists (47x150mm, 3.6m)',dimensionSource:'length',coverageRate:0.4,coverageUnit:'m/joist',wastage:5,packSize:0,packPrice:0,unitRate:9.50,notes:'400mm centres'},
+          {description:'Support Posts (75x75mm)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:6.99,notes:''},
+          {description:'Decking Screws (200)',dimensionSource:'floorArea',coverageRate:5,coverageUnit:'m²/box',wastage:5,packSize:200,packPrice:14.99,unitRate:null,notes:''},
+          {description:'Decking Stain (5L)',dimensionSource:'floorArea',coverageRate:10,coverageUnit:'m²/tin',wastage:5,packSize:0,packPrice:0,unitRate:24.99,notes:''}
+        ],
+        materials_usa:[
+          {description:'Deck Boards (5/4x6, 12ft)',dimensionSource:'floorArea',coverageRate:6,coverageUnit:'ft²/board',wastage:10,packSize:0,packPrice:0,unitRate:15.99,notes:''},
+          {description:'Joists (2x8, 12ft)',dimensionSource:'length',coverageRate:1.33,coverageUnit:'ft/joist',wastage:5,packSize:0,packPrice:0,unitRate:14.50,notes:'16in centres'},
+          {description:'Support Posts (4x4, 8ft)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:12.99,notes:''},
+          {description:'Deck Screws (5lb box)',dimensionSource:'floorArea',coverageRate:50,coverageUnit:'ft²/box',wastage:5,packSize:0,packPrice:0,unitRate:34.99,notes:''},
+          {description:'Deck Stain (1 gal)',dimensionSource:'floorArea',coverageRate:250,coverageUnit:'ft²/gal',wastage:5,packSize:0,packPrice:0,unitRate:34.99,notes:''}
+        ]},
+      { id:'landscaping', name:'Landscaping', group:'External / Garden', colour:'#84cc16',
+        materials_uk:[
+          {description:'Topsoil (bulk bag)',dimensionSource:'floorArea',coverageRate:8,coverageUnit:'m²/bag',wastage:5,packSize:0,packPrice:0,unitRate:42.00,notes:'100mm depth'},
+          {description:'Turf Rolls (m²)',dimensionSource:'floorArea',coverageRate:1,coverageUnit:'m²/roll',wastage:5,packSize:0,packPrice:0,unitRate:4.50,notes:''},
+          {description:'Weed Membrane (m²)',dimensionSource:'floorArea',coverageRate:1,coverageUnit:'m²/m²',wastage:10,packSize:0,packPrice:0,unitRate:1.50,notes:''},
+          {description:'Bark Mulch (bulk bag)',dimensionSource:'floorArea',coverageRate:10,coverageUnit:'m²/bag',wastage:5,packSize:0,packPrice:0,unitRate:48.00,notes:'50mm depth'},
+          {description:'Lawn Edging (per m)',dimensionSource:'perimeter',coverageRate:1,coverageUnit:'m/m',wastage:5,packSize:0,packPrice:0,unitRate:3.99,notes:''}
+        ],
+        materials_usa:[
+          {description:'Topsoil (cu yd)',dimensionSource:'floorArea',coverageRate:100,coverageUnit:'ft²/yd',wastage:5,packSize:0,packPrice:0,unitRate:35.00,notes:'3in depth'},
+          {description:'Sod (per ft²)',dimensionSource:'floorArea',coverageRate:1,coverageUnit:'ft²/piece',wastage:5,packSize:0,packPrice:0,unitRate:0.75,notes:''},
+          {description:'Landscape Fabric (ft²)',dimensionSource:'floorArea',coverageRate:1,coverageUnit:'ft²/ft²',wastage:10,packSize:0,packPrice:0,unitRate:0.25,notes:''},
+          {description:'Mulch (cu yd)',dimensionSource:'floorArea',coverageRate:160,coverageUnit:'ft²/yd',wastage:5,packSize:0,packPrice:0,unitRate:38.00,notes:'2in depth'},
+          {description:'Edging (per ft)',dimensionSource:'perimeter',coverageRate:1,coverageUnit:'ft/ft',wastage:5,packSize:0,packPrice:0,unitRate:2.50,notes:''}
+        ]},
+      { id:'foundations', name:'Foundations', group:'Structural / Build', colour:'#6366f1',
+        materials_uk:[
+          {description:'Concrete (m³)',dimensionSource:'volume',coverageRate:1,coverageUnit:'m³/m³',wastage:5,packSize:0,packPrice:0,unitRate:95.00,notes:'Ready-mix'},
+          {description:'Rebar (12mm, per m)',dimensionSource:'floorArea',coverageRate:0.36,coverageUnit:'m²/m',wastage:10,packSize:0,packPrice:0,unitRate:3.50,notes:'300mm grid'},
+          {description:'Formwork Timber (3m)',dimensionSource:'perimeter',coverageRate:3,coverageUnit:'m/length',wastage:10,packSize:0,packPrice:0,unitRate:8.50,notes:''},
+          {description:'DPM Sheet (m²)',dimensionSource:'floorArea',coverageRate:1,coverageUnit:'m²/m²',wastage:10,packSize:0,packPrice:0,unitRate:1.20,notes:'1200 gauge'},
+          {description:'Hardcore (bulk bag)',dimensionSource:'floorArea',coverageRate:5,coverageUnit:'m²/bag',wastage:5,packSize:0,packPrice:0,unitRate:55.00,notes:'150mm depth'},
+          {description:'Sand Blinding (bulk bag)',dimensionSource:'floorArea',coverageRate:12,coverageUnit:'m²/bag',wastage:5,packSize:0,packPrice:0,unitRate:42.00,notes:'25mm depth'}
+        ],
+        materials_usa:[
+          {description:'Concrete (cu yd)',dimensionSource:'volume',coverageRate:27,coverageUnit:'ft³/yd',wastage:5,packSize:0,packPrice:0,unitRate:150.00,notes:'Ready-mix'},
+          {description:'Rebar (#4, 20ft)',dimensionSource:'floorArea',coverageRate:24,coverageUnit:'ft²/bar',wastage:10,packSize:0,packPrice:0,unitRate:12.50,notes:'12in grid'},
+          {description:'Form Lumber (2x10, 12ft)',dimensionSource:'perimeter',coverageRate:12,coverageUnit:'ft/board',wastage:10,packSize:0,packPrice:0,unitRate:18.50,notes:''},
+          {description:'Vapor Barrier (ft²)',dimensionSource:'floorArea',coverageRate:1,coverageUnit:'ft²/ft²',wastage:10,packSize:0,packPrice:0,unitRate:0.15,notes:'10-mil poly'},
+          {description:'Crushed Stone (cu yd)',dimensionSource:'floorArea',coverageRate:50,coverageUnit:'ft²/yd',wastage:5,packSize:0,packPrice:0,unitRate:55.00,notes:'6in depth'},
+          {description:'Sand (cu yd)',dimensionSource:'floorArea',coverageRate:100,coverageUnit:'ft²/yd',wastage:5,packSize:0,packPrice:0,unitRate:40.00,notes:'1in leveling'}
+        ]},
+      { id:'extwalls', name:'External Walls', group:'Structural / Build', colour:'#dc3545',
+        materials_uk:[
+          {description:'Concrete Blocks (440x215)',dimensionSource:'wallArea',coverageRate:0.094,coverageUnit:'m²/block',wastage:5,packSize:0,packPrice:0,unitRate:1.50,notes:'~10/m²'},
+          {description:'Mortar (25kg)',dimensionSource:'wallArea',coverageRate:3,coverageUnit:'m²/bag',wastage:10,packSize:0,packPrice:0,unitRate:5.99,notes:''},
+          {description:'Wall Ties',dimensionSource:'wallArea',coverageRate:1,coverageUnit:'m²/2.5ties',wastage:5,packSize:250,packPrice:32.00,unitRate:null,notes:'2.5 per m²'},
+          {description:'Cavity Insulation (100mm)',dimensionSource:'wallArea',coverageRate:1,coverageUnit:'m²/m²',wastage:5,packSize:0,packPrice:0,unitRate:12.50,notes:'PIR boards'},
+          {description:'Cavity Closers (2.4m)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:8.50,notes:'Per opening'}
+        ],
+        materials_usa:[
+          {description:'CMU Blocks (8x8x16in)',dimensionSource:'wallArea',coverageRate:0.89,coverageUnit:'ft²/block',wastage:5,packSize:0,packPrice:0,unitRate:2.25,notes:'1.125/ft²'},
+          {description:'Mortar Mix (80lb)',dimensionSource:'wallArea',coverageRate:12,coverageUnit:'ft²/bag',wastage:10,packSize:0,packPrice:0,unitRate:7.49,notes:''},
+          {description:'Wall Ties',dimensionSource:'wallArea',coverageRate:1,coverageUnit:'ft²/tie',wastage:5,packSize:100,packPrice:45.00,unitRate:null,notes:''},
+          {description:'Rigid Foam (4x8ft, 2in)',dimensionSource:'wallArea',coverageRate:32,coverageUnit:'ft²/sheet',wastage:5,packSize:0,packPrice:0,unitRate:38.00,notes:'XPS'},
+          {description:'Window/Door Flashing',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:12.00,notes:'Per opening'}
+        ]},
+      { id:'roofing', name:'Roofing', group:'Structural / Build', colour:'#f97316',
+        materials_uk:[
+          {description:'Roof Tiles (concrete)',dimensionSource:'floorArea',coverageRate:0.06,coverageUnit:'m²/tile',wastage:5,packSize:0,packPrice:0,unitRate:0.85,notes:'~17/m²'},
+          {description:'Tile Battens (3.6m)',dimensionSource:'floorArea',coverageRate:1.2,coverageUnit:'m²/length',wastage:10,packSize:0,packPrice:0,unitRate:2.50,notes:''},
+          {description:'Breathable Membrane (m²)',dimensionSource:'floorArea',coverageRate:1,coverageUnit:'m²/m²',wastage:10,packSize:0,packPrice:0,unitRate:1.80,notes:''},
+          {description:'Ridge Tiles',dimensionSource:'length',coverageRate:0.33,coverageUnit:'m/tile',wastage:5,packSize:0,packPrice:0,unitRate:4.50,notes:'3 per m'},
+          {description:'Lead Flashing (per m)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:10,packSize:0,packPrice:0,unitRate:18.00,notes:''}
+        ],
+        materials_usa:[
+          {description:'Asphalt Shingles (bundle)',dimensionSource:'floorArea',coverageRate:33.3,coverageUnit:'ft²/bundle',wastage:5,packSize:0,packPrice:0,unitRate:35.00,notes:'3 bundles=1 square'},
+          {description:'Roof Underlayment (roll)',dimensionSource:'floorArea',coverageRate:400,coverageUnit:'ft²/roll',wastage:10,packSize:0,packPrice:0,unitRate:22.00,notes:''},
+          {description:'Drip Edge (10ft)',dimensionSource:'perimeter',coverageRate:10,coverageUnit:'ft/length',wastage:5,packSize:0,packPrice:0,unitRate:7.99,notes:''},
+          {description:'Ridge Cap Shingles',dimensionSource:'length',coverageRate:33,coverageUnit:'ft/bundle',wastage:5,packSize:0,packPrice:0,unitRate:48.00,notes:''},
+          {description:'Flashing (per ft)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:10,packSize:0,packPrice:0,unitRate:5.00,notes:''}
+        ]},
+      { id:'insulation', name:'Insulation', group:'Structural / Build', colour:'#10b981',
+        materials_uk:[
+          {description:'Mineral Wool Rolls (100mm)',dimensionSource:'floorArea',coverageRate:1,coverageUnit:'m²/m²',wastage:5,packSize:0,packPrice:0,unitRate:5.50,notes:'Loft'},
+          {description:'PIR Boards (100mm)',dimensionSource:'wallArea',coverageRate:2.88,coverageUnit:'m²/board',wastage:5,packSize:0,packPrice:0,unitRate:32.00,notes:''},
+          {description:'Vapour Barrier (m²)',dimensionSource:'wallArea',coverageRate:1,coverageUnit:'m²/m²',wastage:10,packSize:0,packPrice:0,unitRate:1.20,notes:''},
+          {description:'Insulation Fixings',dimensionSource:'wallArea',coverageRate:5,coverageUnit:'m²/pack',wastage:5,packSize:50,packPrice:14.99,unitRate:null,notes:'10 per m²'}
+        ],
+        materials_usa:[
+          {description:'Fiberglass Batts R-30',dimensionSource:'floorArea',coverageRate:1,coverageUnit:'ft²/ft²',wastage:5,packSize:0,packPrice:0,unitRate:1.20,notes:'Attic'},
+          {description:'Rigid Foam (4x8ft, 2in)',dimensionSource:'wallArea',coverageRate:32,coverageUnit:'ft²/sheet',wastage:5,packSize:0,packPrice:0,unitRate:38.00,notes:''},
+          {description:'Vapor Barrier (ft²)',dimensionSource:'wallArea',coverageRate:1,coverageUnit:'ft²/ft²',wastage:10,packSize:0,packPrice:0,unitRate:0.15,notes:'6-mil poly'},
+          {description:'Insulation Fasteners',dimensionSource:'wallArea',coverageRate:50,coverageUnit:'ft²/pack',wastage:5,packSize:50,packPrice:18.99,unitRate:null,notes:''}
+        ]},
+      { id:'windows', name:'Windows & Doors', group:'Structural / Build', colour:'#7c3aed',
+        materials_uk:[
+          {description:'uPVC Window (1200x1200)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:350.00,notes:''},
+          {description:'External Door (composite)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:650.00,notes:''},
+          {description:'Internal Door (6-panel)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:55.00,notes:''},
+          {description:'Window Sill (per m)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:18.00,notes:''},
+          {description:'Door Ironmongery Set',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:25.00,notes:'Handle, hinges, latch'},
+          {description:'Silicone Sealant',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:5.49,notes:'1 per window'}
+        ],
+        materials_usa:[
+          {description:'Vinyl Window (4x4ft)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:350.00,notes:'Double-hung'},
+          {description:'Exterior Door (fiberglass)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:750.00,notes:''},
+          {description:'Interior Door (6-panel)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:65.00,notes:''},
+          {description:'Window Sill (per ft)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:8.00,notes:''},
+          {description:'Door Hardware Set',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:35.00,notes:'Handle, hinges, latch'},
+          {description:'Window Caulk',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:5.99,notes:'1 per window'}
+        ]},
+      { id:'plastering', name:'Plastering', group:'Structural / Build', colour:'#d6d3d1',
+        materials_uk:[
+          {description:'Multi-Finish Plaster (25kg)',dimensionSource:'wallArea',coverageRate:7.5,coverageUnit:'m²/bag',wastage:10,packSize:0,packPrice:0,unitRate:9.50,notes:'2-3mm skim'},
+          {description:'Bonding Coat (25kg)',dimensionSource:'wallArea',coverageRate:3.5,coverageUnit:'m²/bag',wastage:10,packSize:0,packPrice:0,unitRate:8.50,notes:'8mm coat'},
+          {description:'PVA Adhesive (5L)',dimensionSource:'wallArea',coverageRate:40,coverageUnit:'m²/tub',wastage:5,packSize:0,packPrice:0,unitRate:12.99,notes:''},
+          {description:'Angle Bead (2.4m)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:5,packSize:0,packPrice:0,unitRate:1.50,notes:'Per corner'},
+          {description:'Scrim Tape (90m)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:3.99,notes:'Joints'}
+        ],
+        materials_usa:[
+          {description:'Joint Compound (5 gal)',dimensionSource:'wallArea',coverageRate:450,coverageUnit:'ft²/bucket',wastage:10,packSize:0,packPrice:0,unitRate:15.99,notes:''},
+          {description:'Drywall (4x8ft)',dimensionSource:'wallArea',coverageRate:32,coverageUnit:'ft²/sheet',wastage:10,packSize:0,packPrice:0,unitRate:12.50,notes:''},
+          {description:'Drywall Primer (1 gal)',dimensionSource:'wallArea',coverageRate:350,coverageUnit:'ft²/gal',wastage:5,packSize:0,packPrice:0,unitRate:18.99,notes:''},
+          {description:'Corner Bead (8ft)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:5,packSize:0,packPrice:0,unitRate:2.50,notes:'Per corner'},
+          {description:'Drywall Tape (300ft)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:5.99,notes:'Joint tape'}
+        ]},
+      { id:'drainage', name:'Drainage', group:'Structural / Build', colour:'#64748b',
+        materials_uk:[
+          {description:'110mm Pipe (3m)',dimensionSource:'length',coverageRate:3,coverageUnit:'m/length',wastage:10,packSize:0,packPrice:0,unitRate:12.50,notes:''},
+          {description:'110mm Bends (90°)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:4.50,notes:''},
+          {description:'Inspection Chamber',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:85.00,notes:'450mm'},
+          {description:'Pea Gravel (bulk bag)',dimensionSource:'length',coverageRate:10,coverageUnit:'m/bag',wastage:10,packSize:0,packPrice:0,unitRate:48.00,notes:'Pipe surround'},
+          {description:'Pipe Couplings',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:3.50,notes:'1 per joint'}
+        ],
+        materials_usa:[
+          {description:'4in PVC Pipe (10ft)',dimensionSource:'length',coverageRate:10,coverageUnit:'ft/length',wastage:10,packSize:0,packPrice:0,unitRate:14.50,notes:''},
+          {description:'4in PVC Elbows (90°)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:5.50,notes:''},
+          {description:'Catch Basin (12in)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:95.00,notes:''},
+          {description:'Drainage Gravel (cu yd)',dimensionSource:'length',coverageRate:30,coverageUnit:'ft/yd',wastage:10,packSize:0,packPrice:0,unitRate:45.00,notes:'Pipe bedding'},
+          {description:'PVC Couplings',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:4.50,notes:'1 per joint'}
+        ]},
+      { id:'plumbing', name:'Plumbing First Fix', group:'First Fix', colour:'#06b6d4',
+        materials_uk:[
+          {description:'Copper Pipe 15mm (3m)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:10,packSize:0,packPrice:0,unitRate:12.50,notes:''},
+          {description:'Copper Pipe 22mm (3m)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:10,packSize:0,packPrice:0,unitRate:18.50,notes:''},
+          {description:'Push-Fit Fittings (15mm)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:3.50,notes:'Elbows, tees'},
+          {description:'Isolation Valves',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:4.50,notes:''},
+          {description:'Pipe Clips (20)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:20,packPrice:4.99,unitRate:null,notes:''}
+        ],
+        materials_usa:[
+          {description:'PEX Pipe 1/2in (100ft)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:10,packSize:0,packPrice:0,unitRate:35.00,notes:''},
+          {description:'PEX Pipe 3/4in (100ft)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:10,packSize:0,packPrice:0,unitRate:55.00,notes:''},
+          {description:'PEX Fittings (1/2in)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:2.50,notes:'Elbows, tees'},
+          {description:'SharkBite Valves',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:8.99,notes:''},
+          {description:'Pipe Clamps (25)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:25,packPrice:6.99,unitRate:null,notes:''}
+        ]},
+      { id:'electrical', name:'Electrical First Fix', group:'First Fix', colour:'#eab308',
+        materials_uk:[
+          {description:'Twin & Earth 2.5mm² (100m)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:10,packSize:0,packPrice:0,unitRate:65.00,notes:'Ring mains'},
+          {description:'Twin & Earth 1.5mm² (100m)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:10,packSize:0,packPrice:0,unitRate:48.00,notes:'Lighting'},
+          {description:'Back Boxes (35mm)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:10,packPrice:8.99,unitRate:null,notes:''},
+          {description:'Consumer Unit (10-way)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:85.00,notes:''},
+          {description:'Conduit (20mm, 3m)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:10,packSize:0,packPrice:0,unitRate:2.50,notes:''}
+        ],
+        materials_usa:[
+          {description:'Romex 12/2 NM-B (250ft)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:10,packSize:0,packPrice:0,unitRate:85.00,notes:'20A circuits'},
+          {description:'Romex 14/2 NM-B (250ft)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:10,packSize:0,packPrice:0,unitRate:65.00,notes:'15A/lighting'},
+          {description:'Outlet Boxes',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:10,packPrice:12.99,unitRate:null,notes:'Old work'},
+          {description:'Breaker Panel (20-space)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:0,packSize:0,packPrice:0,unitRate:125.00,notes:''},
+          {description:'EMT Conduit (3/4in, 10ft)',dimensionSource:'custom',coverageRate:1,coverageUnit:'unit',wastage:10,packSize:0,packPrice:0,unitRate:5.50,notes:''}
+        ]}
+    ];
+
+    // Build DEFAULT_RATES from templates
+    const DEFAULT_RATES = [];
+    TEMPLATES.forEach(t => {
+      t.materials_uk.forEach((m,i) => { DEFAULT_RATES.push({...m, id:`uk-${t.id}-${i}`, category:t.name, region:'UK', isDefault:true, source:'UK Standard 2025'}); });
+      t.materials_usa.forEach((m,i) => { DEFAULT_RATES.push({...m, id:`usa-${t.id}-${i}`, category:t.name, region:'USA', isDefault:true, source:'USA Standard 2025'}); });
+    });
+    const TEMPLATE_GROUPS = [...new Set(TEMPLATES.map(t=>t.group))];
+
+    // === DEFAULT PROJECT & PERSISTENCE ===
+    function createDefault() {
+      const now=new Date().toISOString();
+      return { meta:{name:'New Estimate',created:now,modified:now,currencySymbol:'£'}, settings:{theme:localStorage.getItem('coffeecup-theme')||'blueprint',defaultWastage:10,showPackRounding:true,region:'UK'}, categories:[] };
+    }
+    function migrateProject(p) {
+      if(!p.settings.region)p.settings.region='UK';
+      // Migrate flat dimensions { length, width, height, custom } → { zones: [...] }
+      (p.categories||[]).forEach(cat => {
+        if (cat.dimensions && !cat.dimensions.zones) {
+          const l=cat.dimensions.length||0, w=cat.dimensions.width||0, h=cat.dimensions.height||0;
+          const oldCustom = cat.dimensions.custom||0;
+          cat.dimensions = { zones: [{ id: uid(), label: 'Main', length: l, width: w, height: h }] };
+          // Migrate old custom dim value into each material that uses custom source
+          if (oldCustom) {
+            (cat.materials||[]).forEach(m => {
+              if (m.dimensionSource === 'custom' && !m.manualQty) m.manualQty = oldCustom;
+            });
+          }
+        }
+      });
+      return p;
+    }
+    function loadProject() { try{const r=localStorage.getItem(STORAGE_KEY);if(r){return migrateProject(JSON.parse(r));}}catch(e){} return createDefault(); }
+    function saveProject(p) { try{p.meta.modified=new Date().toISOString();localStorage.setItem(STORAGE_KEY,JSON.stringify(p));}catch(e){} }
+    function loadRates() { try{const r=localStorage.getItem(RATES_KEY);if(r)return JSON.parse(r);}catch(e){} return {lastModified:new Date().toISOString(),rates:[]}; }
+    function saveRates(d) { try{d.lastModified=new Date().toISOString();localStorage.setItem(RATES_KEY,JSON.stringify(d));}catch(e){} }
+
+    // === ICONS ===
+    const Ic = {
+      ruler: (s=22)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 24l16-16M8 8v16h16"/></svg>,
+      plus: (s=14)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+      trash: (s=14)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>,
+      settings: (s=20)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
+      close: (s=18)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+      chevR: (s=16)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>,
+      chevD: (s=16)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>,
+      up: (s=14)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"/></svg>,
+      down: (s=14)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>,
+      copy: (s=14)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>,
+      download: (s=14)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
+      upload: (s=14)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>,
+      search: (s=16)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
+      clipboard: (s=14)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>,
+    };
+
+    // === APP ===
+    function App() {
+      // --- State ---
+      const [project, setProject] = useState(() => loadProject());
+      const [rates, setRates] = useState(() => loadRates());
+      const [activeTab, setActiveTab] = useState('estimate');
+      const [drawerOpen, setDrawerOpen] = useState(false);
+      const [expandedCats, setExpandedCats] = useState({});
+      const [templateModal, setTemplateModal] = useState(false);
+      const [ratePickerCat, setRatePickerCat] = useState(null);
+      const [ratesSearch, setRatesSearch] = useState('');
+      const [expandedRateGroups, setExpandedRateGroups] = useState({});
+      const [copyToast, setCopyToast] = useState(false);
+
+      const region = project.settings.region || 'UK';
+      const sym = REGION_CONFIG[region]?.sym || '£';
+
+      // --- Auto-save ---
+      useEffect(() => { saveProject(project); }, [project]);
+      useEffect(() => { saveRates(rates); }, [rates]);
+
+      // --- Theme sync ---
+      useEffect(() => {
+        const shared = localStorage.getItem('coffeecup-theme');
+        if (shared && shared !== project.settings.theme) {
+          setProject(prev => {
+            const p = JSON.parse(JSON.stringify(prev));
+            p.settings.theme = shared;
+            return p;
+          });
+        }
+      }, []);
+      useEffect(() => {
+        document.documentElement.setAttribute('data-theme', project.settings.theme);
+        localStorage.setItem('coffeecup-theme', project.settings.theme);
+      }, [project.settings.theme]);
+
+      // --- Helper: deep clone + mutate ---
+      const updateProject = useCallback((mutator) => {
+        setProject(prev => {
+          const p = JSON.parse(JSON.stringify(prev));
+          mutator(p);
+          return p;
+        });
+      }, []);
+
+      // === Category CRUD ===
+      const addFromTemplate = useCallback((templateId) => {
+        const tmpl = TEMPLATES.find(t => t.id === templateId);
+        if (!tmpl) return;
+        const matKey = region === 'USA' ? 'materials_usa' : 'materials_uk';
+        const catId = uid();
+        const materials = tmpl[matKey].map(m => ({
+          ...m, id: uid(),
+          coverageRate: m.coverageRate || 0,
+          wastage: m.wastage || project.settings.defaultWastage || 10,
+          packSize: m.packSize || 0,
+          packPrice: m.packPrice || 0,
+          unitRate: m.unitRate || 0,
+        }));
+        updateProject(p => {
+          const maxSort = p.categories.reduce((mx, c) => Math.max(mx, c.sortOrder || 0), 0);
+          p.categories.push({
+            id: catId, name: tmpl.name, colour: tmpl.colour, sortOrder: maxSort + 1,
+            dimensions: { zones: [{ id: uid(), label: 'Main', length: 0, width: 0, height: 0 }] },
+            materials
+          });
+        });
+        setExpandedCats(prev => ({ ...prev, [catId]: true }));
+        setTemplateModal(false);
+      }, [region, project.settings.defaultWastage, updateProject]);
+
+      const addBlankCategory = useCallback(() => {
+        const catId = uid();
+        updateProject(p => {
+          const maxSort = p.categories.reduce((mx, c) => Math.max(mx, c.sortOrder || 0), 0);
+          p.categories.push({
+            id: catId, name: 'New Category', colour: '#6366f1', sortOrder: maxSort + 1,
+            dimensions: { zones: [{ id: uid(), label: 'Main', length: 0, width: 0, height: 0 }] },
+            materials: []
+          });
+        });
+        setExpandedCats(prev => ({ ...prev, [catId]: true }));
+      }, [updateProject]);
+
+      const deleteCategory = useCallback((catId) => {
+        if (!confirm('Delete this category and all its materials?')) return;
+        updateProject(p => { p.categories = p.categories.filter(c => c.id !== catId); });
+        setExpandedCats(prev => { const n = { ...prev }; delete n[catId]; return n; });
+      }, [updateProject]);
+
+      const duplicateCategory = useCallback((catId) => {
+        updateProject(p => {
+          const src = p.categories.find(c => c.id === catId);
+          if (!src) return;
+          const clone = JSON.parse(JSON.stringify(src));
+          clone.id = uid();
+          clone.name = src.name + ' (Copy)';
+          clone.sortOrder = p.categories.reduce((mx, c) => Math.max(mx, c.sortOrder || 0), 0) + 1;
+          clone.materials.forEach(m => { m.id = uid(); });
+          p.categories.push(clone);
+        });
+      }, [updateProject]);
+
+      const moveCategory = useCallback((catId, dir) => {
+        updateProject(p => {
+          const sorted = [...p.categories].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+          const idx = sorted.findIndex(c => c.id === catId);
+          if (idx < 0) return;
+          const swapIdx = dir === 'up' ? idx - 1 : idx + 1;
+          if (swapIdx < 0 || swapIdx >= sorted.length) return;
+          const tmpSort = sorted[idx].sortOrder;
+          const target = p.categories.find(c => c.id === sorted[idx].id);
+          const swap = p.categories.find(c => c.id === sorted[swapIdx].id);
+          if (target && swap) {
+            target.sortOrder = swap.sortOrder;
+            swap.sortOrder = tmpSort;
+          }
+        });
+      }, [updateProject]);
+
+      const updateCategory = useCallback((catId, changes) => {
+        updateProject(p => {
+          const cat = p.categories.find(c => c.id === catId);
+          if (cat) Object.assign(cat, changes);
+        });
+      }, [updateProject]);
+
+      const updateZoneDim = useCallback((catId, zoneId, dimKey, value) => {
+        updateProject(p => {
+          const cat = p.categories.find(c => c.id === catId);
+          if (!cat) return;
+          const zone = (cat.dimensions.zones || []).find(z => z.id === zoneId);
+          if (zone) zone[dimKey] = value;
+        });
+      }, [updateProject]);
+
+      const addZone = useCallback((catId) => {
+        updateProject(p => {
+          const cat = p.categories.find(c => c.id === catId);
+          if (!cat) return;
+          const n = (cat.dimensions.zones || []).length + 1;
+          cat.dimensions.zones.push({ id: uid(), label: 'Zone ' + n, length: 0, width: 0, height: 0 });
+        });
+      }, [updateProject]);
+
+      const removeZone = useCallback((catId, zoneId) => {
+        updateProject(p => {
+          const cat = p.categories.find(c => c.id === catId);
+          if (!cat || cat.dimensions.zones.length <= 1) return;
+          cat.dimensions.zones = cat.dimensions.zones.filter(z => z.id !== zoneId);
+        });
+      }, [updateProject]);
+
+      const updateZoneLabel = useCallback((catId, zoneId, label) => {
+        updateProject(p => {
+          const cat = p.categories.find(c => c.id === catId);
+          if (!cat) return;
+          const zone = (cat.dimensions.zones || []).find(z => z.id === zoneId);
+          if (zone) zone.label = label;
+        });
+      }, [updateProject]);
+
+      // === Material CRUD ===
+      const addMaterial = useCallback((catId, materialData) => {
+        updateProject(p => {
+          const cat = p.categories.find(c => c.id === catId);
+          if (!cat) return;
+          cat.materials.push({
+            id: uid(),
+            description: materialData?.description || 'New Item',
+            dimensionSource: materialData?.dimensionSource || 'floorArea',
+            coverageRate: materialData?.coverageRate || 1,
+            coverageUnit: materialData?.coverageUnit || '',
+            wastage: materialData?.wastage ?? (p.settings.defaultWastage || 10),
+            packSize: materialData?.packSize || 0,
+            packPrice: materialData?.packPrice || 0,
+            unitRate: materialData?.unitRate || 0,
+            manualQty: materialData?.manualQty || 0,
+            notes: materialData?.notes || ''
+          });
+        });
+      }, [updateProject]);
+
+      const updateMaterial = useCallback((catId, matId, changes) => {
+        updateProject(p => {
+          const cat = p.categories.find(c => c.id === catId);
+          if (!cat) return;
+          const mat = cat.materials.find(m => m.id === matId);
+          if (mat) Object.assign(mat, changes);
+        });
+      }, [updateProject]);
+
+      const deleteMaterial = useCallback((catId, matId) => {
+        updateProject(p => {
+          const cat = p.categories.find(c => c.id === catId);
+          if (cat) cat.materials = cat.materials.filter(m => m.id !== matId);
+        });
+      }, [updateProject]);
+
+      // === Summary computed ===
+      const summary = useMemo(() => {
+        let totalEstimate = 0, totalMaterials = 0;
+        const categoryBreakdown = [];
+        const shoppingList = [];
+        project.categories.forEach(cat => {
+          let catTotal = 0;
+          const items = [];
+          cat.materials.forEach(mat => {
+            const calc = calcMat(cat.dimensions, mat);
+            catTotal += calc.cost;
+            totalMaterials++;
+            items.push({ ...mat, calc });
+          });
+          totalEstimate += catTotal;
+          categoryBreakdown.push({ id: cat.id, name: cat.name, colour: cat.colour, total: catTotal, itemCount: cat.materials.length });
+          if (items.length > 0) shoppingList.push({ categoryName: cat.name, colour: cat.colour, items, subtotal: catTotal });
+        });
+        const highestCat = categoryBreakdown.length > 0 ? categoryBreakdown.reduce((a, b) => a.total > b.total ? a : b) : null;
+        const allWastages = [];
+        project.categories.forEach(cat => cat.materials.forEach(m => { if (parseFloat(m.wastage)) allWastages.push(parseFloat(m.wastage)); }));
+        const avgWastage = allWastages.length > 0 ? allWastages.reduce((a, b) => a + b, 0) / allWastages.length : 0;
+        return { totalEstimate, totalMaterials, categoryBreakdown, shoppingList, highestCat, avgWastage };
+      }, [project]);
+
+      // === Export functions ===
+      const exportCSV = useCallback(() => {
+        let csv = 'Category,Description,Source,Rate,Unit,Waste%,Pack Size,Pack Price,Unit Rate,Base Qty,With Waste,Packs,Total Units,Cost\n';
+        project.categories.forEach(cat => {
+          cat.materials.forEach(mat => {
+            const c = calcMat(cat.dimensions, mat);
+            csv += [cat.name, '"' + (mat.description || '').replace(/"/g, '""') + '"', mat.dimensionSource, mat.coverageRate, mat.coverageUnit || '', mat.wastage, mat.packSize, mat.packPrice, mat.unitRate, c.baseQty.toFixed(2), c.wasteQty.toFixed(2), c.packs, c.totalUnits.toFixed(2), c.cost.toFixed(2)].join(',') + '\n';
+          });
+          const subtotal = cat.materials.reduce((s, m) => s + calcMat(cat.dimensions, m).cost, 0);
+          csv += cat.name + ' Subtotal,,,,,,,,,,,,,' + subtotal.toFixed(2) + '\n';
+        });
+        csv += 'GRAND TOTAL,,,,,,,,,,,,,' + summary.totalEstimate.toFixed(2) + '\n';
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = (project.meta.name || 'estimate') + '.csv';
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }, [project, summary]);
+
+      const copyToClipboard = useCallback(() => {
+        let txt = 'Category\tDescription\tBase Qty\tWith Waste\tPacks\tCost\n';
+        project.categories.forEach(cat => {
+          cat.materials.forEach(mat => {
+            const c = calcMat(cat.dimensions, mat);
+            txt += [cat.name, mat.description, c.baseQty.toFixed(2), c.wasteQty.toFixed(2), c.packs, c.cost.toFixed(2)].join('\t') + '\n';
+          });
+        });
+        txt += '\tGRAND TOTAL\t\t\t\t' + summary.totalEstimate.toFixed(2) + '\n';
+        navigator.clipboard.writeText(txt).then(() => {
+          setCopyToast(true);
+          setTimeout(() => setCopyToast(false), 2000);
+        });
+      }, [project, summary]);
+
+      const exportJSON = useCallback(() => {
+        const blob = new Blob([JSON.stringify(project, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = (project.meta.name || 'estimate') + '.json';
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }, [project]);
+
+      const importJSON = useCallback(() => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.onchange = (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            try {
+              const data = JSON.parse(ev.target.result);
+              if (data.meta && data.categories) {
+                setProject(data);
+              } else {
+                alert('Invalid estimator file.');
+              }
+            } catch (err) { alert('Could not parse file.'); }
+          };
+          reader.readAsText(file);
+        };
+        input.click();
+      }, []);
+
+      const changeRegion = useCallback((newRegion) => {
+        if (project.categories.length > 0) {
+          if (!confirm('Changing region will not convert existing material rates. Existing categories will keep their current values. Continue?')) return;
+        }
+        updateProject(p => {
+          p.settings.region = newRegion;
+          p.meta.currencySymbol = REGION_CONFIG[newRegion].sym;
+        });
+      }, [project.categories.length, updateProject]);
+
+      // === Donut Chart ===
+      function DonutChart({ data }) {
+        const canvasRef = useRef(null);
+        const chartRef = useRef(null);
+        useEffect(() => {
+          if (chartRef.current) chartRef.current.destroy();
+          if (!canvasRef.current || data.length === 0) return;
+          const isDark = project.settings.theme === 'dark';
+          chartRef.current = new Chart(canvasRef.current, {
+            type: 'doughnut',
+            data: {
+              labels: data.map(d => d.name),
+              datasets: [{ data: data.map(d => d.total), backgroundColor: data.map(d => d.colour), borderWidth: isDark ? 0 : 2, borderColor: isDark ? '#242424' : '#ffffff' }]
+            },
+            options: {
+              responsive: true, maintainAspectRatio: true,
+              cutout: '65%',
+              plugins: {
+                legend: { position: 'bottom', labels: { color: isDark ? '#b0b0b0' : '#57534e', padding: 12, usePointStyle: true, pointStyleWidth: 10, font: { size: 12, family: "'DM Sans', sans-serif" } } },
+                tooltip: { callbacks: { label: (ctx) => ctx.label + ': ' + formatCurrencyFull(ctx.parsed, sym) } }
+              }
+            }
+          });
+          return () => { if (chartRef.current) chartRef.current.destroy(); };
+        }, [data, project.settings.theme]);
+        return <canvas ref={canvasRef}></canvas>;
+      }
+
+      // === Bar Chart ===
+      function BarChart({ data }) {
+        const canvasRef = useRef(null);
+        const chartRef = useRef(null);
+        useEffect(() => {
+          if (chartRef.current) chartRef.current.destroy();
+          if (!canvasRef.current || data.length === 0) return;
+          const sorted = [...data].sort((a, b) => b.total - a.total);
+          const isDark = project.settings.theme === 'dark';
+          chartRef.current = new Chart(canvasRef.current, {
+            type: 'bar',
+            data: {
+              labels: sorted.map(d => d.name),
+              datasets: [{ data: sorted.map(d => d.total), backgroundColor: sorted.map(d => d.colour + 'cc'), borderColor: sorted.map(d => d.colour), borderWidth: 1 }]
+            },
+            options: {
+              indexAxis: 'y', responsive: true, maintainAspectRatio: true,
+              plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: (ctx) => formatCurrencyFull(ctx.parsed.x, sym) } }
+              },
+              scales: {
+                x: { ticks: { color: isDark ? '#808080' : '#78716c', callback: (v) => formatCurrency(v, sym), font: { size: 11, family: "'JetBrains Mono', monospace" } }, grid: { color: isDark ? '#333' : '#e7e5e4' } },
+                y: { ticks: { color: isDark ? '#b0b0b0' : '#57534e', font: { size: 12, family: "'DM Sans', sans-serif" } }, grid: { display: false } }
+              }
+            }
+          });
+          return () => { if (chartRef.current) chartRef.current.destroy(); };
+        }, [data, project.settings.theme]);
+        return <canvas ref={canvasRef}></canvas>;
+      }
+
+      // ================================================================
+      //  ESTIMATE TAB
+      // ================================================================
+      function EstimateTab() {
+        const sortedCats = [...project.categories].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+        return (
+          <div>
+            {/* Action Bar */}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
+              <button className="btn btn-accent" onClick={() => setTemplateModal(true)}>{Ic.plus()} Add from Template</button>
+              <button className="btn btn-secondary" onClick={addBlankCategory}>{Ic.plus()} Add Blank Category</button>
+            </div>
+
+            {/* Empty state */}
+            {sortedCats.length === 0 && (
+              <div className="empty-state">
+                <div className="empty-state-icon">{Ic.ruler(28)}</div>
+                <h3>No categories yet</h3>
+                <p>Start by adding a room or area template, or create a blank category to begin estimating materials.</p>
+                <button className="btn btn-accent" style={{ marginTop: 16 }} onClick={() => setTemplateModal(true)}>{Ic.plus()} Add from Template</button>
+              </div>
+            )}
+
+            {/* Category list */}
+            {sortedCats.map(cat => {
+              const isExpanded = !!expandedCats[cat.id];
+              const dims = cat.dimensions;
+              const zones = (dims && dims.zones) || [];
+              const resolved = resolveZones(dims);
+              const catTotal = cat.materials.reduce((s, m) => s + calcMat(dims, m).cost, 0);
+              const allDimsZero = resolved.floorArea === 0 && resolved.wallArea === 0 && resolved.volume === 0;
+              const unitLabel = region === 'USA' ? 'ft' : 'm';
+
+              return (
+                <div key={cat.id} className="category-accordion">
+                  {/* Header */}
+                  <div className={`category-header ${isExpanded ? 'expanded' : ''}`}
+                    onClick={() => setExpandedCats(prev => ({ ...prev, [cat.id]: !prev[cat.id] }))}
+                  >
+                    <span className="expand-icon">{Ic.chevR()}</span>
+                    <span className="colour-dot" style={{ background: cat.colour }}></span>
+                    <span className="category-name" onClick={e => e.stopPropagation()}>
+                      <StableInput type="text" value={cat.name} className="input-refined" style={{ padding: '4px 8px', fontSize: '14px', fontWeight: 600, width: 200, border: '1px solid transparent', background: 'transparent' }}
+                        onChange={e => updateCategory(cat.id, { name: e.target.value })} />
+                    </span>
+                    <span className="badge badge-neutral" style={{ fontSize: '0.7rem' }}>{cat.materials.length} item{cat.materials.length !== 1 ? 's' : ''}</span>
+                    {zones.length > 1 && <span className="badge badge-neutral" style={{ fontSize: '0.7rem' }}>{zones.length} zones</span>}
+                    <span className="category-total">{formatCurrency(catTotal, sym)}</span>
+                    <span className="category-actions" onClick={e => e.stopPropagation()}>
+                      <button className="btn btn-icon btn-sm btn-secondary" title="Duplicate" onClick={() => duplicateCategory(cat.id)}>{Ic.copy()}</button>
+                      <button className="btn btn-icon btn-sm btn-secondary" title="Move up" onClick={() => moveCategory(cat.id, 'up')}>{Ic.up()}</button>
+                      <button className="btn btn-icon btn-sm btn-secondary" title="Move down" onClick={() => moveCategory(cat.id, 'down')}>{Ic.down()}</button>
+                      <button className="btn btn-icon btn-sm btn-secondary" title="Delete" style={{ color: 'var(--danger)' }} onClick={() => deleteCategory(cat.id)}>{Ic.trash()}</button>
+                    </span>
+                  </div>
+
+                  {/* Body */}
+                  {isExpanded && (
+                    <div className="category-body">
+                      {/* Zones — each is a rectangular section */}
+                      {zones.map((zone, zi) => (
+                        <div key={zone.id} className="dimensions-bar" style={zones.length > 1 ? { position: 'relative' } : undefined}>
+                          {zones.length > 1 && (
+                            <div className="zone-header">
+                              <StableInput type="text" value={zone.label || ''} className="zone-label-input"
+                                style={{ padding: '2px 6px', fontSize: '11px', fontWeight: 600, width: 80, border: '1px solid transparent', background: 'transparent', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                                onChange={e => updateZoneLabel(cat.id, zone.id, e.target.value)} />
+                              <button className="btn btn-icon btn-sm btn-secondary" title="Remove zone" style={{ color: 'var(--danger)', width: 20, height: 20, padding: 0, fontSize: '10px' }}
+                                onClick={() => removeZone(cat.id, zone.id)}>{Ic.trash(10)}</button>
+                            </div>
+                          )}
+                          <div className="dim-input-group">
+                            <label>{REGION_CONFIG[region].dimLabels.length}</label>
+                            <StableInput type="number" value={zone.length} onChange={e => updateZoneDim(cat.id, zone.id, 'length', e.target.value)} />
+                          </div>
+                          <div className="dim-input-group">
+                            <label>{REGION_CONFIG[region].dimLabels.width}</label>
+                            <StableInput type="number" value={zone.width} onChange={e => updateZoneDim(cat.id, zone.id, 'width', e.target.value)} />
+                          </div>
+                          <div className="dim-input-group">
+                            <label>{REGION_CONFIG[region].dimLabels.height}</label>
+                            <StableInput type="number" value={zone.height} onChange={e => updateZoneDim(cat.id, zone.id, 'height', e.target.value)} />
+                          </div>
+                          {zones.length === 1 && (
+                            <div className="dim-computed">
+                              <div style={{ textAlign: 'center' }}><div className="dim-value">{fmtNum(resolved.floorArea)}</div><div className="dim-label">Floor ({unitLabel}{'\u00B2'})</div></div>
+                              <div style={{ textAlign: 'center' }}><div className="dim-value">{fmtNum(resolved.wallArea)}</div><div className="dim-label">Walls ({unitLabel}{'\u00B2'})</div></div>
+                              <div style={{ textAlign: 'center' }}><div className="dim-value">{fmtNum(resolved.perimeter)}</div><div className="dim-label">Perim ({unitLabel})</div></div>
+                              <div style={{ textAlign: 'center' }}><div className="dim-value">{fmtNum(resolved.volume)}</div><div className="dim-label">Vol ({unitLabel}{'\u00B3'})</div></div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+
+                      {/* Composite totals — shown when multiple zones */}
+                      {zones.length > 1 && (
+                        <div className="dim-computed" style={{ padding: '8px 16px', background: 'var(--bg-hover)', borderRadius: 'var(--radius-sm)', marginTop: 4 }}>
+                          <div style={{ fontWeight: 600, fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginRight: 12, display: 'flex', alignItems: 'center' }}>Combined</div>
+                          <div style={{ textAlign: 'center' }}><div className="dim-value">{fmtNum(resolved.floorArea)}</div><div className="dim-label">Floor ({unitLabel}{'\u00B2'})</div></div>
+                          <div style={{ textAlign: 'center' }}><div className="dim-value">{fmtNum(resolved.wallArea)}</div><div className="dim-label">Walls ({unitLabel}{'\u00B2'})</div></div>
+                          <div style={{ textAlign: 'center' }}><div className="dim-value">{fmtNum(resolved.perimeter)}</div><div className="dim-label">Perim ({unitLabel})</div></div>
+                          <div style={{ textAlign: 'center' }}><div className="dim-value">{fmtNum(resolved.volume)}</div><div className="dim-label">Vol ({unitLabel}{'\u00B3'})</div></div>
+                        </div>
+                      )}
+
+                      {/* Add zone button */}
+                      <div style={{ marginTop: 6, marginBottom: 4 }}>
+                        <button className="btn btn-sm btn-secondary" style={{ fontSize: '11px', padding: '3px 10px' }} onClick={() => addZone(cat.id)}>+ Add Zone</button>
+                      </div>
+
+                      {/* Dimension prompt */}
+                      {allDimsZero && (
+                        <div className="dim-prompt">Enter dimensions above to calculate quantities, or use "Manual Qty" source for individual items.</div>
+                      )}
+
+                      {/* Materials table */}
+                      {cat.materials.length > 0 && (
+                        <div style={{ overflowX: 'auto' }}>
+                          <table className="materials-table">
+                            <thead>
+                              <tr>
+                                <th style={{ minWidth: 180 }}>Description</th>
+                                <th style={{ minWidth: 110 }}>Source</th>
+                                <th style={{ width: 80 }}>Rate</th>
+                                <th style={{ width: 65 }}>Unit</th>
+                                <th style={{ width: 75 }}>Waste%</th>
+                                <th style={{ width: 75 }}>Pack Sz</th>
+                                <th style={{ width: 85 }}>Price</th>
+                                <th style={{ width: 70 }}>Base Qty</th>
+                                <th style={{ width: 75 }}>W/ Waste</th>
+                                <th style={{ width: 55 }}>Packs</th>
+                                <th style={{ width: 65 }}>Total</th>
+                                <th style={{ width: 90 }}>Cost</th>
+                                <th style={{ width: 30 }}></th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {cat.materials.map(mat => {
+                                const c = calcMat(dims, mat);
+                                const ps = parseFloat(mat.packSize) || 0;
+                                const isManual = mat.dimensionSource === 'custom';
+                                return (
+                                  <tr key={mat.id}>
+                                    <td>
+                                      <StableInput type="text" value={mat.description} style={{ minWidth: 140 }}
+                                        onChange={e => updateMaterial(cat.id, mat.id, { description: e.target.value })} />
+                                    </td>
+                                    <td>
+                                      <select value={mat.dimensionSource} onChange={e => updateMaterial(cat.id, mat.id, { dimensionSource: e.target.value })}>
+                                        {DIM_SOURCES.map(ds => <option key={ds.id} value={ds.id}>{ds.label}</option>)}
+                                      </select>
+                                    </td>
+                                    <td>
+                                      {isManual ? (
+                                        <StableInput type="number" value={mat.manualQty || 0} title="Manual quantity"
+                                          style={{ background: 'var(--accent-light)' }}
+                                          onChange={e => updateMaterial(cat.id, mat.id, { manualQty: e.target.value })} />
+                                      ) : (
+                                        <StableInput type="number" value={mat.coverageRate}
+                                          onChange={e => updateMaterial(cat.id, mat.id, { coverageRate: e.target.value })} />
+                                      )}
+                                    </td>
+                                    <td>
+                                      {isManual ? (
+                                        <span className="computed-cell" style={{ fontSize: '10px', color: 'var(--text-faint)' }}>qty</span>
+                                      ) : (
+                                        <StableInput type="text" value={mat.coverageUnit || ''} style={{ fontSize: '11px', fontFamily: 'var(--font-primary)' }}
+                                          onChange={e => updateMaterial(cat.id, mat.id, { coverageUnit: e.target.value })} />
+                                      )}
+                                    </td>
+                                    <td>
+                                      <StableInput type="number" value={mat.wastage}
+                                        onChange={e => updateMaterial(cat.id, mat.id, { wastage: e.target.value })} />
+                                    </td>
+                                    <td>
+                                      <StableInput type="number" value={mat.packSize}
+                                        onChange={e => updateMaterial(cat.id, mat.id, { packSize: e.target.value })} />
+                                    </td>
+                                    <td>
+                                      {ps > 0 ? (
+                                        <StableInput type="number" value={mat.packPrice}
+                                          onChange={e => updateMaterial(cat.id, mat.id, { packPrice: e.target.value })} />
+                                      ) : (
+                                        <StableInput type="number" value={mat.unitRate}
+                                          onChange={e => updateMaterial(cat.id, mat.id, { unitRate: e.target.value })} />
+                                      )}
+                                    </td>
+                                    <td className="mono computed-cell">{fmtNum(c.baseQty, 2)}</td>
+                                    <td className="mono computed-cell">{fmtNum(c.wasteQty, 2)}</td>
+                                    <td className="mono computed-cell">{ps > 0 ? c.packs : '—'}</td>
+                                    <td className="mono computed-cell">{fmtNum(c.totalUnits, 2)}</td>
+                                    <td className="mono computed-cell" style={{ fontWeight: 600 }}>{formatCurrencyFull(c.cost, sym)}</td>
+                                    <td>
+                                      <span className="material-row-actions">
+                                        <button className="btn btn-icon btn-sm btn-secondary" style={{ color: 'var(--danger)', width: 24, height: 24 }}
+                                          onClick={() => deleteMaterial(cat.id, mat.id)}>{Ic.trash(12)}</button>
+                                      </span>
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+
+                      {/* Material actions + subtotal */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, flexWrap: 'wrap', gap: 8 }}>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <button className="btn btn-sm btn-secondary" onClick={() => addMaterial(cat.id)}>{Ic.plus()} Add Item</button>
+                          <button className="btn btn-sm btn-secondary" onClick={() => setRatePickerCat(cat.id)}>{Ic.search(12)} Add from Library</button>
+                        </div>
+                        <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, color: 'var(--accent-primary)', fontSize: '0.95rem' }}>
+                          Subtotal: {formatCurrencyFull(catTotal, sym)}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        );
+      }
+
+      // ================================================================
+      //  SUMMARY TAB
+      // ================================================================
+      function SummaryTab() {
+        return (
+          <div>
+            {/* Stat cards */}
+            <div className="stat-grid">
+              <div className="stat-card card">
+                <div className="stat-value" style={{ color: 'var(--accent-primary)' }}>{formatCurrency(summary.totalEstimate, sym)}</div>
+                <div className="stat-label">Total Estimate</div>
+                <div className="stat-sublabel">{formatCurrencyFull(summary.totalEstimate, sym)}</div>
+              </div>
+              <div className="stat-card card">
+                <div className="stat-value">{summary.totalMaterials}</div>
+                <div className="stat-label">Total Items</div>
+                <div className="stat-sublabel">Across {summary.categoryBreakdown.length} categories</div>
+              </div>
+              <div className="stat-card card">
+                <div className="stat-value" style={{ fontSize: '1.2rem' }}>{summary.highestCat ? summary.highestCat.name : '—'}</div>
+                <div className="stat-label">Highest Category</div>
+                <div className="stat-sublabel">{summary.highestCat ? formatCurrencyFull(summary.highestCat.total, sym) : ''}</div>
+              </div>
+              <div className="stat-card card">
+                <div className="stat-value">{fmtNum(summary.avgWastage)}%</div>
+                <div className="stat-label">Avg Wastage</div>
+                <div className="stat-sublabel">Across all materials</div>
+              </div>
+            </div>
+
+            {/* Charts */}
+            {summary.categoryBreakdown.length > 0 && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
+                <div className="chart-container">
+                  <div className="chart-header">Cost Breakdown by Category</div>
+                  <DonutChart data={summary.categoryBreakdown} />
+                </div>
+                <div className="chart-container">
+                  <div className="chart-header">Category Comparison</div>
+                  <BarChart data={summary.categoryBreakdown} />
+                </div>
+              </div>
+            )}
+
+            {/* Export bar */}
+            <div className="export-bar no-print">
+              <button className="btn btn-secondary" onClick={copyToClipboard}>{Ic.clipboard()} Copy</button>
+              <button className="btn btn-secondary" onClick={exportCSV}>{Ic.download()} CSV</button>
+              <button className="btn btn-secondary" onClick={() => window.print()}>{Ic.download()} Print</button>
+            </div>
+
+            {/* Shopping list */}
+            {summary.shoppingList.length > 0 && (
+              <div className="card" style={{ marginTop: 16 }}>
+                <div className="card-header"><h3>Shopping List</h3></div>
+                <div style={{ overflowX: 'auto' }}>
+                  <table className="shopping-list">
+                    <thead>
+                      <tr>
+                        <th>Category</th>
+                        <th>Description</th>
+                        <th style={{ textAlign: 'right' }}>Qty Needed</th>
+                        <th style={{ textAlign: 'right' }}>Packs</th>
+                        <th style={{ textAlign: 'right' }}>Cost</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {summary.shoppingList.map((grp, gi) => (
+                        <React.Fragment key={gi}>
+                          {grp.items.map((item, ii) => (
+                            <tr key={ii}>
+                              {ii === 0 && <td rowSpan={grp.items.length} style={{ fontWeight: 600, borderRight: `3px solid ${grp.colour}` }}>{grp.categoryName}</td>}
+                              <td>{item.description}</td>
+                              <td style={{ textAlign: 'right', fontFamily: 'var(--font-mono)' }}>{fmtNum(item.calc.wasteQty, 2)}</td>
+                              <td style={{ textAlign: 'right', fontFamily: 'var(--font-mono)' }}>{item.calc.packs > 0 ? item.calc.packs : '—'}</td>
+                              <td style={{ textAlign: 'right', fontFamily: 'var(--font-mono)', fontWeight: 500 }}>{formatCurrencyFull(item.calc.cost, sym)}</td>
+                            </tr>
+                          ))}
+                          <tr className="subtotal-row">
+                            <td colSpan={4} style={{ textAlign: 'right' }}>{grp.categoryName} Subtotal</td>
+                            <td style={{ textAlign: 'right', fontFamily: 'var(--font-mono)' }}>{formatCurrencyFull(grp.subtotal, sym)}</td>
+                          </tr>
+                        </React.Fragment>
+                      ))}
+                      <tr className="grand-total-row">
+                        <td colSpan={4} style={{ textAlign: 'right' }}>Grand Total</td>
+                        <td style={{ textAlign: 'right', fontFamily: 'var(--font-mono)', color: 'var(--accent-primary)' }}>{formatCurrencyFull(summary.totalEstimate, sym)}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {summary.categoryBreakdown.length === 0 && (
+              <div className="empty-state">
+                <div className="empty-state-icon">{Ic.ruler(28)}</div>
+                <h3>No data to summarise</h3>
+                <p>Add categories and materials in the Estimate tab to see your summary here.</p>
+              </div>
+            )}
+
+            {/* Copy toast */}
+            {copyToast && (
+              <div style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', background: 'var(--success)', color: '#fff', padding: '10px 24px', borderRadius: 'var(--radius-full)', fontWeight: 600, fontSize: 13, boxShadow: 'var(--shadow-lg)', zIndex: 300 }}>
+                Copied to clipboard
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      // ================================================================
+      //  RATES TAB
+      // ================================================================
+      function RatesTab() {
+        const filteredDefault = DEFAULT_RATES.filter(r => r.region === region && (ratesSearch === '' || r.description.toLowerCase().includes(ratesSearch.toLowerCase()) || r.category.toLowerCase().includes(ratesSearch.toLowerCase())));
+        const groupedDefault = {};
+        filteredDefault.forEach(r => {
+          if (!groupedDefault[r.category]) groupedDefault[r.category] = [];
+          groupedDefault[r.category].push(r);
+        });
+        const filteredCustom = (rates.rates || []).filter(r => ratesSearch === '' || r.description.toLowerCase().includes(ratesSearch.toLowerCase()));
+
+        const addCustomRate = () => {
+          setRates(prev => ({
+            ...prev,
+            rates: [...(prev.rates || []), {
+              id: uid(), description: 'Custom Item', dimensionSource: 'floorArea',
+              coverageRate: 1, coverageUnit: '', wastage: 10, packSize: 0, packPrice: 0,
+              unitRate: 0, notes: '', region, category: 'Custom'
+            }]
+          }));
+        };
+
+        const deleteCustomRate = (rateId) => {
+          setRates(prev => ({ ...prev, rates: (prev.rates || []).filter(r => r.id !== rateId) }));
+        };
+
+        const copyRateToCustom = (rate) => {
+          setRates(prev => ({
+            ...prev,
+            rates: [...(prev.rates || []), {
+              ...rate, id: uid(), isDefault: false, source: 'Copied from ' + rate.category
+            }]
+          }));
+        };
+
+        return (
+          <div>
+            {/* Region toggle + search */}
+            <div style={{ display: 'flex', gap: 16, marginBottom: 20, alignItems: 'center', flexWrap: 'wrap' }}>
+              <div className="region-toggle">
+                <button className={region === 'UK' ? 'active' : ''} onClick={() => changeRegion('UK')}>UK (GBP)</button>
+                <button className={region === 'USA' ? 'active' : ''} onClick={() => changeRegion('USA')}>USA (USD)</button>
+              </div>
+              <div style={{ position: 'relative', flex: 1, maxWidth: 300 }}>
+                <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}>{Ic.search(14)}</span>
+                <input className="input-refined" placeholder="Search rates..." value={ratesSearch} onChange={e => setRatesSearch(e.target.value)}
+                  style={{ paddingLeft: 32 }} />
+              </div>
+            </div>
+
+            {/* Default rates */}
+            <div className="card" style={{ marginBottom: 20 }}>
+              <div className="card-header"><h3>Default Rates — {region}</h3></div>
+              <div className="card-body" style={{ padding: 0 }}>
+                {Object.keys(groupedDefault).map(groupName => {
+                  const isOpen = !!expandedRateGroups[groupName];
+                  const items = groupedDefault[groupName];
+                  return (
+                    <div key={groupName} className="rate-group">
+                      <div className="rate-group-header" onClick={() => setExpandedRateGroups(prev => ({ ...prev, [groupName]: !prev[groupName] }))}>
+                        <span style={{ transition: 'transform 0.2s', display: 'inline-flex', transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)' }}>{Ic.chevR(14)}</span>
+                        <span>{groupName}</span>
+                        <span className="badge badge-neutral" style={{ marginLeft: 'auto' }}>{items.length}</span>
+                      </div>
+                      {isOpen && items.map(r => (
+                        <div key={r.id} className="rate-item">
+                          <span style={{ flex: 1 }}>{r.description}</span>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)', width: 80, textAlign: 'right' }}>
+                            {r.coverageRate} {r.coverageUnit}
+                          </span>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)', width: 50, textAlign: 'right' }}>
+                            {r.wastage}%
+                          </span>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', fontWeight: 500, width: 70, textAlign: 'right' }}>
+                            {r.packSize > 0 ? formatCurrencyFull(r.packPrice, sym) : formatCurrencyFull(r.unitRate, sym)}
+                          </span>
+                          <button className="btn btn-sm btn-secondary" onClick={() => copyRateToCustom(r)} title="Copy to custom">{Ic.copy(12)} Copy</button>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })}
+                {Object.keys(groupedDefault).length === 0 && (
+                  <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-muted)' }}>No matching rates found.</div>
+                )}
+              </div>
+            </div>
+
+            {/* Custom rates */}
+            <div className="card">
+              <div className="card-header">
+                <h3>Custom Rates</h3>
+                <button className="btn btn-sm btn-accent" onClick={addCustomRate}>{Ic.plus()} Add Rate</button>
+              </div>
+              <div className="card-body" style={{ padding: 0 }}>
+                {filteredCustom.length === 0 && (
+                  <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-muted)' }}>No custom rates yet. Add your own or copy from defaults above.</div>
+                )}
+                {filteredCustom.map(r => (
+                  <div key={r.id} className="rate-item">
+                    <span style={{ flex: 1 }}>{r.description}</span>
+                    <span className="rate-badge custom">Custom</span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', fontWeight: 500, width: 70, textAlign: 'right' }}>
+                      {r.packSize > 0 ? formatCurrencyFull(r.packPrice, sym) : formatCurrencyFull(r.unitRate, sym)}
+                    </span>
+                    <button className="btn btn-sm btn-secondary" style={{ color: 'var(--danger)' }} onClick={() => deleteCustomRate(r.id)}>{Ic.trash(12)}</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      // ================================================================
+      //  TEMPLATE PICKER MODAL
+      // ================================================================
+      function TemplatePickerModal() {
+        return (
+          <div className="modal-overlay" onClick={() => setTemplateModal(false)}>
+            <div className="modal" onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>Add from Template</h2>
+                <button className="btn btn-icon btn-secondary" onClick={() => setTemplateModal(false)}>{Ic.close()}</button>
+              </div>
+              <div className="modal-body">
+                {TEMPLATE_GROUPS.map(group => (
+                  <div key={group} style={{ marginBottom: 20 }}>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>{group}</div>
+                    <div className="template-grid">
+                      {TEMPLATES.filter(t => t.group === group).map(t => {
+                        const matKey = region === 'USA' ? 'materials_usa' : 'materials_uk';
+                        const matCount = t[matKey].length;
+                        return (
+                          <div key={t.id} className="template-card" onClick={() => addFromTemplate(t.id)}>
+                            <span className="template-colour" style={{ background: t.colour }}></span>
+                            <div className="template-name">{t.name}</div>
+                            <div className="template-desc">{matCount} materials ({region})</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      // ================================================================
+      //  RATE PICKER MODAL
+      // ================================================================
+      function RatePickerModal() {
+        const [search, setSearch] = useState('');
+        const allRates = [...DEFAULT_RATES.filter(r => r.region === region), ...(rates.rates || [])];
+        const filtered = allRates.filter(r => search === '' || r.description.toLowerCase().includes(search.toLowerCase()) || (r.category || '').toLowerCase().includes(search.toLowerCase()));
+
+        return (
+          <div className="modal-overlay" onClick={() => setRatePickerCat(null)}>
+            <div className="modal" onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>Add from Rate Library</h2>
+                <button className="btn btn-icon btn-secondary" onClick={() => setRatePickerCat(null)}>{Ic.close()}</button>
+              </div>
+              <div className="modal-body">
+                <div style={{ position: 'relative', marginBottom: 16 }}>
+                  <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}>{Ic.search(14)}</span>
+                  <input className="input-refined" placeholder="Search rates..." value={search} onChange={e => setSearch(e.target.value)} style={{ paddingLeft: 32 }} autoFocus />
+                </div>
+                <div style={{ maxHeight: 400, overflowY: 'auto' }}>
+                  {filtered.length === 0 && <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)' }}>No rates found.</div>}
+                  {filtered.map(r => (
+                    <div key={r.id} className="rate-item" style={{ cursor: 'pointer' }} onClick={() => { addMaterial(ratePickerCat, r); setRatePickerCat(null); }}>
+                      <span style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 500 }}>{r.description}</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{r.category} — {r.dimensionSource}</div>
+                      </span>
+                      <span className={`rate-badge ${r.isDefault ? 'default' : 'custom'}`}>{r.isDefault ? 'Default' : 'Custom'}</span>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', fontWeight: 500 }}>
+                        {r.packSize > 0 ? formatCurrencyFull(r.packPrice, sym) : formatCurrencyFull(r.unitRate, sym)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      // ================================================================
+      //  SETTINGS DRAWER
+      // ================================================================
+      function SettingsDrawer() {
+        const fileRef = useRef(null);
+        return (
+          <React.Fragment>
+            <div className="settings-overlay visible" onClick={() => setDrawerOpen(false)}></div>
+            <div className="settings-drawer open">
+              <div className="settings-drawer-header">
+                <div className="settings-drawer-title">Settings</div>
+                <button className="btn btn-icon btn-secondary" onClick={() => setDrawerOpen(false)}>{Ic.close()}</button>
+              </div>
+
+              <div className="settings-section">
+                <div className="settings-section-title">Project</div>
+                <div className="settings-row">
+                  <span className="settings-row-label">Project Name</span>
+                </div>
+                <StableInput type="text" className="input-refined" value={project.meta.name} style={{ marginTop: 4 }}
+                  onChange={e => updateProject(p => { p.meta.name = e.target.value; })} />
+              </div>
+
+              <div className="settings-section">
+                <div className="settings-section-title">Region</div>
+                <div className="region-toggle" style={{ marginBottom: 8 }}>
+                  <button className={region === 'UK' ? 'active' : ''} onClick={() => changeRegion('UK')}>UK (GBP)</button>
+                  <button className={region === 'USA' ? 'active' : ''} onClick={() => changeRegion('USA')}>USA (USD)</button>
+                </div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Affects currency symbol and template measurements.</div>
+              </div>
+
+              <div className="settings-section">
+                <div className="settings-section-title">Defaults</div>
+                <div className="settings-row">
+                  <span className="settings-row-label">Default Wastage %</span>
+                  <StableInput type="number" value={project.settings.defaultWastage} style={{ width: 70, textAlign: 'right', padding: '6px 10px', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-sm)', fontFamily: 'var(--font-mono)', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: 13, outline: 'none' }}
+                    onChange={e => updateProject(p => { p.settings.defaultWastage = parseFloat(e.target.value) || 10; })} />
+                </div>
+                <div className="settings-row">
+                  <span className="settings-row-label">Show Pack Rounding</span>
+                  <button className={`btn btn-sm ${project.settings.showPackRounding ? 'btn-accent' : 'btn-secondary'}`}
+                    onClick={() => updateProject(p => { p.settings.showPackRounding = !p.settings.showPackRounding; })}>
+                    {project.settings.showPackRounding ? 'On' : 'Off'}
+                  </button>
+                </div>
+              </div>
+
+              <div className="settings-section">
+                <div className="settings-section-title">Data</div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+                  <button className="btn btn-sm btn-secondary" onClick={exportJSON}>{Ic.download()} Export JSON</button>
+                  <button className="btn btn-sm btn-secondary" onClick={importJSON}>{Ic.upload()} Import JSON</button>
+                </div>
+                <button className="btn btn-sm btn-danger" onClick={() => {
+                  if (confirm('Reset project? This will delete all categories and materials.')) {
+                    setProject(createDefault());
+                    setExpandedCats({});
+                  }
+                }}>Reset Project</button>
+              </div>
+            </div>
+          </React.Fragment>
+        );
+      }
+
+      // ================================================================
+      //  RENDER
+      // ================================================================
+      return (
+        <div className="app-container">
+          {/* HEADER */}
+          <header className="app-header">
+            <div className="header-icon" style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M2 20h20"/><path d="M5 20V8l7-5 7 5v12"/><path d="M9 20v-6h6v6"/>
+              </svg>
+            </div>
+            <div>
+              <div className="header-title">Estimator</div>
+              <div className="header-subtitle">{project.meta.name} — {region}</div>
+            </div>
+            <div style={{ flex: 1 }}/>
+            <select className="input-refined" style={{ width: 160 }} value={project.settings.theme}
+              onChange={e => updateProject(p => { p.settings.theme = e.target.value; })}>
+              {THEMES.map(t => <option key={t} value={t}>{THEME_LABELS[t]}</option>)}
+            </select>
+            <button className="btn btn-icon btn-secondary" onClick={() => setDrawerOpen(true)}>{Ic.settings()}</button>
+          </header>
+
+          {/* TABS */}
+          <div className="tabs-bar">
+            {TABS.map(t => <button key={t.id} className={`tab-btn ${activeTab === t.id ? 'active' : ''}`} onClick={() => setActiveTab(t.id)}>{t.label}</button>)}
+          </div>
+
+          {/* CONTENT */}
+          <div className="content-area fade-in" key={activeTab}>
+            {activeTab === 'estimate' && <EstimateTab />}
+            {activeTab === 'summary' && <SummaryTab />}
+            {activeTab === 'rates' && <RatesTab />}
+          </div>
+
+          {/* MODALS */}
+          {templateModal && <TemplatePickerModal />}
+          {ratePickerCat && <RatePickerModal />}
+          {drawerOpen && <SettingsDrawer />}
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

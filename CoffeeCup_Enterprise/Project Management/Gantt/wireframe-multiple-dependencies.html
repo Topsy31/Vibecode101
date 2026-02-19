@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gantt Multiple Dependencies - UI Wireframe</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f8fafc;
+      color: #1e293b;
+    }
+    .wireframe-note {
+      background: #fef3c7;
+      border: 2px dashed #f59e0b;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #92400e;
+    }
+    .wireframe-note strong { color: #78350f; }
+    .card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .gantt-row {
+      display: flex;
+      border-bottom: 1px solid #e2e8f0;
+      min-height: 56px;
+    }
+    .gantt-row:hover { background: #f8fafc; }
+    .gantt-cell {
+      border-right: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+    }
+    .activity-bar {
+      height: 28px;
+      border-radius: 6px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .bar-1 { background: linear-gradient(135deg, #64748b, #475569); }
+    .bar-2 { background: linear-gradient(135deg, #84a98c, #6b8e73); }
+    .bar-3 { background: linear-gradient(135deg, #c9a96e, #b8965a); }
+    .bar-4 { background: linear-gradient(135deg, #c9a9a6, #b89895); }
+    .bar-5 { background: linear-gradient(135deg, #94a3b8, #7d8ca0); }
+    .tag {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+    .tag-fs { background: #dbeafe; color: #1e40af; }
+    .tag-ss { background: #fef3c7; color: #92400e; }
+    .tag-ff { background: #dcfce7; color: #166534; }
+    .tag-sf { background: #fce7f3; color: #9d174d; }
+    .dependency-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 11px;
+      margin: 2px;
+    }
+    .dependency-chip .remove {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 10px;
+      color: #64748b;
+    }
+    .dependency-chip .remove:hover {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+    .btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: none;
+      transition: all 0.15s;
+    }
+    .btn-primary {
+      background: #3b82f6;
+      color: white;
+    }
+    .btn-primary:hover { background: #2563eb; }
+    .btn-secondary {
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #cbd5e1;
+    }
+    .btn-secondary:hover { background: #e2e8f0; }
+    .btn-sm {
+      padding: 4px 10px;
+      font-size: 11px;
+    }
+    .input-field {
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 13px;
+      outline: none;
+    }
+    .input-field:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .modal {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+      width: 500px;
+      max-width: 95vw;
+    }
+    .timeline-col {
+      width: 40px;
+      min-width: 40px;
+      border-right: 1px solid #f1f5f9;
+      text-align: center;
+    }
+    .timeline-col.weekend { background: #fef3c7; }
+
+    /* Dependency arrows */
+    .dependency-line {
+      stroke: #94a3b8;
+      stroke-width: 2;
+      fill: none;
+    }
+    .dependency-line.critical {
+      stroke: #dc2626;
+      stroke-width: 2.5;
+    }
+    .arrow-head {
+      fill: #94a3b8;
+    }
+    .arrow-head.critical {
+      fill: #dc2626;
+    }
+
+    /* Critical path highlight */
+    .critical-bar {
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.3), 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .critical-indicator {
+      width: 8px;
+      height: 8px;
+      background: #dc2626;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #64748b;
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body class="p-8">
+  <div class="max-w-7xl mx-auto">
+
+    <!-- Header -->
+    <div class="mb-6">
+      <h1 class="text-2xl font-semibold text-slate-800">Multiple Dependencies - UI Wireframe</h1>
+      <p class="text-slate-500 text-sm mt-1">Visualising proposed changes to support multiple predecessors per activity</p>
+    </div>
+
+    <!-- Wireframe Note -->
+    <div class="wireframe-note mb-8">
+      <strong>Wireframe Purpose:</strong> This mockup shows the UI changes needed to support multiple dependencies.
+      Orange dashed borders indicate new or changed UI elements. This is not functional — it's for visual planning only.
+    </div>
+
+    <!-- ============================================ -->
+    <!-- SECTION 1: UPDATED GANTT ROW LAYOUT -->
+    <!-- ============================================ -->
+    <div class="mb-10">
+      <h2 class="text-lg font-semibold mb-4 text-slate-700">1. Updated Gantt Row Layout</h2>
+      <p class="text-sm text-slate-600 mb-4">The "Type" column becomes a "Dependencies" column showing all predecessors as chips.</p>
+
+      <div class="card overflow-hidden">
+        <!-- Header -->
+        <div class="flex bg-slate-50 text-xs font-medium text-slate-500 uppercase tracking-wider">
+          <div class="w-10 px-2 py-3 gantt-cell"></div>
+          <div class="w-56 px-4 py-3 gantt-cell">Activity</div>
+          <div class="w-14 px-2 py-3 gantt-cell text-center">Days</div>
+          <div class="w-48 px-2 py-3 gantt-cell" style="border: 2px dashed #f59e0b; background: #fffbeb;">
+            Dependencies <span class="text-amber-600 font-normal">(NEW)</span>
+          </div>
+          <div class="flex-1 px-3 py-3">Timeline</div>
+        </div>
+
+        <!-- Row 1: No dependencies (project start) -->
+        <div class="gantt-row">
+          <div class="w-10 px-2 gantt-cell text-slate-400">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" opacity="0.4">
+              <circle cx="8" cy="6" r="2"/><circle cx="16" cy="6" r="2"/>
+              <circle cx="8" cy="12" r="2"/><circle cx="16" cy="12" r="2"/>
+              <circle cx="8" cy="18" r="2"/><circle cx="16" cy="18" r="2"/>
+            </svg>
+          </div>
+          <div class="w-56 px-4 py-3 gantt-cell">
+            <span class="text-sm">1. Project Kickoff</span>
+          </div>
+          <div class="w-14 px-2 gantt-cell justify-center font-mono text-sm">0</div>
+          <div class="w-48 px-2 py-2 gantt-cell" style="border-right: 2px dashed #f59e0b;">
+            <span class="text-xs text-slate-400 italic">None (project start)</span>
+          </div>
+          <div class="flex-1 relative py-3 px-2">
+            <svg width="16" height="16" viewBox="0 0 20 20" class="absolute" style="left: 10px; top: 50%; transform: translateY(-50%);">
+              <polygon points="10,1 19,10 10,19 1,10" fill="#64748b"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Row 2: Single dependency -->
+        <div class="gantt-row">
+          <div class="w-10 px-2 gantt-cell text-slate-400">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" opacity="0.4">
+              <circle cx="8" cy="6" r="2"/><circle cx="16" cy="6" r="2"/>
+              <circle cx="8" cy="12" r="2"/><circle cx="16" cy="12" r="2"/>
+              <circle cx="8" cy="18" r="2"/><circle cx="16" cy="18" r="2"/>
+            </svg>
+          </div>
+          <div class="w-56 px-4 py-3 gantt-cell">
+            <span class="text-sm">2. Requirements Gathering</span>
+          </div>
+          <div class="w-14 px-2 gantt-cell justify-center font-mono text-sm">5</div>
+          <div class="w-48 px-2 py-2 gantt-cell flex-wrap content-center gap-1" style="border-right: 2px dashed #f59e0b;">
+            <div class="dependency-chip">
+              <span class="tag tag-fs">FS</span>
+              <span>#1</span>
+              <span class="remove">×</span>
+            </div>
+            <button class="btn btn-secondary btn-sm">+ Add</button>
+          </div>
+          <div class="flex-1 relative py-3">
+            <div class="activity-bar bar-1 absolute" style="left: 20px; width: 180px; top: 50%; transform: translateY(-50%);"></div>
+          </div>
+        </div>
+
+        <!-- Row 3: Single dependency -->
+        <div class="gantt-row">
+          <div class="w-10 px-2 gantt-cell text-slate-400">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" opacity="0.4">
+              <circle cx="8" cy="6" r="2"/><circle cx="16" cy="6" r="2"/>
+              <circle cx="8" cy="12" r="2"/><circle cx="16" cy="12" r="2"/>
+              <circle cx="8" cy="18" r="2"/><circle cx="16" cy="18" r="2"/>
+            </svg>
+          </div>
+          <div class="w-56 px-4 py-3 gantt-cell">
+            <span class="text-sm">3. Technical Design</span>
+          </div>
+          <div class="w-14 px-2 gantt-cell justify-center font-mono text-sm">4</div>
+          <div class="w-48 px-2 py-2 gantt-cell flex-wrap content-center gap-1" style="border-right: 2px dashed #f59e0b;">
+            <div class="dependency-chip">
+              <span class="tag tag-fs">FS</span>
+              <span>#1</span>
+              <span class="remove">×</span>
+            </div>
+            <button class="btn btn-secondary btn-sm">+ Add</button>
+          </div>
+          <div class="flex-1 relative py-3">
+            <div class="activity-bar bar-2 absolute" style="left: 20px; width: 144px; top: 50%; transform: translateY(-50%);"></div>
+          </div>
+        </div>
+
+        <!-- Row 4: MULTIPLE DEPENDENCIES (highlight) -->
+        <div class="gantt-row" style="background: #fffbeb;">
+          <div class="w-10 px-2 gantt-cell text-slate-400">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" opacity="0.4">
+              <circle cx="8" cy="6" r="2"/><circle cx="16" cy="6" r="2"/>
+              <circle cx="8" cy="12" r="2"/><circle cx="16" cy="12" r="2"/>
+              <circle cx="8" cy="18" r="2"/><circle cx="16" cy="18" r="2"/>
+            </svg>
+          </div>
+          <div class="w-56 px-4 py-3 gantt-cell">
+            <div class="critical-indicator" title="On critical path"></div>
+            <span class="text-sm font-medium">4. Development</span>
+          </div>
+          <div class="w-14 px-2 gantt-cell justify-center font-mono text-sm">10</div>
+          <div class="w-48 px-2 py-2 gantt-cell flex-wrap content-center gap-1" style="border: 2px dashed #f59e0b; background: #fef3c7;">
+            <div class="dependency-chip">
+              <span class="tag tag-fs">FS</span>
+              <span>#2</span>
+              <span class="remove">×</span>
+            </div>
+            <div class="dependency-chip">
+              <span class="tag tag-fs">FS</span>
+              <span>#3</span>
+              <span class="remove">×</span>
+            </div>
+            <button class="btn btn-secondary btn-sm">+ Add</button>
+          </div>
+          <div class="flex-1 relative py-3">
+            <div class="activity-bar bar-3 critical-bar absolute" style="left: 200px; width: 360px; top: 50%; transform: translateY(-50%);"></div>
+          </div>
+        </div>
+
+        <!-- Row 5 -->
+        <div class="gantt-row">
+          <div class="w-10 px-2 gantt-cell text-slate-400">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" opacity="0.4">
+              <circle cx="8" cy="6" r="2"/><circle cx="16" cy="6" r="2"/>
+              <circle cx="8" cy="12" r="2"/><circle cx="16" cy="12" r="2"/>
+              <circle cx="8" cy="18" r="2"/><circle cx="16" cy="18" r="2"/>
+            </svg>
+          </div>
+          <div class="w-56 px-4 py-3 gantt-cell">
+            <div class="critical-indicator" title="On critical path"></div>
+            <span class="text-sm">5. Testing</span>
+          </div>
+          <div class="w-14 px-2 gantt-cell justify-center font-mono text-sm">5</div>
+          <div class="w-48 px-2 py-2 gantt-cell flex-wrap content-center gap-1" style="border-right: 2px dashed #f59e0b;">
+            <div class="dependency-chip">
+              <span class="tag tag-ss">SS</span>
+              <span>#4</span>
+              <span class="text-slate-400">+3d</span>
+              <span class="remove">×</span>
+            </div>
+            <button class="btn btn-secondary btn-sm">+ Add</button>
+          </div>
+          <div class="flex-1 relative py-3">
+            <div class="activity-bar bar-4 critical-bar absolute" style="left: 310px; width: 180px; top: 50%; transform: translateY(-50%);"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wireframe-note mt-4">
+        <strong>Key changes:</strong>
+        <ul class="mt-2 space-y-1">
+          <li>• Dependencies shown as removable chips with type badge + activity reference</li>
+          <li>• "+ Add" button opens dependency modal</li>
+          <li>• Lag time shown in chip (e.g., "+3d" means 3 day lag)</li>
+          <li>• Red dot indicates task is on critical path</li>
+          <li>• Red glow around bar = critical path activity</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- SECTION 2: ADD DEPENDENCY MODAL -->
+    <!-- ============================================ -->
+    <div class="mb-10">
+      <h2 class="text-lg font-semibold mb-4 text-slate-700">2. Add Dependency Modal</h2>
+      <p class="text-sm text-slate-600 mb-4">Clicking "+ Add" opens a modal to select predecessor and relationship type.</p>
+
+      <div class="relative">
+        <!-- Fake modal backdrop -->
+        <div class="card p-6" style="background: rgba(0,0,0,0.05);">
+
+          <!-- Modal -->
+          <div class="modal mx-auto" style="border: 2px dashed #f59e0b;">
+            <div class="p-5 border-b border-slate-200">
+              <h3 class="text-lg font-semibold text-slate-800">Add Dependency</h3>
+              <p class="text-sm text-slate-500">Define what must happen before "4. Development" can start</p>
+            </div>
+
+            <div class="p-5 space-y-5">
+              <!-- Predecessor select -->
+              <div>
+                <label class="section-title">Predecessor Activity</label>
+                <select class="input-field w-full">
+                  <option>Select an activity...</option>
+                  <option>1. Project Kickoff (Milestone)</option>
+                  <option selected>2. Requirements Gathering (5 days)</option>
+                  <option>3. Technical Design (4 days)</option>
+                </select>
+              </div>
+
+              <!-- Dependency type -->
+              <div>
+                <label class="section-title">Relationship Type</label>
+                <div class="grid grid-cols-2 gap-3 mt-2">
+                  <label class="flex items-center gap-3 p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 bg-blue-50 border-blue-300">
+                    <input type="radio" name="dep-type" checked class="accent-blue-600">
+                    <div>
+                      <div class="font-medium text-sm flex items-center gap-2">
+                        <span class="tag tag-fs">FS</span> Finish-to-Start
+                      </div>
+                      <div class="text-xs text-slate-500">Start when predecessor finishes</div>
+                    </div>
+                  </label>
+                  <label class="flex items-center gap-3 p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50">
+                    <input type="radio" name="dep-type" class="accent-blue-600">
+                    <div>
+                      <div class="font-medium text-sm flex items-center gap-2">
+                        <span class="tag tag-ss">SS</span> Start-to-Start
+                      </div>
+                      <div class="text-xs text-slate-500">Start when predecessor starts</div>
+                    </div>
+                  </label>
+                  <label class="flex items-center gap-3 p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50">
+                    <input type="radio" name="dep-type" class="accent-blue-600">
+                    <div>
+                      <div class="font-medium text-sm flex items-center gap-2">
+                        <span class="tag tag-ff">FF</span> Finish-to-Finish
+                      </div>
+                      <div class="text-xs text-slate-500">Finish when predecessor finishes</div>
+                    </div>
+                  </label>
+                  <label class="flex items-center gap-3 p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50">
+                    <input type="radio" name="dep-type" class="accent-blue-600">
+                    <div>
+                      <div class="font-medium text-sm flex items-center gap-2">
+                        <span class="tag tag-sf">SF</span> Start-to-Finish
+                      </div>
+                      <div class="text-xs text-slate-500">Finish when predecessor starts</div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Lag time -->
+              <div>
+                <label class="section-title">Lag / Lead Time (Optional)</label>
+                <div class="flex items-center gap-3 mt-2">
+                  <input type="number" value="0" class="input-field w-24 text-center font-mono">
+                  <span class="text-sm text-slate-600">days</span>
+                  <span class="text-xs text-slate-400">(negative = lead/overlap, positive = lag/delay)</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="p-5 border-t border-slate-200 flex justify-end gap-3 bg-slate-50 rounded-b-2xl">
+              <button class="btn btn-secondary">Cancel</button>
+              <button class="btn btn-primary">Add Dependency</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wireframe-note mt-4">
+        <strong>Modal features:</strong>
+        <ul class="mt-2 space-y-1">
+          <li>• Dropdown only shows activities that appear BEFORE the current one (prevents circular deps)</li>
+          <li>• Visual radio buttons for the 4 dependency types with descriptions</li>
+          <li>• Optional lag/lead time in days</li>
+          <li>• Validation prevents adding duplicate dependencies</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- SECTION 3: DEPENDENCY ARROWS (SVG OVERLAY) -->
+    <!-- ============================================ -->
+    <div class="mb-10">
+      <h2 class="text-lg font-semibold mb-4 text-slate-700">3. Dependency Arrows on Timeline</h2>
+      <p class="text-sm text-slate-600 mb-4">SVG arrows show relationships between tasks. Critical path arrows highlighted in red.</p>
+
+      <div class="card overflow-hidden relative">
+        <!-- Simplified gantt with arrows -->
+        <div class="p-4">
+          <svg width="100%" height="280" viewBox="0 0 700 280">
+            <!-- Background grid lines -->
+            <defs>
+              <pattern id="grid" width="40" height="56" patternUnits="userSpaceOnUse">
+                <path d="M 40 0 L 0 0 0 56" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grid)"/>
+
+            <!-- Row backgrounds -->
+            <rect x="0" y="0" width="700" height="56" fill="#f8fafc"/>
+            <rect x="0" y="112" width="700" height="56" fill="#f8fafc"/>
+            <rect x="0" y="224" width="700" height="56" fill="#f8fafc"/>
+
+            <!-- Activity bars -->
+            <!-- 1. Kickoff (milestone) -->
+            <polygon points="30,28 40,38 30,48 20,38" fill="#64748b"/>
+            <text x="50" y="33" font-size="11" fill="#475569">1. Kickoff</text>
+
+            <!-- 2. Requirements -->
+            <rect x="50" y="78" width="160" height="24" rx="5" fill="#84a98c"/>
+            <text x="60" y="94" font-size="11" fill="white">2. Requirements</text>
+
+            <!-- 3. Technical Design -->
+            <rect x="50" y="134" width="130" height="24" rx="5" fill="#c9a96e"/>
+            <text x="60" y="150" font-size="11" fill="white">3. Tech Design</text>
+
+            <!-- 4. Development (CRITICAL - waits for both 2 and 3) -->
+            <rect x="220" y="190" width="280" height="24" rx="5" fill="#c9a9a6" stroke="#dc2626" stroke-width="2"/>
+            <text x="230" y="206" font-size="11" fill="white" font-weight="600">4. Development (Critical)</text>
+
+            <!-- 5. Testing -->
+            <rect x="400" y="246" width="160" height="24" rx="5" fill="#94a3b8" stroke="#dc2626" stroke-width="2"/>
+            <text x="410" y="262" font-size="11" fill="white">5. Testing</text>
+
+            <!-- DEPENDENCY ARROWS -->
+            <!-- Arrow from 1 to 2 -->
+            <path d="M 35 48 L 35 65 L 50 78" class="dependency-line" marker-end="url(#arrowhead)"/>
+
+            <!-- Arrow from 1 to 3 -->
+            <path d="M 35 48 L 35 65 L 45 65 L 45 134" class="dependency-line" marker-end="url(#arrowhead)"/>
+
+            <!-- Arrow from 2 to 4 (CRITICAL) -->
+            <path d="M 210 90 L 215 90 L 215 202 L 220 202" class="dependency-line critical" marker-end="url(#arrowhead-critical)"/>
+
+            <!-- Arrow from 3 to 4 -->
+            <path d="M 180 146 L 195 146 L 195 202 L 220 202" class="dependency-line" marker-end="url(#arrowhead)"/>
+
+            <!-- Arrow from 4 to 5 (SS with lag - starts from start of 4) (CRITICAL) -->
+            <path d="M 330 214 L 330 230 L 400 258" class="dependency-line critical" marker-end="url(#arrowhead-critical)"/>
+            <text x="340" y="240" font-size="9" fill="#dc2626">SS +3d</text>
+
+            <!-- Arrow markers -->
+            <defs>
+              <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                <polygon points="0 0, 8 4, 0 8" class="arrow-head"/>
+              </marker>
+              <marker id="arrowhead-critical" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                <polygon points="0 0, 8 4, 0 8" class="arrow-head critical"/>
+              </marker>
+            </defs>
+
+            <!-- Legend -->
+            <rect x="520" y="10" width="170" height="80" rx="8" fill="white" stroke="#e2e8f0"/>
+            <text x="535" y="30" font-size="10" font-weight="600" fill="#64748b">LEGEND</text>
+            <line x1="535" y1="45" x2="565" y2="45" stroke="#94a3b8" stroke-width="2"/>
+            <text x="575" y="48" font-size="10" fill="#475569">Dependency</text>
+            <line x1="535" y1="65" x2="565" y2="65" stroke="#dc2626" stroke-width="2.5"/>
+            <text x="575" y="68" font-size="10" fill="#475569">Critical Path</text>
+            <circle cx="545" cy="82" r="4" fill="#dc2626"/>
+            <text x="555" y="85" font-size="10" fill="#475569">On critical path</text>
+          </svg>
+        </div>
+      </div>
+
+      <div class="wireframe-note mt-4">
+        <strong>Arrow rendering:</strong>
+        <ul class="mt-2 space-y-1">
+          <li>• SVG overlay positioned absolutely over the timeline area</li>
+          <li>• Arrows route around bars (simple right-angle paths)</li>
+          <li>• Critical path arrows in red, thicker stroke</li>
+          <li>• Hover on arrow could highlight the relationship</li>
+          <li>• Optional: toggle to show/hide arrows</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- SECTION 4: TOOLBAR ADDITIONS -->
+    <!-- ============================================ -->
+    <div class="mb-10">
+      <h2 class="text-lg font-semibold mb-4 text-slate-700">4. Toolbar Additions</h2>
+      <p class="text-sm text-slate-600 mb-4">New controls for dependency visualisation and critical path.</p>
+
+      <div class="card p-4">
+        <div class="flex flex-wrap items-center gap-3">
+          <!-- Existing controls -->
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-medium text-slate-500 uppercase tracking-wider">Scale</span>
+            <select class="input-field text-sm py-1.5">
+              <option>Days</option>
+              <option>Weeks</option>
+              <option>Months</option>
+            </select>
+          </div>
+
+          <div class="h-6 w-px bg-slate-200"></div>
+
+          <!-- NEW: Dependency toggles -->
+          <div class="flex items-center gap-2 px-3 py-1 rounded-lg" style="background: #fffbeb; border: 2px dashed #f59e0b;">
+            <span class="text-xs font-medium text-slate-500 uppercase tracking-wider">Show</span>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" checked class="accent-blue-600">
+              <span class="text-sm text-slate-700">Arrows</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" checked class="accent-red-600">
+              <span class="text-sm text-slate-700">Critical Path</span>
+            </label>
+          </div>
+
+          <div class="h-6 w-px bg-slate-200"></div>
+
+          <!-- NEW: Critical path info -->
+          <div class="flex items-center gap-2 px-3 py-1.5 bg-red-50 rounded-lg border border-red-200" style="border: 2px dashed #f59e0b;">
+            <div class="w-2.5 h-2.5 bg-red-500 rounded-full"></div>
+            <span class="text-sm text-red-800 font-medium">Critical Path: 20 days</span>
+            <span class="text-xs text-red-600">(Tasks 1 → 2 → 4 → 5)</span>
+          </div>
+
+          <div class="flex-1"></div>
+
+          <!-- Existing buttons -->
+          <button class="btn btn-secondary btn-sm">Print</button>
+          <button class="btn btn-secondary btn-sm">Save</button>
+        </div>
+      </div>
+
+      <div class="wireframe-note mt-4">
+        <strong>New toolbar elements:</strong>
+        <ul class="mt-2 space-y-1">
+          <li>• Toggle checkboxes for showing/hiding dependency arrows</li>
+          <li>• Toggle for highlighting critical path</li>
+          <li>• Critical path summary showing total duration and task sequence</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- SECTION 5: DATA MODEL CHANGES -->
+    <!-- ============================================ -->
+    <div class="mb-10">
+      <h2 class="text-lg font-semibold mb-4 text-slate-700">5. Data Model Changes</h2>
+      <p class="text-sm text-slate-600 mb-4">How the activity data structure would change.</p>
+
+      <div class="grid md:grid-cols-2 gap-6">
+        <!-- Current -->
+        <div class="card p-5">
+          <h3 class="font-semibold text-slate-700 mb-3">Current Structure</h3>
+          <pre class="bg-slate-800 text-slate-100 p-4 rounded-lg text-sm overflow-x-auto"><code>{
+  id: 123,
+  name: "Development",
+  duration: 10,
+  dependency: "FS"  // single type
+}</code></pre>
+          <p class="text-xs text-slate-500 mt-3">Only supports one implicit predecessor (previous row)</p>
+        </div>
+
+        <!-- Proposed -->
+        <div class="card p-5" style="border: 2px dashed #f59e0b;">
+          <h3 class="font-semibold text-amber-700 mb-3">Proposed Structure</h3>
+          <pre class="bg-slate-800 text-slate-100 p-4 rounded-lg text-sm overflow-x-auto"><code>{
+  id: 123,
+  name: "Development",
+  duration: 10,
+  dependencies: [
+    {
+      predecessorId: 101,
+      type: "FS",
+      lag: 0
+    },
+    {
+      predecessorId: 102,
+      type: "FS",
+      lag: 0
+    }
+  ]
+}</code></pre>
+          <p class="text-xs text-slate-500 mt-3">Supports multiple explicit predecessors with types and lag</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- SECTION 6: MIGRATION STRATEGY -->
+    <!-- ============================================ -->
+    <div class="mb-10">
+      <h2 class="text-lg font-semibold mb-4 text-slate-700">6. Migration & Backwards Compatibility</h2>
+
+      <div class="card p-5">
+        <p class="text-sm text-slate-600 mb-4">Existing saved projects use the old format. On load, migrate automatically:</p>
+
+        <pre class="bg-slate-800 text-slate-100 p-4 rounded-lg text-sm overflow-x-auto"><code>// Migration function
+function migrateActivity(activity, index, allActivities) {
+  if (activity.dependencies) {
+    return activity; // Already new format
+  }
+
+  // Convert old format to new
+  return {
+    ...activity,
+    dependencies: index === 0
+      ? []  // First task has no dependencies
+      : [{
+          predecessorId: allActivities[index - 1].id,
+          type: activity.dependency || 'FS',
+          lag: 0
+        }]
+  };
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="card p-6 bg-slate-50">
+      <h2 class="text-lg font-semibold mb-4 text-slate-700">Implementation Summary</h2>
+      <div class="grid md:grid-cols-2 gap-6 text-sm">
+        <div>
+          <h3 class="font-medium text-slate-800 mb-2">UI Changes</h3>
+          <ul class="space-y-1 text-slate-600">
+            <li>1. Replace "Type" column with "Dependencies" chip list</li>
+            <li>2. Add dependency modal with type selection</li>
+            <li>3. Add SVG arrow overlay for visualisation</li>
+            <li>4. Add critical path indicators (dot + bar glow)</li>
+            <li>5. Add toolbar toggles and summary</li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="font-medium text-slate-800 mb-2">Logic Changes</h3>
+          <ul class="space-y-1 text-slate-600">
+            <li>1. Update calculateStartTimes() for multiple deps</li>
+            <li>2. Add backward pass for latest start times</li>
+            <li>3. Calculate float and identify critical path</li>
+            <li>4. Add circular dependency validation</li>
+            <li>5. Migrate old data format on load</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-8 text-center text-sm text-slate-400">
+      Wireframe created for planning purposes. Not functional.
+    </div>
+  </div>
+</body>
+</html>

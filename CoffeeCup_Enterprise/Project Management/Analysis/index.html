@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="blueprint">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoffeeCup — Integrated Analysis</title>
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b5cf6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 3v18h18'%3E%3C/path%3E%3Cpath d='M7 16c1-4 3-6 5-6s3 2 5 6'%3E%3C/path%3E%3C/svg%3E">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- React & Tailwind -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Chart.js + Annotation Plugin -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo, useCallback } = React;
+
+        // ============================================================================
+        // CONSTANTS
+        // ============================================================================
+        const STORAGE_KEY = 'analysis-project';
+        const GANTT_KEY = 'gantt-project';
+        const COST_KEY = 'cost-project';
+        const RISK_KEY = 'risk-register';
+        const THEMES = ['blueprint', 'fun', 'dark', 'traditional'];
+        const THEME_LABELS = { blueprint: 'Blueprint', fun: 'Fun & Vibrant', dark: 'Dark Mode', traditional: 'Traditional' };
+        const DISTRIBUTIONS = ['triangular', 'pert', 'uniform'];
+        const DIST_LABELS = { triangular: 'Triangular', pert: 'PERT (Beta)', uniform: 'Uniform' };
+        const TABS = [
+            { id: 'setup', label: 'Model Setup' },
+            { id: 'schedule', label: 'Schedule Analysis' },
+            { id: 'cost', label: 'Cost Analysis' },
+            { id: 'joint', label: 'Joint Analysis' }
+        ];
+
+        // ============================================================================
+        // UTILITIES
+        // ============================================================================
+        function uid() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 9); }
+
+        function formatCurrency(amount, symbol = '£') {
+            if (amount == null || isNaN(amount)) return `${symbol}0`;
+            const abs = Math.abs(amount);
+            if (abs >= 1000000) return `${amount < 0 ? '-' : ''}${symbol}${(abs / 1000000).toFixed(1)}m`;
+            if (abs >= 1000) return `${amount < 0 ? '-' : ''}${symbol}${(abs / 1000).toFixed(1)}k`;
+            return `${amount < 0 ? '-' : ''}${symbol}${abs.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+        }
+
+        function formatCurrencyFull(amount, symbol = '£') {
+            if (amount == null || isNaN(amount)) return `${symbol}0`;
+            return `${amount < 0 ? '-' : ''}${symbol}${Math.abs(amount).toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+        }
+
+        // ============================================================================
+        // ICONS
+        // ============================================================================
+        const IconAnalysis = ({ size = 22 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="M7 16c1-4 3-6 5-6s3 2 5 6"/><circle cx="12" cy="10" r="1"/></svg>;
+        const IconRefresh = ({ size = 16 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>;
+        const IconPlay = ({ size = 16 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>;
+        const IconSettings = ({ size = 20 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>;
+        const IconClose = ({ size = 18 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
+        const IconPlus = ({ size = 14 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>;
+        const IconTrash = ({ size = 14 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>;
+        const IconAlertTriangle = ({ size = 20 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>;
+        const IconDownload = ({ size = 14 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>;
+        const IconUpload = ({ size = 14 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>;
+        const IconCheck = ({ size = 14 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>;
+
+        // ============================================================================
+        // SAMPLING FUNCTIONS (main-thread, for <= 5,000 iterations)
+        // ============================================================================
+        function randomNormal() {
+            const u1 = Math.random(), u2 = Math.random();
+            return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+        }
+
+        function sampleGamma(shape) {
+            if (shape < 1) return sampleGamma(shape + 1) * Math.pow(Math.random(), 1 / shape);
+            const d = shape - 1 / 3, c = 1 / Math.sqrt(9 * d);
+            while (true) {
+                let x, v;
+                do { x = randomNormal(); v = 1 + c * x; } while (v <= 0);
+                v = v * v * v;
+                const u = Math.random();
+                if (u < 1 - 0.0331 * (x * x) * (x * x)) return d * v;
+                if (Math.log(u) < 0.5 * x * x + d * (1 - v + Math.log(v))) return d * v;
+            }
+        }
+
+        function sampleBeta(alpha, beta) {
+            const ga = sampleGamma(alpha), gb = sampleGamma(beta);
+            return ga / (ga + gb);
+        }
+
+        function sampleTriangular(min, mode, max) {
+            if (min === max) return min;
+            if (mode < min) mode = min;
+            if (mode > max) mode = max;
+            const u = Math.random(), fc = (mode - min) / (max - min);
+            return u < fc ? min + Math.sqrt(u * (max - min) * (mode - min)) : max - Math.sqrt((1 - u) * (max - min) * (max - mode));
+        }
+
+        function sampleUniform(min, max) { return min === max ? min : min + Math.random() * (max - min); }
+
+        function samplePERT(min, mode, max) {
+            if (min === max) return min;
+            if (mode < min) mode = min;
+            if (mode > max) mode = max;
+            const lambda = 4, mean = (min + lambda * mode + max) / (lambda + 2), range = max - min;
+            if (range === 0) return min;
+            const alpha = ((mean - min) * (2 * mode - min - max)) / ((mode - mean) * range);
+            const beta = alpha * (max - mean) / (mean - min);
+            if (!isFinite(alpha) || !isFinite(beta) || alpha <= 0 || beta <= 0) return sampleTriangular(min, mode, max);
+            return min + sampleBeta(alpha, beta) * range;
+        }
+
+        function sampleDistribution(impact, dist) {
+            const { min, likely, max } = impact;
+            switch (dist) {
+                case 'uniform': return sampleUniform(min, max);
+                case 'pert': return samplePERT(min, likely, max);
+                case 'triangular': default: return sampleTriangular(min, likely, max);
+            }
+        }
+
+        // Correlated sampling support
+        function normalCDF(x) {
+            const a1 = 0.254829592, a2 = -0.284496736, a3 = 1.421413741, a4 = -1.453152027, a5 = 1.061405429, p = 0.3275911;
+            const sign = x < 0 ? -1 : 1;
+            x = Math.abs(x) / Math.sqrt(2);
+            const t = 1.0 / (1.0 + p * x);
+            const y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+            return 0.5 * (1.0 + sign * y);
+        }
+
+        function lnGamma(x) {
+            const coef = [0.99999999999980993, 676.5203681218851, -1259.1392167224028, 771.32342877765313, -176.61502916214059, 12.507343278686905, -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7];
+            if (x < 0.5) return Math.log(Math.PI / Math.sin(Math.PI * x)) - lnGamma(1 - x);
+            x -= 1;
+            let a = coef[0];
+            const t = x + 7.5;
+            for (let i = 1; i < coef.length; i++) a += coef[i] / (x + i);
+            return 0.5 * Math.log(2 * Math.PI) + (x + 0.5) * Math.log(t) - t + Math.log(a);
+        }
+
+        function incompleteBeta(x, a, b) {
+            if (x <= 0) return 0;
+            if (x >= 1) return 1;
+            if (x > (a + 1) / (a + b + 2)) return 1 - incompleteBeta(1 - x, b, a);
+            const lnBeta = lnGamma(a) + lnGamma(b) - lnGamma(a + b);
+            const front = Math.exp(Math.log(x) * a + Math.log(1 - x) * b - lnBeta) / a;
+            let f = 1, c = 1, d = 1 - (a + b) * x / (a + 1);
+            if (Math.abs(d) < 1e-30) d = 1e-30;
+            d = 1 / d; f = d;
+            for (let i = 1; i <= 100; i++) {
+                let num = i * (b - i) * x / ((a + 2 * i - 1) * (a + 2 * i));
+                d = 1 + num * d; if (Math.abs(d) < 1e-30) d = 1e-30; d = 1 / d;
+                c = 1 + num / c; if (Math.abs(c) < 1e-30) c = 1e-30;
+                f *= d * c;
+                num = -(a + i) * (a + b + i) * x / ((a + 2 * i) * (a + 2 * i + 1));
+                d = 1 + num * d; if (Math.abs(d) < 1e-30) d = 1e-30; d = 1 / d;
+                c = 1 + num / c; if (Math.abs(c) < 1e-30) c = 1e-30;
+                const delta = d * c;
+                f *= delta;
+                if (Math.abs(delta - 1) < 1e-10) break;
+            }
+            return front * f;
+        }
+
+        function inverseSample(impact, distribution, u) {
+            const { min, likely, max } = impact;
+            if (min === max) return min;
+            switch (distribution) {
+                case 'uniform': return min + u * (max - min);
+                case 'triangular': {
+                    const fc = (likely - min) / (max - min);
+                    return u < fc ? min + Math.sqrt(u * (max - min) * (likely - min)) : max - Math.sqrt((1 - u) * (max - min) * (max - likely));
+                }
+                case 'pert': default: {
+                    const lambda = 4, mean = (min + lambda * likely + max) / (lambda + 2), range = max - min;
+                    const alpha = ((mean - min) * (2 * likely - min - max)) / ((likely - mean) * range);
+                    const beta = alpha * (max - mean) / (mean - min);
+                    if (!isFinite(alpha) || !isFinite(beta) || alpha <= 0 || beta <= 0) {
+                        const fc = (likely - min) / (max - min);
+                        return u < fc ? min + Math.sqrt(u * (max - min) * (likely - min)) : max - Math.sqrt((1 - u) * (max - min) * (max - likely));
+                    }
+                    let lo = 0, hi = 1;
+                    for (let i = 0; i < 30; i++) {
+                        const mid = (lo + hi) / 2;
+                        if (incompleteBeta(mid, alpha, beta) < u) lo = mid; else hi = mid;
+                    }
+                    return min + ((lo + hi) / 2) * range;
+                }
+            }
+        }
+
+        function sampleCorrelated(impact, distribution, sharedNormal, factor) {
+            const individual = randomNormal();
+            const correlated = factor * sharedNormal + Math.sqrt(1 - factor * factor) * individual;
+            return inverseSample(impact, distribution, normalCDF(correlated));
+        }
+
+        // ============================================================================
+        // SCHEDULE ENGINE (main-thread, mirroring worker.js)
+        // ============================================================================
+        function topologicalSort(activities) {
+            const map = new Map(activities.map(a => [a.id, a]));
+            const visited = new Set(), result = [];
+            const visit = (a) => {
+                if (visited.has(a.id)) return;
+                visited.add(a.id);
+                if (a.dependencies) for (const dep of a.dependencies) { const p = map.get(dep.predecessorId); if (p) visit(p); }
+                result.push(a);
+            };
+            for (const a of activities) visit(a);
+            return result;
+        }
+
+        function calculateProjectDuration(activities, durationOverrides) {
+            if (!activities.length) return 0;
+            const map = new Map(activities.map(a => [a.id, a]));
+            const sorted = topologicalSort(activities);
+            const starts = {};
+            for (const act of sorted) {
+                const dur = durationOverrides[act.id] !== undefined ? durationOverrides[act.id] : act.duration;
+                if (!act.dependencies || !act.dependencies.length) { starts[act.id] = 0; continue; }
+                let maxStart = 0;
+                for (const dep of act.dependencies) {
+                    const pred = map.get(dep.predecessorId);
+                    if (!pred) continue;
+                    const predDur = durationOverrides[dep.predecessorId] !== undefined ? durationOverrides[dep.predecessorId] : pred.duration;
+                    const predStart = starts[dep.predecessorId] || 0, predEnd = predStart + predDur, lag = dep.lag || 0;
+                    let cs;
+                    switch (dep.type) {
+                        case 'FS': cs = predEnd + lag; break;
+                        case 'SS': cs = predStart + lag; break;
+                        case 'FF': cs = predEnd - dur + lag; break;
+                        case 'SF': cs = predStart - dur + lag; break;
+                        default: cs = predEnd + lag;
+                    }
+                    maxStart = Math.max(maxStart, cs);
+                }
+                starts[act.id] = Math.max(0, maxStart);
+            }
+            let maxEnd = 0;
+            for (const a of activities) {
+                const dur = durationOverrides[a.id] !== undefined ? durationOverrides[a.id] : a.duration;
+                maxEnd = Math.max(maxEnd, (starts[a.id] || 0) + dur);
+            }
+            return maxEnd;
+        }
+
+        // ============================================================================
+        // MAIN-THREAD SIMULATION
+        // ============================================================================
+        function runSimulationMainThread(activities, costItems, scheduleOverrides, costOverrides, risks, riskToggles, correlationGroups, iterations, onProgress) {
+            const scheduleResults = [], costResults = [];
+            const schedInputSamples = {}, costInputSamples = {};
+
+            const actGroupMap = {};
+            for (const g of correlationGroups) for (const aid of g.activityIds) actGroupMap[aid] = g;
+
+            for (let i = 0; i < iterations; i++) {
+                // --- Schedule ---
+                const groupNormals = {};
+                for (const g of correlationGroups) groupNormals[g.id] = randomNormal();
+
+                const durMap = {};
+                for (const act of activities) {
+                    const ov = scheduleOverrides[act.id];
+                    if (ov && ov.min !== undefined) {
+                        const grp = actGroupMap[act.id];
+                        durMap[act.id] = (grp && grp.factor > 0) ? sampleCorrelated(ov, ov.distribution || 'triangular', groupNormals[grp.id], grp.factor) : sampleDistribution(ov, ov.distribution || 'triangular');
+                        if (durMap[act.id] < 0) durMap[act.id] = 0;
+                    } else {
+                        durMap[act.id] = act.duration;
+                    }
+                    if (!schedInputSamples[act.id]) schedInputSamples[act.id] = [];
+                    schedInputSamples[act.id].push(durMap[act.id]);
+                }
+
+                let projDur = calculateProjectDuration(activities, durMap);
+                let riskBuffer = 0;
+                for (const risk of risks) {
+                    const tog = riskToggles[risk.id];
+                    if (!tog || !tog.included) { if (!schedInputSamples['risk_time_' + risk.id]) schedInputSamples['risk_time_' + risk.id] = []; schedInputSamples['risk_time_' + risk.id].push(0); continue; }
+                    const usePost = tog.usePostMitigation;
+                    const lk = usePost ? (risk.postLikelihood != null ? risk.postLikelihood : risk.likelihood) : risk.likelihood;
+                    if (Math.random() * 100 < lk) {
+                        const imp = usePost ? (risk.postImpactTime || risk.impactTime) : risk.impactTime;
+                        const dist = usePost ? (risk.postTimeDistribution || risk.timeDistribution || 'triangular') : (risk.timeDistribution || 'triangular');
+                        if (imp && imp.max > 0) {
+                            const s = sampleDistribution(imp, dist), mult = risk.type === 'threat' ? 1 : -1;
+                            riskBuffer += s * mult;
+                            if (!schedInputSamples['risk_time_' + risk.id]) schedInputSamples['risk_time_' + risk.id] = [];
+                            schedInputSamples['risk_time_' + risk.id].push(s * mult);
+                        } else { if (!schedInputSamples['risk_time_' + risk.id]) schedInputSamples['risk_time_' + risk.id] = []; schedInputSamples['risk_time_' + risk.id].push(0); }
+                    } else { if (!schedInputSamples['risk_time_' + risk.id]) schedInputSamples['risk_time_' + risk.id] = []; schedInputSamples['risk_time_' + risk.id].push(0); }
+                }
+                scheduleResults.push(Math.max(0, projDur + riskBuffer));
+
+                // --- Cost ---
+                let totalCost = 0;
+                for (const item of costItems) {
+                    const ov = costOverrides[item.id];
+                    let cost = (ov && ov.min !== undefined) ? sampleDistribution(ov, ov.distribution || 'triangular') : (item.totalCost || 0);
+                    if (cost < 0) cost = 0;
+                    totalCost += cost;
+                    if (!costInputSamples[item.id]) costInputSamples[item.id] = [];
+                    costInputSamples[item.id].push(cost);
+                }
+                for (const risk of risks) {
+                    const tog = riskToggles[risk.id];
+                    if (!tog || !tog.included) { if (!costInputSamples['risk_cost_' + risk.id]) costInputSamples['risk_cost_' + risk.id] = []; costInputSamples['risk_cost_' + risk.id].push(0); continue; }
+                    const usePost = tog.usePostMitigation;
+                    const lk = usePost ? (risk.postLikelihood != null ? risk.postLikelihood : risk.likelihood) : risk.likelihood;
+                    if (Math.random() * 100 < lk) {
+                        const imp = usePost ? (risk.postImpactCost || risk.impactCost) : risk.impactCost;
+                        const dist = usePost ? (risk.postCostDistribution || risk.costDistribution || 'triangular') : (risk.costDistribution || 'triangular');
+                        if (imp && imp.max > 0) {
+                            const s = sampleDistribution(imp, dist), mult = risk.type === 'threat' ? 1 : -1;
+                            totalCost += s * mult;
+                            if (!costInputSamples['risk_cost_' + risk.id]) costInputSamples['risk_cost_' + risk.id] = [];
+                            costInputSamples['risk_cost_' + risk.id].push(s * mult);
+                        } else { if (!costInputSamples['risk_cost_' + risk.id]) costInputSamples['risk_cost_' + risk.id] = []; costInputSamples['risk_cost_' + risk.id].push(0); }
+                    } else { if (!costInputSamples['risk_cost_' + risk.id]) costInputSamples['risk_cost_' + risk.id] = []; costInputSamples['risk_cost_' + risk.id].push(0); }
+                }
+                costResults.push(totalCost);
+
+                if (i % 200 === 0 && onProgress) onProgress(i, iterations);
+            }
+
+            return {
+                scheduleResults, costResults,
+                scheduleStats: calcStats(scheduleResults),
+                costStats: calcStats(costResults),
+                scheduleCDF: makeCDF(scheduleResults),
+                costCDF: makeCDF(costResults),
+                scheduleHist: makeHist(scheduleResults),
+                costHist: makeHist(costResults),
+                scheduleSensitivity: calcSensitivity(schedInputSamples, scheduleResults),
+                costSensitivity: calcSensitivity(costInputSamples, costResults)
+            };
+        }
+
+        // ============================================================================
+        // STATISTICS HELPERS
+        // ============================================================================
+        function calcStats(data) {
+            if (!data || !data.length) return null;
+            const sorted = [...data].sort((a, b) => a - b);
+            const n = sorted.length;
+            const mean = data.reduce((s, v) => s + v, 0) / n;
+            const pct = (p) => sorted[Math.max(0, Math.min(Math.ceil((p / 100) * n) - 1, n - 1))];
+            return { mean: Math.round(mean * 100) / 100, min: sorted[0], max: sorted[n - 1], p10: pct(10), p50: pct(50), p80: pct(80), p90: pct(90), sorted };
+        }
+
+        function makeCDF(data) {
+            if (!data || !data.length) return null;
+            const sorted = [...data].sort((a, b) => a - b);
+            const n = sorted.length, step = Math.max(1, Math.floor(n / 200));
+            const x = [], y = [];
+            for (let i = 0; i < n; i += step) { x.push(Math.round(sorted[i] * 100) / 100); y.push(Math.round((i + 1) / n * 10000) / 100); }
+            if (x[x.length - 1] !== sorted[n - 1]) { x.push(Math.round(sorted[n - 1] * 100) / 100); y.push(100); }
+            return { xValues: x, yValues: y };
+        }
+
+        function makeHist(data, bins = 40) {
+            if (!data || !data.length) return null;
+            const min = Math.min(...data), max = Math.max(...data);
+            if (min === max) return { histogram: [data.length], labels: [Math.round(min)], binWidth: 1 };
+            const bw = (max - min) / bins;
+            const hist = Array(bins).fill(0), labels = [];
+            for (let i = 0; i < bins; i++) labels.push(Math.round((min + i * bw + bw / 2) * 100) / 100);
+            for (const v of data) hist[Math.min(Math.floor((v - min) / bw), bins - 1)]++;
+            return { histogram: hist, labels, binWidth: bw };
+        }
+
+        function rankArray(arr) {
+            const idx = arr.map((v, i) => ({ v, i })).sort((a, b) => a.v - b.v);
+            const ranks = new Array(arr.length);
+            for (let i = 0; i < idx.length; i++) ranks[idx[i].i] = i + 1;
+            return ranks;
+        }
+
+        function pearsonR(x, y) {
+            const n = x.length;
+            let sx = 0, sy = 0, sxy = 0, sx2 = 0, sy2 = 0;
+            for (let i = 0; i < n; i++) { sx += x[i]; sy += y[i]; sxy += x[i] * y[i]; sx2 += x[i] * x[i]; sy2 += y[i] * y[i]; }
+            const den = Math.sqrt((n * sx2 - sx * sx) * (n * sy2 - sy * sy));
+            return den === 0 ? 0 : (n * sxy - sx * sy) / den;
+        }
+
+        function calcSensitivity(inputSamples, output, topN = 10) {
+            if (output.length < 3) return [];
+            const outRanks = rankArray(output);
+            const results = [];
+            for (const [key, samples] of Object.entries(inputSamples)) {
+                if (samples.length !== output.length) continue;
+                if (samples.every(v => v === samples[0])) continue;
+                const r = pearsonR(rankArray(samples), outRanks);
+                if (isFinite(r)) results.push({ id: key, correlation: Math.round(r * 1000) / 1000 });
+            }
+            results.sort((a, b) => Math.abs(b.correlation) - Math.abs(a.correlation));
+            return results.slice(0, topN);
+        }
+
+        // ============================================================================
+        // DEFAULT PROJECT STATE
+        // ============================================================================
+        function createDefaultProject() {
+            const now = new Date().toISOString();
+            return {
+                meta: { name: 'Integrated Analysis', created: now, modified: now },
+                settings: { theme: localStorage.getItem('coffeecup-theme') || 'blueprint', iterations: 10000 },
+                scheduleOverrides: {},
+                costOverrides: {},
+                riskToggles: {},
+                correlationGroups: [],
+                lastRun: null
+            };
+        }
+
+        function loadProject() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) return JSON.parse(raw);
+            } catch (e) { console.error('Failed to load analysis project:', e); }
+            return createDefaultProject();
+        }
+
+        function saveProject(proj) {
+            try {
+                proj.meta.modified = new Date().toISOString();
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(proj));
+            } catch (e) { console.error('Failed to save analysis project:', e); }
+        }
+
+        // ============================================================================
+        // DATA PULL FUNCTIONS
+        // ============================================================================
+        function pullGanttData() {
+            try {
+                const raw = localStorage.getItem(GANTT_KEY);
+                if (!raw) return null;
+                const data = JSON.parse(raw);
+                return { activities: data.activities || [], startDate: data.startDate, criticalPath: data.criticalPath };
+            } catch { return null; }
+        }
+
+        function pullCostData() {
+            try {
+                const raw = localStorage.getItem(COST_KEY);
+                if (!raw) return null;
+                const data = JSON.parse(raw);
+                const items = [];
+                for (const cat of (data.categories || [])) {
+                    for (const li of (cat.lineItems || [])) {
+                        items.push({ ...li, categoryName: cat.name, categoryColour: cat.colour });
+                    }
+                }
+                return { items, currencySymbol: data.meta?.currencySymbol || '£' };
+            } catch { return null; }
+        }
+
+        function pullRiskData() {
+            try {
+                const raw = localStorage.getItem(RISK_KEY);
+                if (!raw) return null;
+                const data = JSON.parse(raw);
+                return { risks: data.risks || [] };
+            } catch { return null; }
+        }
+
+        // ============================================================================
+        // CHART COMPONENT — S-curve (CDF)
+        // ============================================================================
+        const CDFChart = ({ cdfData, stats, label, unit, color, prePostData }) => {
+            const canvasRef = useRef(null);
+            const chartRef = useRef(null);
+
+            useEffect(() => {
+                if (!canvasRef.current || !cdfData) return;
+                if (chartRef.current) chartRef.current.destroy();
+
+                const datasets = [{
+                    label: prePostData ? 'Post-Mitigation' : label,
+                    data: cdfData.xValues.map((x, i) => ({ x, y: cdfData.yValues[i] })),
+                    borderColor: color || 'rgba(139, 92, 246, 1)',
+                    backgroundColor: (color || 'rgba(139, 92, 246, 1)').replace('1)', '0.1)'),
+                    fill: true, tension: 0.3, pointRadius: 0, borderWidth: 2
+                }];
+
+                if (prePostData) {
+                    datasets.unshift({
+                        label: 'Pre-Mitigation',
+                        data: prePostData.xValues.map((x, i) => ({ x, y: prePostData.yValues[i] })),
+                        borderColor: 'rgba(239, 68, 68, 0.6)',
+                        backgroundColor: 'rgba(239, 68, 68, 0.05)',
+                        fill: true, tension: 0.3, pointRadius: 0, borderWidth: 2, borderDash: [5, 3]
+                    });
+                }
+
+                const style = getComputedStyle(document.documentElement);
+                const textColor = style.getPropertyValue('--text-muted').trim() || '#78716c';
+                const gridColor = style.getPropertyValue('--border-secondary').trim() || '#f5f5f4';
+
+                const annotations = [];
+                if (stats) {
+                    [{ p: stats.p50, label: 'P50' }, { p: stats.p80, label: 'P80' }].forEach(({ p, label: l }) => {
+                        annotations.push({
+                            type: 'line', xMin: p, xMax: p, borderColor: 'rgba(139, 92, 246, 0.5)', borderWidth: 1.5, borderDash: [4, 3],
+                            label: { content: `${l}: ${unit === '£' ? formatCurrencyFull(p, unit) : Math.round(p) + ' days'}`, display: true, position: 'start', font: { size: 10, family: 'DM Sans' }, backgroundColor: 'rgba(139, 92, 246, 0.8)', color: '#fff', padding: 3, borderRadius: 3 }
+                        });
+                    });
+                }
+
+                chartRef.current = new Chart(canvasRef.current, {
+                    type: 'scatter',
+                    data: { datasets },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: !!prePostData, labels: { color: textColor, font: { family: 'DM Sans', size: 11 } } },
+                            tooltip: { callbacks: { label: (ctx) => `${unit === '£' ? formatCurrencyFull(ctx.raw.x, unit) : Math.round(ctx.raw.x) + ' days'}: ${ctx.raw.y.toFixed(1)}%` } },
+                            annotation: annotations.length ? { annotations: Object.fromEntries(annotations.map((a, i) => ['line' + i, a])) } : undefined
+                        },
+                        scales: {
+                            x: { title: { display: true, text: unit === '£' ? 'Total Cost' : 'Project Duration (days)', color: textColor, font: { family: 'DM Sans', size: 11 } }, ticks: { color: textColor, font: { family: 'DM Sans', size: 10 }, callback: (v) => unit === '£' ? formatCurrency(v, unit) : v }, grid: { color: gridColor } },
+                            y: { title: { display: true, text: 'Cumulative Probability (%)', color: textColor, font: { family: 'DM Sans', size: 11 } }, ticks: { color: textColor, font: { family: 'DM Sans', size: 10 } }, grid: { color: gridColor }, min: 0, max: 100 }
+                        }
+                    }
+                });
+
+                return () => { if (chartRef.current) chartRef.current.destroy(); };
+            }, [cdfData, stats, prePostData]);
+
+            return <canvas ref={canvasRef} />;
+        };
+
+        // ============================================================================
+        // CHART COMPONENT — Histogram
+        // ============================================================================
+        const HistogramChart = ({ histData, label, unit, color }) => {
+            const canvasRef = useRef(null);
+            const chartRef = useRef(null);
+
+            useEffect(() => {
+                if (!canvasRef.current || !histData) return;
+                if (chartRef.current) chartRef.current.destroy();
+
+                const style = getComputedStyle(document.documentElement);
+                const textColor = style.getPropertyValue('--text-muted').trim() || '#78716c';
+                const gridColor = style.getPropertyValue('--border-secondary').trim() || '#f5f5f4';
+
+                chartRef.current = new Chart(canvasRef.current, {
+                    type: 'bar',
+                    data: {
+                        labels: histData.labels.map(l => unit === '£' ? formatCurrency(l, unit) : Math.round(l)),
+                        datasets: [{ label, data: histData.histogram, backgroundColor: (color || 'rgba(139, 92, 246, 0.6)'), borderRadius: 2 }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { ticks: { color: textColor, font: { family: 'DM Sans', size: 9 }, maxRotation: 45, autoSkip: true, maxTicksLimit: 15 }, grid: { display: false } },
+                            y: { title: { display: true, text: 'Frequency', color: textColor, font: { family: 'DM Sans', size: 11 } }, ticks: { color: textColor, font: { family: 'DM Sans', size: 10 } }, grid: { color: gridColor } }
+                        }
+                    }
+                });
+                return () => { if (chartRef.current) chartRef.current.destroy(); };
+            }, [histData]);
+
+            return <canvas ref={canvasRef} />;
+        };
+
+        // ============================================================================
+        // CHART COMPONENT — Tornado
+        // ============================================================================
+        const TornadoChart = ({ sensitivity, nameMap, label, color }) => {
+            const canvasRef = useRef(null);
+            const chartRef = useRef(null);
+
+            useEffect(() => {
+                if (!canvasRef.current || !sensitivity || !sensitivity.length) return;
+                if (chartRef.current) chartRef.current.destroy();
+
+                const style = getComputedStyle(document.documentElement);
+                const textColor = style.getPropertyValue('--text-muted').trim() || '#78716c';
+                const gridColor = style.getPropertyValue('--border-secondary').trim() || '#f5f5f4';
+
+                const labels = sensitivity.map(s => nameMap[s.id] || s.id);
+                const values = sensitivity.map(s => s.correlation);
+                const colors = values.map(v => v >= 0 ? (color || 'rgba(139, 92, 246, 0.7)') : 'rgba(239, 68, 68, 0.7)');
+
+                chartRef.current = new Chart(canvasRef.current, {
+                    type: 'bar',
+                    data: {
+                        labels,
+                        datasets: [{ label: 'Spearman Correlation', data: values, backgroundColor: colors, borderRadius: 3 }]
+                    },
+                    options: {
+                        indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => `Correlation: ${ctx.raw.toFixed(3)}` } } },
+                        scales: {
+                            x: { min: -1, max: 1, ticks: { color: textColor, font: { family: 'DM Sans', size: 10 } }, grid: { color: gridColor }, title: { display: true, text: 'Spearman Rank Correlation', color: textColor, font: { family: 'DM Sans', size: 11 } } },
+                            y: { ticks: { color: textColor, font: { family: 'DM Sans', size: 11 } }, grid: { display: false } }
+                        }
+                    }
+                });
+                return () => { if (chartRef.current) chartRef.current.destroy(); };
+            }, [sensitivity, nameMap]);
+
+            return <canvas ref={canvasRef} />;
+        };
+
+        // ============================================================================
+        // CHART COMPONENT — JCL Scatter
+        // ============================================================================
+        const JCLScatter = ({ scheduleResults, costResults, scheduleStats, costStats, currencySymbol }) => {
+            const canvasRef = useRef(null);
+            const chartRef = useRef(null);
+
+            useEffect(() => {
+                if (!canvasRef.current || !scheduleResults || !costResults) return;
+                if (chartRef.current) chartRef.current.destroy();
+
+                const style = getComputedStyle(document.documentElement);
+                const textColor = style.getPropertyValue('--text-muted').trim() || '#78716c';
+                const gridColor = style.getPropertyValue('--border-secondary').trim() || '#f5f5f4';
+
+                // Downsample to 2000 points for performance
+                const n = Math.min(scheduleResults.length, costResults.length);
+                const step = Math.max(1, Math.floor(n / 2000));
+                const points = [];
+                for (let i = 0; i < n; i += step) points.push({ x: scheduleResults[i], y: costResults[i] });
+
+                const datasets = [{
+                    label: 'Simulation Outcomes',
+                    data: points,
+                    backgroundColor: 'rgba(139, 92, 246, 0.15)',
+                    borderColor: 'rgba(139, 92, 246, 0.3)',
+                    pointRadius: 1.5, pointHoverRadius: 4
+                }];
+
+                // P50 and P80 crosshairs
+                const annotations = {};
+                if (scheduleStats && costStats) {
+                    annotations.p50h = { type: 'line', yMin: costStats.p50, yMax: costStats.p50, borderColor: 'rgba(34, 197, 94, 0.5)', borderWidth: 1.5, borderDash: [4, 3], label: { content: `Cost P50: ${formatCurrencyFull(costStats.p50, currencySymbol)}`, display: true, position: 'end', font: { size: 9 }, backgroundColor: 'rgba(34, 197, 94, 0.8)', color: '#fff', padding: 2, borderRadius: 2 } };
+                    annotations.p50v = { type: 'line', xMin: scheduleStats.p50, xMax: scheduleStats.p50, borderColor: 'rgba(34, 197, 94, 0.5)', borderWidth: 1.5, borderDash: [4, 3], label: { content: `Sched P50: ${Math.round(scheduleStats.p50)}d`, display: true, position: 'start', font: { size: 9 }, backgroundColor: 'rgba(34, 197, 94, 0.8)', color: '#fff', padding: 2, borderRadius: 2 } };
+                    annotations.p80h = { type: 'line', yMin: costStats.p80, yMax: costStats.p80, borderColor: 'rgba(239, 68, 68, 0.5)', borderWidth: 1.5, borderDash: [4, 3], label: { content: `Cost P80: ${formatCurrencyFull(costStats.p80, currencySymbol)}`, display: true, position: 'end', font: { size: 9 }, backgroundColor: 'rgba(239, 68, 68, 0.8)', color: '#fff', padding: 2, borderRadius: 2 } };
+                    annotations.p80v = { type: 'line', xMin: scheduleStats.p80, xMax: scheduleStats.p80, borderColor: 'rgba(239, 68, 68, 0.5)', borderWidth: 1.5, borderDash: [4, 3], label: { content: `Sched P80: ${Math.round(scheduleStats.p80)}d`, display: true, position: 'start', font: { size: 9 }, backgroundColor: 'rgba(239, 68, 68, 0.8)', color: '#fff', padding: 2, borderRadius: 2 } };
+                }
+
+                chartRef.current = new Chart(canvasRef.current, {
+                    type: 'scatter',
+                    data: { datasets },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            annotation: Object.keys(annotations).length ? { annotations } : undefined,
+                            tooltip: { callbacks: { label: (ctx) => `Duration: ${Math.round(ctx.raw.x)} days, Cost: ${formatCurrencyFull(ctx.raw.y, currencySymbol)}` } }
+                        },
+                        scales: {
+                            x: { title: { display: true, text: 'Project Duration (days)', color: textColor, font: { family: 'DM Sans', size: 11 } }, ticks: { color: textColor, font: { family: 'DM Sans', size: 10 } }, grid: { color: gridColor } },
+                            y: { title: { display: true, text: 'Total Cost', color: textColor, font: { family: 'DM Sans', size: 11 } }, ticks: { color: textColor, font: { family: 'DM Sans', size: 10 }, callback: (v) => formatCurrency(v, currencySymbol) }, grid: { color: gridColor } }
+                        }
+                    }
+                });
+                return () => { if (chartRef.current) chartRef.current.destroy(); };
+            }, [scheduleResults, costResults, scheduleStats, costStats]);
+
+            return <canvas ref={canvasRef} />;
+        };
+
+        // ============================================================================
+        // MAIN APP
+        // ============================================================================
+        const App = () => {
+            // --- State ---
+            const [project, setProject] = useState(() => loadProject());
+            const [activeTab, setActiveTab] = useState('setup');
+            const [settingsOpen, setSettingsOpen] = useState(false);
+
+            // Pulled source data (re-pulled on every run, stored in component state)
+            const [ganttData, setGanttData] = useState(null);
+            const [costData, setCostData] = useState(null);
+            const [riskData, setRiskData] = useState(null);
+
+            // Simulation state
+            const [simResults, setSimResults] = useState(null);
+            const [isSimulating, setIsSimulating] = useState(false);
+            const [simProgress, setSimProgress] = useState(0);
+            const [simStatus, setSimStatus] = useState('');
+            const workerRef = useRef(null);
+
+            // Pre-mitigation comparison results
+            const [preResults, setPreResults] = useState(null);
+
+            const theme = project.settings.theme;
+
+            // --- Theme sync ---
+            useEffect(() => {
+                document.documentElement.setAttribute('data-theme', theme);
+                localStorage.setItem('coffeecup-theme', theme);
+            }, [theme]);
+
+            // On mount: override theme from shared key
+            useEffect(() => {
+                const shared = localStorage.getItem('coffeecup-theme');
+                if (shared && shared !== project.settings.theme) {
+                    setProject(prev => ({ ...prev, settings: { ...prev.settings, theme: shared } }));
+                }
+            }, []);
+
+            // --- Persistence ---
+            useEffect(() => {
+                saveProject(project);
+            }, [project]);
+
+            // --- Pull data on mount ---
+            useEffect(() => {
+                refreshData();
+            }, []);
+
+            const refreshData = useCallback(() => {
+                setGanttData(pullGanttData());
+                setCostData(pullCostData());
+                setRiskData(pullRiskData());
+            }, []);
+
+            // --- Helpers ---
+            const activities = ganttData?.activities || [];
+            const costItems = costData?.items || [];
+            const risks = riskData?.risks || [];
+            const currencySymbol = costData?.currencySymbol || '£';
+
+            const updateProject = useCallback((updates) => {
+                setProject(prev => ({ ...prev, ...updates }));
+            }, []);
+
+            const setOverride = useCallback((type, id, field, value) => {
+                const key = type === 'schedule' ? 'scheduleOverrides' : 'costOverrides';
+                setProject(prev => {
+                    const overrides = { ...prev[key] };
+                    if (!overrides[id]) overrides[id] = { min: 0, likely: 0, max: 0, distribution: 'pert' };
+                    overrides[id] = { ...overrides[id], [field]: value };
+                    return { ...prev, [key]: overrides };
+                });
+            }, []);
+
+            const removeOverride = useCallback((type, id) => {
+                const key = type === 'schedule' ? 'scheduleOverrides' : 'costOverrides';
+                setProject(prev => {
+                    const overrides = { ...prev[key] };
+                    delete overrides[id];
+                    return { ...prev, [key]: overrides };
+                });
+            }, []);
+
+            const toggleRisk = useCallback((riskId, field, value) => {
+                setProject(prev => {
+                    const toggles = { ...prev.riskToggles };
+                    if (!toggles[riskId]) toggles[riskId] = { included: true, usePostMitigation: true };
+                    toggles[riskId] = { ...toggles[riskId], [field]: value };
+                    return { ...prev, riskToggles: toggles };
+                });
+            }, []);
+
+            // Ensure all risks have toggle entries
+            useEffect(() => {
+                if (!risks.length) return;
+                let needsUpdate = false;
+                const toggles = { ...project.riskToggles };
+                for (const r of risks) {
+                    if (!toggles[r.id]) { toggles[r.id] = { included: true, usePostMitigation: true }; needsUpdate = true; }
+                }
+                if (needsUpdate) updateProject({ riskToggles: toggles });
+            }, [risks]);
+
+            // Correlation groups
+            const addCorrelationGroup = useCallback(() => {
+                setProject(prev => ({
+                    ...prev,
+                    correlationGroups: [...prev.correlationGroups, { id: uid(), name: 'New Group', activityIds: [], factor: 0.5 }]
+                }));
+            }, []);
+
+            const updateCorrelationGroup = useCallback((groupId, updates) => {
+                setProject(prev => ({
+                    ...prev,
+                    correlationGroups: prev.correlationGroups.map(g => g.id === groupId ? { ...g, ...updates } : g)
+                }));
+            }, []);
+
+            const removeCorrelationGroup = useCallback((groupId) => {
+                setProject(prev => ({
+                    ...prev,
+                    correlationGroups: prev.correlationGroups.filter(g => g.id !== groupId)
+                }));
+            }, []);
+
+            // --- Build name maps for sensitivity labels ---
+            const nameMap = useMemo(() => {
+                const map = {};
+                for (const a of activities) map[a.id] = a.name || `Activity ${a.id}`;
+                for (const c of costItems) map[c.id] = c.description || `Item ${c.id}`;
+                for (const r of risks) {
+                    map['risk_time_' + r.id] = `Risk: ${r.name || r.id} (time)`;
+                    map['risk_cost_' + r.id] = `Risk: ${r.name || r.id} (cost)`;
+                }
+                return map;
+            }, [activities, costItems, risks]);
+
+            // --- Deterministic values ---
+            const deterministicSchedule = useMemo(() => {
+                if (!activities.length) return 0;
+                return calculateProjectDuration(activities, {});
+            }, [activities]);
+
+            const deterministicCost = useMemo(() => {
+                return costItems.reduce((sum, item) => sum + (item.totalCost || 0), 0);
+            }, [costItems]);
+
+            // ============================================================================
+            // RUN SIMULATION
+            // ============================================================================
+            const runSimulation = useCallback(() => {
+                if (isSimulating) return;
+
+                // Re-pull fresh data
+                const freshGantt = pullGanttData();
+                const freshCost = pullCostData();
+                const freshRisk = pullRiskData();
+                setGanttData(freshGantt);
+                setCostData(freshCost);
+                setRiskData(freshRisk);
+
+                const acts = freshGantt?.activities || [];
+                const items = [];
+                if (freshCost) {
+                    for (const item of freshCost.items) items.push(item);
+                }
+                const rks = freshRisk?.risks || [];
+                const iters = project.settings.iterations || 10000;
+
+                if (acts.length === 0 && items.length === 0) {
+                    alert('No schedule or cost data found. Please populate the Gantt Chart or Cost Tracker first.');
+                    return;
+                }
+
+                setIsSimulating(true);
+                setSimProgress(0);
+                setSimStatus('Preparing simulation...');
+                setSimResults(null);
+                setPreResults(null);
+
+                if (iters > 5000) {
+                    // Use Web Worker
+                    try {
+                        if (workerRef.current) workerRef.current.terminate();
+                        const w = new Worker('worker.js');
+                        workerRef.current = w;
+
+                        w.onmessage = (e) => {
+                            const msg = e.data;
+                            if (msg.type === 'progress') {
+                                setSimProgress(Math.round((msg.iteration / msg.total) * 100));
+                            } else if (msg.type === 'status') {
+                                setSimStatus(msg.message);
+                            } else if (msg.type === 'complete') {
+                                setSimResults(msg);
+                                setIsSimulating(false);
+                                setSimStatus('');
+                                setSimProgress(100);
+                                w.terminate();
+                                workerRef.current = null;
+
+                                // Save lastRun snapshot
+                                const lastRun = {
+                                    timestamp: new Date().toISOString(),
+                                    iterations: iters,
+                                    scheduleP50: msg.scheduleStats?.p50,
+                                    scheduleP80: msg.scheduleStats?.p80,
+                                    scheduleP90: msg.scheduleStats?.p90,
+                                    costP50: msg.costStats?.p50,
+                                    costP80: msg.costStats?.p80,
+                                    costP90: msg.costStats?.p90,
+                                    deterministic: { scheduleDays: deterministicSchedule, totalCost: deterministicCost }
+                                };
+                                setProject(prev => ({ ...prev, lastRun }));
+
+                                // Run pre-mitigation comparison
+                                runPreMitigationComparison(acts, items, rks, iters);
+                            }
+                        };
+
+                        w.onerror = (err) => {
+                            console.error('Worker error:', err);
+                            setIsSimulating(false);
+                            setSimStatus('Worker error — falling back to main thread');
+                            // Fallback to main thread
+                            runOnMainThread(acts, items, rks, iters);
+                        };
+
+                        w.postMessage({
+                            activities: acts,
+                            costItems: items,
+                            risks: rks,
+                            scheduleOverrides: project.scheduleOverrides,
+                            costOverrides: project.costOverrides,
+                            riskToggles: project.riskToggles,
+                            correlationGroups: project.correlationGroups,
+                            iterations: iters
+                        });
+                    } catch (err) {
+                        console.error('Failed to create worker:', err);
+                        runOnMainThread(acts, items, rks, iters);
+                    }
+                } else {
+                    runOnMainThread(acts, items, rks, iters);
+                }
+            }, [project, isSimulating, deterministicSchedule, deterministicCost]);
+
+            const runOnMainThread = useCallback((acts, items, rks, iters) => {
+                setSimStatus('Running simulation on main thread...');
+                setTimeout(() => {
+                    const results = runSimulationMainThread(
+                        acts, items, project.scheduleOverrides, project.costOverrides,
+                        rks, project.riskToggles, project.correlationGroups, iters,
+                        (i, total) => setSimProgress(Math.round(i / total * 100))
+                    );
+                    setSimResults(results);
+                    setIsSimulating(false);
+                    setSimStatus('');
+                    setSimProgress(100);
+
+                    const lastRun = {
+                        timestamp: new Date().toISOString(),
+                        iterations: iters,
+                        scheduleP50: results.scheduleStats?.p50,
+                        scheduleP80: results.scheduleStats?.p80,
+                        scheduleP90: results.scheduleStats?.p90,
+                        costP50: results.costStats?.p50,
+                        costP80: results.costStats?.p80,
+                        costP90: results.costStats?.p90,
+                        deterministic: { scheduleDays: deterministicSchedule, totalCost: deterministicCost }
+                    };
+                    setProject(prev => ({ ...prev, lastRun }));
+
+                    runPreMitigationComparison(acts, items, rks, iters);
+                }, 50);
+            }, [project, deterministicSchedule, deterministicCost]);
+
+            const runPreMitigationComparison = useCallback((acts, items, rks, iters) => {
+                // Build pre-mitigation toggles (all risks use pre-mitigation values)
+                const preToggles = {};
+                for (const r of rks) {
+                    const existing = project.riskToggles[r.id];
+                    if (existing && existing.included) {
+                        preToggles[r.id] = { included: true, usePostMitigation: false };
+                    }
+                }
+                // Run smaller simulation for comparison (cap at 2000 iters for speed)
+                const compIters = Math.min(iters, 2000);
+                setTimeout(() => {
+                    const preRes = runSimulationMainThread(
+                        acts, items, project.scheduleOverrides, project.costOverrides,
+                        rks, preToggles, project.correlationGroups, compIters, null
+                    );
+                    setPreResults(preRes);
+                }, 100);
+            }, [project]);
+
+            // ============================================================================
+            // RENDER — Model Setup Tab
+            // ============================================================================
+            const renderSetupTab = () => {
+                const hasScheduleOverrides = Object.keys(project.scheduleOverrides).length > 0;
+                const hasCostOverrides = Object.keys(project.costOverrides).length > 0;
+
+                return (
+                    <div className="space-y-6 animate-fade-in">
+                        {/* Source Data Status */}
+                        <div className="card p-5">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-sm font-bold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>Source Data</h3>
+                                <button onClick={refreshData} className="btn btn-secondary btn-sm"><IconRefresh /> Refresh Data</button>
+                            </div>
+                            <div className="source-status">
+                                <div className={`source-badge ${ganttData ? 'loaded' : ''}`}><span className="dot" /><span>Gantt Chart — {ganttData ? `${activities.length} activities` : 'No data'}</span></div>
+                                <div className={`source-badge ${costData ? 'loaded' : ''}`}><span className="dot" /><span>Cost Tracker — {costData ? `${costItems.length} items` : 'No data'}</span></div>
+                                <div className={`source-badge ${riskData ? 'loaded' : ''}`}><span className="dot" /><span>Risk Register — {riskData ? `${risks.length} risks` : 'No data'}</span></div>
+                            </div>
+                            <div className="flex items-center gap-4 text-xs" style={{ color: 'var(--text-faint)' }}>
+                                <span>Deterministic schedule: <strong style={{ fontFamily: 'var(--font-mono)' }}>{deterministicSchedule} days</strong></span>
+                                <span>Deterministic cost: <strong style={{ fontFamily: 'var(--font-mono)' }}>{formatCurrencyFull(deterministicCost, currencySymbol)}</strong></span>
+                            </div>
+                        </div>
+
+                        {/* Schedule Overrides */}
+                        <div className="card p-5">
+                            <h3 className="text-sm font-bold uppercase tracking-wide mb-3" style={{ color: 'var(--text-muted)' }}>Schedule Uncertainty (3-Point Estimates)</h3>
+                            {activities.length === 0 ? (
+                                <div className="empty-state">
+                                    <div className="empty-state-icon"><IconAlertTriangle size={28} /></div>
+                                    <div className="empty-state-heading">No Schedule Data</div>
+                                    <div className="empty-state-description">Open the Gantt Chart and add activities to enable schedule analysis.</div>
+                                </div>
+                            ) : (
+                                <div style={{ overflowX: 'auto' }}>
+                                    <table className="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th style={{ minWidth: 180 }}>Activity</th>
+                                                <th style={{ width: 60 }}>Base</th>
+                                                <th style={{ width: 80 }}>Min (O)</th>
+                                                <th style={{ width: 80 }}>Likely (M)</th>
+                                                <th style={{ width: 80 }}>Max (P)</th>
+                                                <th style={{ width: 100 }}>Distribution</th>
+                                                <th style={{ width: 40 }}></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {activities.map(act => {
+                                                const ov = project.scheduleOverrides[act.id];
+                                                const hasOv = ov && ov.min !== undefined;
+                                                return (
+                                                    <tr key={act.id}>
+                                                        <td style={{ fontWeight: 500 }}>{act.name || `Activity ${act.id}`}</td>
+                                                        <td style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }}>{act.duration}d</td>
+                                                        <td><input type="number" min="0" step="0.5" value={hasOv ? ov.min : ''} placeholder={act.duration} onChange={e => setOverride('schedule', act.id, 'min', parseFloat(e.target.value) || 0)} /></td>
+                                                        <td><input type="number" min="0" step="0.5" value={hasOv ? ov.likely : ''} placeholder={act.duration} onChange={e => setOverride('schedule', act.id, 'likely', parseFloat(e.target.value) || 0)} /></td>
+                                                        <td><input type="number" min="0" step="0.5" value={hasOv ? ov.max : ''} placeholder={act.duration} onChange={e => setOverride('schedule', act.id, 'max', parseFloat(e.target.value) || 0)} /></td>
+                                                        <td>
+                                                            <select className="select-refined" style={{ width: '100%', fontSize: 11, padding: '4px 6px' }} value={hasOv ? (ov.distribution || 'pert') : 'pert'} onChange={e => setOverride('schedule', act.id, 'distribution', e.target.value)}>
+                                                                {DISTRIBUTIONS.map(d => <option key={d} value={d}>{DIST_LABELS[d]}</option>)}
+                                                            </select>
+                                                        </td>
+                                                        <td>{hasOv && <button onClick={() => removeOverride('schedule', act.id)} className="btn btn-icon btn-sm" style={{ color: 'var(--danger)' }}><IconTrash /></button>}</td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Cost Overrides */}
+                        <div className="card p-5">
+                            <h3 className="text-sm font-bold uppercase tracking-wide mb-3" style={{ color: 'var(--text-muted)' }}>Cost Uncertainty (3-Point Estimates)</h3>
+                            {costItems.length === 0 ? (
+                                <div className="empty-state">
+                                    <div className="empty-state-icon"><IconAlertTriangle size={28} /></div>
+                                    <div className="empty-state-heading">No Cost Data</div>
+                                    <div className="empty-state-description">Open the Cost Tracker and add line items to enable cost analysis.</div>
+                                </div>
+                            ) : (
+                                <div style={{ overflowX: 'auto' }}>
+                                    <table className="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th style={{ minWidth: 180 }}>Line Item</th>
+                                                <th style={{ width: 50 }}>Cat.</th>
+                                                <th style={{ width: 80 }}>Base</th>
+                                                <th style={{ width: 80 }}>Min (O)</th>
+                                                <th style={{ width: 80 }}>Likely (M)</th>
+                                                <th style={{ width: 80 }}>Max (P)</th>
+                                                <th style={{ width: 100 }}>Distribution</th>
+                                                <th style={{ width: 40 }}></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {costItems.map(item => {
+                                                const ov = project.costOverrides[item.id];
+                                                const hasOv = ov && ov.min !== undefined;
+                                                return (
+                                                    <tr key={item.id}>
+                                                        <td style={{ fontWeight: 500 }}>{item.description || `Item ${item.id}`}</td>
+                                                        <td><span className="badge badge-neutral" style={{ fontSize: 10 }}>{item.categoryName}</span></td>
+                                                        <td style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }}>{formatCurrencyFull(item.totalCost, currencySymbol)}</td>
+                                                        <td><input type="number" min="0" step="100" value={hasOv ? ov.min : ''} placeholder={item.totalCost || 0} onChange={e => setOverride('cost', item.id, 'min', parseFloat(e.target.value) || 0)} /></td>
+                                                        <td><input type="number" min="0" step="100" value={hasOv ? ov.likely : ''} placeholder={item.totalCost || 0} onChange={e => setOverride('cost', item.id, 'likely', parseFloat(e.target.value) || 0)} /></td>
+                                                        <td><input type="number" min="0" step="100" value={hasOv ? ov.max : ''} placeholder={item.totalCost || 0} onChange={e => setOverride('cost', item.id, 'max', parseFloat(e.target.value) || 0)} /></td>
+                                                        <td>
+                                                            <select className="select-refined" style={{ width: '100%', fontSize: 11, padding: '4px 6px' }} value={hasOv ? (ov.distribution || 'pert') : 'pert'} onChange={e => setOverride('cost', item.id, 'distribution', e.target.value)}>
+                                                                {DISTRIBUTIONS.map(d => <option key={d} value={d}>{DIST_LABELS[d]}</option>)}
+                                                            </select>
+                                                        </td>
+                                                        <td>{hasOv && <button onClick={() => removeOverride('cost', item.id)} className="btn btn-icon btn-sm" style={{ color: 'var(--danger)' }}><IconTrash /></button>}</td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Risk Toggles */}
+                        <div className="card p-5">
+                            <h3 className="text-sm font-bold uppercase tracking-wide mb-3" style={{ color: 'var(--text-muted)' }}>Risk Events</h3>
+                            {risks.length === 0 ? (
+                                <div className="empty-state">
+                                    <div className="empty-state-icon"><IconAlertTriangle size={28} /></div>
+                                    <div className="empty-state-heading">No Risk Data</div>
+                                    <div className="empty-state-description">Open the Risk Register and add risks to include probabilistic risk events in the analysis.</div>
+                                </div>
+                            ) : (
+                                <div style={{ overflowX: 'auto' }}>
+                                    <table className="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Include</th>
+                                                <th style={{ minWidth: 140 }}>Risk</th>
+                                                <th>Type</th>
+                                                <th>Likelihood</th>
+                                                <th>Cost Impact</th>
+                                                <th>Time Impact</th>
+                                                <th>Post-Mitigation</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {risks.map(risk => {
+                                                const tog = project.riskToggles[risk.id] || { included: true, usePostMitigation: true };
+                                                return (
+                                                    <tr key={risk.id} style={{ opacity: tog.included ? 1 : 0.5 }}>
+                                                        <td>
+                                                            <div className={`toggle ${tog.included ? 'active' : ''}`} onClick={() => toggleRisk(risk.id, 'included', !tog.included)} />
+                                                        </td>
+                                                        <td style={{ fontWeight: 500 }}>{risk.name || risk.id}</td>
+                                                        <td><span className={`badge ${risk.type === 'threat' ? 'badge-danger' : 'badge-success'}`}>{risk.type || 'threat'}</span></td>
+                                                        <td style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }}>{risk.likelihood}%</td>
+                                                        <td style={{ fontFamily: 'var(--font-mono)', fontSize: 11 }}>
+                                                            {risk.impactCost ? `${formatCurrency(risk.impactCost.min, currencySymbol)}–${formatCurrency(risk.impactCost.max, currencySymbol)}` : '—'}
+                                                        </td>
+                                                        <td style={{ fontFamily: 'var(--font-mono)', fontSize: 11 }}>
+                                                            {risk.impactTime ? `${risk.impactTime.min}–${risk.impactTime.max}d` : '—'}
+                                                        </td>
+                                                        <td>
+                                                            <div className={`toggle ${tog.usePostMitigation ? 'active' : ''}`} onClick={() => toggleRisk(risk.id, 'usePostMitigation', !tog.usePostMitigation)} />
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Correlation Groups */}
+                        <div className="card p-5">
+                            <div className="flex items-center justify-between mb-3">
+                                <h3 className="text-sm font-bold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>Correlation Groups</h3>
+                                <button onClick={addCorrelationGroup} className="btn btn-secondary btn-sm"><IconPlus /> Add Group</button>
+                            </div>
+                            <p className="text-xs mb-4" style={{ color: 'var(--text-faint)' }}>
+                                Group related activities so their durations correlate during simulation. A higher factor means stronger correlation.
+                            </p>
+                            {project.correlationGroups.length === 0 ? (
+                                <div className="text-center py-4 text-sm" style={{ color: 'var(--text-faint)' }}>No correlation groups defined. Activities will be sampled independently.</div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {project.correlationGroups.map(group => (
+                                        <div key={group.id} className="group-card">
+                                            <div className="group-card-header">
+                                                <input className="input-refined" style={{ width: 200, fontSize: 13 }} value={group.name} onChange={e => updateCorrelationGroup(group.id, { name: e.target.value })} placeholder="Group name" />
+                                                <button onClick={() => removeCorrelationGroup(group.id)} className="btn btn-icon btn-sm" style={{ color: 'var(--danger)' }}><IconTrash /></button>
+                                            </div>
+                                            <div className="flex items-center gap-3 mb-3">
+                                                <span className="text-xs" style={{ color: 'var(--text-muted)', minWidth: 90 }}>Factor: {group.factor.toFixed(2)}</span>
+                                                <input type="range" className="factor-slider" min="0" max="1" step="0.05" value={group.factor} onChange={e => updateCorrelationGroup(group.id, { factor: parseFloat(e.target.value) })} />
+                                            </div>
+                                            <div className="flex flex-wrap gap-2">
+                                                {activities.map(act => {
+                                                    const selected = group.activityIds.includes(act.id);
+                                                    return (
+                                                        <button key={act.id} className={`btn btn-sm ${selected ? 'btn-accent' : 'btn-secondary'}`} onClick={() => {
+                                                            const ids = selected ? group.activityIds.filter(id => id !== act.id) : [...group.activityIds, act.id];
+                                                            updateCorrelationGroup(group.id, { activityIds: ids });
+                                                        }}>
+                                                            {selected && <IconCheck />} {act.name || act.id}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Run Simulation Button */}
+                        <div className="card p-5">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <div className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Run Monte Carlo Simulation</div>
+                                    <div className="text-xs" style={{ color: 'var(--text-faint)' }}>{project.settings.iterations.toLocaleString()} iterations {project.settings.iterations > 5000 ? '(Web Worker)' : '(main thread)'}</div>
+                                </div>
+                                <button onClick={runSimulation} disabled={isSimulating} className="btn btn-accent" style={{ padding: '10px 24px' }}>
+                                    <IconPlay size={14} /> {isSimulating ? 'Running...' : 'Run Simulation'}
+                                </button>
+                            </div>
+                            {isSimulating && (
+                                <div className="mt-3">
+                                    <div className="progress-container"><div className="progress-fill" style={{ width: `${simProgress}%` }} /></div>
+                                    <div className="simulation-status">{simStatus} ({simProgress}%)</div>
+                                </div>
+                            )}
+                            {project.lastRun && !isSimulating && (
+                                <div className="mt-3 text-xs" style={{ color: 'var(--text-faint)' }}>
+                                    Last run: {new Date(project.lastRun.timestamp).toLocaleString('en-GB')} — {project.lastRun.iterations.toLocaleString()} iterations
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                );
+            };
+
+            // ============================================================================
+            // RENDER — Schedule Analysis Tab
+            // ============================================================================
+            const renderScheduleTab = () => {
+                if (!simResults || !simResults.scheduleStats) {
+                    return (
+                        <div className="empty-state animate-fade-in">
+                            <div className="empty-state-icon"><IconAnalysis size={28} /></div>
+                            <div className="empty-state-heading">No Schedule Results</div>
+                            <div className="empty-state-description">Run a simulation from the Model Setup tab to generate schedule analysis results.</div>
+                        </div>
+                    );
+                }
+
+                const stats = simResults.scheduleStats;
+                const diff80 = stats.p80 - deterministicSchedule;
+
+                return (
+                    <div className="space-y-6 animate-fade-in">
+                        {/* Stat Cards */}
+                        <div className="stat-grid">
+                            <div className="stat-card"><div className="stat-value">{Math.round(stats.p10)}</div><div className="stat-label">P10</div><div className="stat-sub">Optimistic</div></div>
+                            <div className="stat-card" style={{ borderColor: 'var(--success)' }}><div className="stat-value">{Math.round(stats.p50)}</div><div className="stat-label">P50</div><div className="stat-sub">Most Likely</div></div>
+                            <div className="stat-card" style={{ borderColor: 'var(--warning)' }}><div className="stat-value">{Math.round(stats.p80)}</div><div className="stat-label">P80</div><div className="stat-sub">Recommended</div></div>
+                            <div className="stat-card"><div className="stat-value">{Math.round(stats.p90)}</div><div className="stat-label">P90</div><div className="stat-sub">Conservative</div></div>
+                            <div className="stat-card"><div className="stat-value">{Math.round(stats.mean)}</div><div className="stat-label">Mean</div><div className="stat-sub">Average</div></div>
+                            <div className="stat-card"><div className="stat-value">{deterministicSchedule}</div><div className="stat-label">Deterministic</div><div className="stat-sub">Base Plan</div></div>
+                        </div>
+
+                        {diff80 > 0 && (
+                            <div className="card p-4" style={{ borderLeft: '3px solid var(--warning)' }}>
+                                <div className="text-sm"><strong>Schedule Contingency Needed (P80):</strong> <span style={{ fontFamily: 'var(--font-mono)' }}>+{Math.round(diff80)} days</span> beyond the deterministic plan of {deterministicSchedule} days.</div>
+                            </div>
+                        )}
+
+                        {/* S-curve */}
+                        <div className="chart-wrapper">
+                            <div className="chart-header">Schedule S-Curve (Cumulative Distribution)</div>
+                            <div className="chart-container tall">
+                                <CDFChart cdfData={simResults.scheduleCDF} stats={stats} label="Project Duration" unit="days" color="rgba(139, 92, 246, 1)" prePostData={preResults?.scheduleCDF} />
+                            </div>
+                        </div>
+
+                        {/* Histogram */}
+                        <div className="chart-wrapper">
+                            <div className="chart-header">Schedule Distribution (Histogram)</div>
+                            <div className="chart-container">
+                                <HistogramChart histData={simResults.scheduleHist} label="Frequency" unit="days" color="rgba(139, 92, 246, 0.6)" />
+                            </div>
+                        </div>
+
+                        {/* Tornado */}
+                        {simResults.scheduleSensitivity && simResults.scheduleSensitivity.length > 0 && (
+                            <div className="chart-wrapper">
+                                <div className="chart-header">Schedule Sensitivity — Top Drivers</div>
+                                <div className="chart-container tall">
+                                    <TornadoChart sensitivity={simResults.scheduleSensitivity} nameMap={nameMap} label="Schedule Drivers" color="rgba(139, 92, 246, 0.7)" />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                );
+            };
+
+            // ============================================================================
+            // RENDER — Cost Analysis Tab
+            // ============================================================================
+            const renderCostTab = () => {
+                if (!simResults || !simResults.costStats) {
+                    return (
+                        <div className="empty-state animate-fade-in">
+                            <div className="empty-state-icon"><IconAnalysis size={28} /></div>
+                            <div className="empty-state-heading">No Cost Results</div>
+                            <div className="empty-state-description">Run a simulation from the Model Setup tab to generate cost analysis results.</div>
+                        </div>
+                    );
+                }
+
+                const stats = simResults.costStats;
+                const diff80 = stats.p80 - deterministicCost;
+
+                return (
+                    <div className="space-y-6 animate-fade-in">
+                        {/* Stat Cards */}
+                        <div className="stat-grid">
+                            <div className="stat-card"><div className="stat-value">{formatCurrency(stats.p10, currencySymbol)}</div><div className="stat-label">P10</div><div className="stat-sub">Optimistic</div></div>
+                            <div className="stat-card" style={{ borderColor: 'var(--success)' }}><div className="stat-value">{formatCurrency(stats.p50, currencySymbol)}</div><div className="stat-label">P50</div><div className="stat-sub">Most Likely</div></div>
+                            <div className="stat-card" style={{ borderColor: 'var(--warning)' }}><div className="stat-value">{formatCurrency(stats.p80, currencySymbol)}</div><div className="stat-label">P80</div><div className="stat-sub">Recommended</div></div>
+                            <div className="stat-card"><div className="stat-value">{formatCurrency(stats.p90, currencySymbol)}</div><div className="stat-label">P90</div><div className="stat-sub">Conservative</div></div>
+                            <div className="stat-card"><div className="stat-value">{formatCurrency(stats.mean, currencySymbol)}</div><div className="stat-label">Mean</div><div className="stat-sub">Average</div></div>
+                            <div className="stat-card"><div className="stat-value">{formatCurrency(deterministicCost, currencySymbol)}</div><div className="stat-label">Deterministic</div><div className="stat-sub">Base Budget</div></div>
+                        </div>
+
+                        {diff80 > 0 && (
+                            <div className="card p-4" style={{ borderLeft: '3px solid var(--warning)' }}>
+                                <div className="text-sm"><strong>Cost Contingency Needed (P80):</strong> <span style={{ fontFamily: 'var(--font-mono)' }}>+{formatCurrencyFull(Math.round(diff80), currencySymbol)}</span> beyond the deterministic budget of {formatCurrencyFull(deterministicCost, currencySymbol)}.</div>
+                            </div>
+                        )}
+
+                        {/* S-curve */}
+                        <div className="chart-wrapper">
+                            <div className="chart-header">Cost S-Curve (Cumulative Distribution)</div>
+                            <div className="chart-container tall">
+                                <CDFChart cdfData={simResults.costCDF} stats={stats} label="Total Cost" unit="£" color="rgba(236, 72, 153, 1)" prePostData={preResults?.costCDF} />
+                            </div>
+                        </div>
+
+                        {/* Histogram */}
+                        <div className="chart-wrapper">
+                            <div className="chart-header">Cost Distribution (Histogram)</div>
+                            <div className="chart-container">
+                                <HistogramChart histData={simResults.costHist} label="Frequency" unit="£" color="rgba(236, 72, 153, 0.6)" />
+                            </div>
+                        </div>
+
+                        {/* Tornado */}
+                        {simResults.costSensitivity && simResults.costSensitivity.length > 0 && (
+                            <div className="chart-wrapper">
+                                <div className="chart-header">Cost Sensitivity — Top Drivers</div>
+                                <div className="chart-container tall">
+                                    <TornadoChart sensitivity={simResults.costSensitivity} nameMap={nameMap} label="Cost Drivers" color="rgba(236, 72, 153, 0.7)" />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                );
+            };
+
+            // ============================================================================
+            // RENDER — Joint Analysis Tab
+            // ============================================================================
+            const renderJointTab = () => {
+                if (!simResults || !simResults.scheduleStats || !simResults.costStats) {
+                    return (
+                        <div className="empty-state animate-fade-in">
+                            <div className="empty-state-icon"><IconAnalysis size={28} /></div>
+                            <div className="empty-state-heading">No Joint Results</div>
+                            <div className="empty-state-description">Run a simulation with both schedule and cost data to view the Joint Confidence Level analysis.</div>
+                        </div>
+                    );
+                }
+
+                const sStats = simResults.scheduleStats;
+                const cStats = simResults.costStats;
+
+                // Calculate JCL: % of iterations where BOTH schedule <= P80 AND cost <= P80
+                const n = Math.min(simResults.scheduleResults.length, simResults.costResults.length);
+                let jointCount50 = 0, jointCount80 = 0;
+                for (let i = 0; i < n; i++) {
+                    if (simResults.scheduleResults[i] <= sStats.p50 && simResults.costResults[i] <= cStats.p50) jointCount50++;
+                    if (simResults.scheduleResults[i] <= sStats.p80 && simResults.costResults[i] <= cStats.p80) jointCount80++;
+                }
+                const jcl50 = Math.round(jointCount50 / n * 100);
+                const jcl80 = Math.round(jointCount80 / n * 100);
+
+                return (
+                    <div className="space-y-6 animate-fade-in">
+                        {/* Summary Cards */}
+                        <div className="stat-grid">
+                            <div className="stat-card"><div className="stat-value">{Math.round(sStats.p80)}d</div><div className="stat-label">Schedule P80</div></div>
+                            <div className="stat-card"><div className="stat-value">{formatCurrency(cStats.p80, currencySymbol)}</div><div className="stat-label">Cost P80</div></div>
+                            <div className="stat-card" style={{ borderColor: 'var(--accent-primary)' }}><div className="stat-value">{jcl50}%</div><div className="stat-label">JCL @ P50</div><div className="stat-sub">Joint Confidence</div></div>
+                            <div className="stat-card" style={{ borderColor: 'var(--accent-primary)' }}><div className="stat-value">{jcl80}%</div><div className="stat-label">JCL @ P80</div><div className="stat-sub">Joint Confidence</div></div>
+                        </div>
+
+                        {/* Narrative */}
+                        <div className="card p-5">
+                            <h3 className="text-sm font-bold uppercase tracking-wide mb-3" style={{ color: 'var(--text-muted)' }}>Joint Confidence Level Summary</h3>
+                            <div className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                                <p className="mb-2">
+                                    There is a <strong>{jcl80}%</strong> probability that the project will complete within <strong>{Math.round(sStats.p80)} days</strong> and <strong>{formatCurrencyFull(cStats.p80, currencySymbol)}</strong> simultaneously.
+                                </p>
+                                <p className="mb-2">
+                                    The individual schedule P80 is {Math.round(sStats.p80)} days (vs. {deterministicSchedule} day deterministic plan), and the individual cost P80 is {formatCurrencyFull(cStats.p80, currencySymbol)} (vs. {formatCurrencyFull(deterministicCost, currencySymbol)} base budget).
+                                </p>
+                                <p>
+                                    Note: JCL is always lower than the individual confidence levels because achieving both targets simultaneously is harder than achieving either one alone. A JCL of {jcl80}% at P80 means there is approximately a 1-in-{Math.round(100 / (100 - jcl80))} chance of exceeding either the schedule or cost target.
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* JCL Scatter Plot */}
+                        <div className="chart-wrapper">
+                            <div className="chart-header">Joint Cost & Schedule Scatter Plot</div>
+                            <div className="chart-container tall">
+                                <JCLScatter
+                                    scheduleResults={simResults.scheduleResults}
+                                    costResults={simResults.costResults}
+                                    scheduleStats={sStats}
+                                    costStats={cStats}
+                                    currencySymbol={currencySymbol}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
+            // ============================================================================
+            // RENDER — Settings Drawer
+            // ============================================================================
+            const renderSettings = () => (
+                <>
+                    <div className={`settings-overlay ${settingsOpen ? 'visible' : ''}`} onClick={() => setSettingsOpen(false)} />
+                    <div className={`settings-drawer ${settingsOpen ? 'open' : ''}`}>
+                        <div className="settings-drawer-header">
+                            <div className="settings-drawer-title">Settings</div>
+                            <button onClick={() => setSettingsOpen(false)} className="btn btn-icon btn-secondary"><IconClose /></button>
+                        </div>
+
+                        <div className="settings-section">
+                            <div className="settings-section-title">Simulation</div>
+                            <div className="settings-row">
+                                <span className="settings-row-label">Iterations</span>
+                                <input type="number" className="input-refined" style={{ width: 100, textAlign: 'right' }} min="100" max="100000" step="1000" value={project.settings.iterations}
+                                    onChange={e => updateProject({ settings: { ...project.settings, iterations: parseInt(e.target.value) || 10000 } })} />
+                            </div>
+                            <div className="text-xs mt-1" style={{ color: 'var(--text-faint)' }}>
+                                {project.settings.iterations > 5000 ? 'Will use Web Worker for non-blocking execution.' : 'Will run on main thread (fast for small counts).'}
+                            </div>
+                        </div>
+
+                        <div className="settings-section">
+                            <div className="settings-section-title">Project</div>
+                            <div className="settings-row">
+                                <span className="settings-row-label">Project Name</span>
+                                <input className="input-refined" style={{ width: 180 }} value={project.meta.name}
+                                    onChange={e => updateProject({ meta: { ...project.meta, name: e.target.value } })} />
+                            </div>
+                        </div>
+
+                        <div className="settings-section">
+                            <div className="settings-section-title">Data Management</div>
+                            <button onClick={() => {
+                                const blob = new Blob([JSON.stringify(project, null, 2)], { type: 'application/json' });
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement('a'); a.href = url; a.download = 'analysis-project.json'; a.click();
+                                URL.revokeObjectURL(url);
+                            }} className="btn btn-secondary w-full mb-2"><IconDownload /> Export Project</button>
+                            <button onClick={() => {
+                                if (confirm('Reset all analysis data? This cannot be undone.')) {
+                                    const fresh = createDefaultProject();
+                                    setProject(fresh);
+                                    setSimResults(null);
+                                    setPreResults(null);
+                                }
+                            }} className="btn btn-danger w-full">Reset Project</button>
+                        </div>
+                    </div>
+                </>
+            );
+
+            // ============================================================================
+            // MAIN RENDER
+            // ============================================================================
+            return (
+                <div>
+                    {/* Header */}
+                    <header className="app-header no-print">
+                        <div className="app-header-left">
+                            <div className="app-header-icon">
+                                <IconAnalysis size={22} />
+                            </div>
+                            <div className="app-header-text">
+                                <div className="app-header-title">Integrated Analysis</div>
+                                <div className="app-header-subtitle">Quantitative Cost & Schedule Risk Analysis</div>
+                            </div>
+                        </div>
+                        <div className="app-header-right">
+                            <select className="select-refined" style={{ width: 140 }} value={theme} onChange={e => updateProject({ settings: { ...project.settings, theme: e.target.value } })}>
+                                {THEMES.map(t => <option key={t} value={t}>{THEME_LABELS[t]}</option>)}
+                            </select>
+                            <button onClick={() => setSettingsOpen(true)} className="btn btn-icon btn-secondary"><IconSettings /></button>
+                        </div>
+                    </header>
+
+                    {/* Tab Bar */}
+                    <nav className="tab-bar no-print">
+                        {TABS.map(tab => (
+                            <div key={tab.id} className={`tab-item ${activeTab === tab.id ? 'active' : ''}`} onClick={() => setActiveTab(tab.id)}>
+                                {tab.label}
+                            </div>
+                        ))}
+                    </nav>
+
+                    {/* Content */}
+                    <main className="content-area">
+                        {activeTab === 'setup' && renderSetupTab()}
+                        {activeTab === 'schedule' && renderScheduleTab()}
+                        {activeTab === 'cost' && renderCostTab()}
+                        {activeTab === 'joint' && renderJointTab()}
+                    </main>
+
+                    {/* Settings Drawer */}
+                    {renderSettings()}
+                </div>
+            );
+        };
+
+        // ============================================================================
+        // MOUNT
+        // ============================================================================
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+
+</html>

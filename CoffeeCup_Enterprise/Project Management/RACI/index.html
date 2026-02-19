@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="blueprint">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CoffeeCup — RACI Matrix</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%236366f1'/%3E%3Cstop offset='100%25' stop-color='%234338ca'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='6' fill='url(%23g)'/%3E%3Crect x='7' y='7' width='18' height='18' rx='2' fill='none' stroke='white' stroke-width='2'/%3E%3Cline x1='7' y1='13' x2='25' y2='13' stroke='white' stroke-width='2'/%3E%3Cline x1='7' y1='19' x2='25' y2='19' stroke='white' stroke-width='2'/%3E%3Cline x1='13' y1='7' x2='13' y2='25' stroke='white' stroke-width='2'/%3E%3Cline x1='19' y1='7' x2='19' y2='25' stroke='white' stroke-width='2'/%3E%3C/svg%3E">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+  <style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Nunito:wght@400;600;700;800&display=swap');
+
+:root {
+  --bg-primary: #fafaf9;
+  --bg-secondary: #f5f5f4;
+  --bg-card: #ffffff;
+  --bg-hover: rgba(0,0,0,0.02);
+  --border-primary: #e7e5e4;
+  --border-secondary: #f5f5f4;
+  --border-accent: #d6d3d1;
+  --text-primary: #292524;
+  --text-secondary: #57534e;
+  --text-muted: #78716c;
+  --text-faint: #a8a29e;
+  --accent-primary: #b8956a;
+  --accent-hover: #a07d4f;
+  --accent-light: rgba(185, 149, 106, 0.12);
+  --danger: #dc3545;
+  --danger-light: rgba(220, 53, 69, 0.1);
+  --success: #22c55e;
+  --success-light: rgba(34, 197, 94, 0.15);
+  --warning: #f59e0b;
+  --warning-light: rgba(245, 158, 11, 0.15);
+  --font-primary: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.2s ease;
+}
+
+[data-theme="blueprint"] body {
+  background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+  background-image: linear-gradient(rgba(0,0,0,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.015) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+[data-theme="fun"] {
+  --bg-primary: #fef7ff;
+  --bg-secondary: #fae8ff;
+  --bg-card: #ffffff;
+  --bg-hover: rgba(236, 72, 153, 0.1);
+  --border-primary: #f0abfc;
+  --border-secondary: rgba(236, 72, 153, 0.2);
+  --border-accent: #ec4899;
+  --text-primary: #701a75;
+  --text-secondary: #86198f;
+  --text-muted: #a21caf;
+  --text-faint: #d8b4fe;
+  --accent-primary: #d946ef;
+  --accent-hover: #c026d3;
+  --accent-light: rgba(217, 70, 239, 0.15);
+  --danger: #f43f5e;
+  --danger-light: rgba(244, 63, 94, 0.15);
+  --success: #10b981;
+  --success-light: rgba(16, 185, 129, 0.15);
+  --warning: #f59e0b;
+  --warning-light: rgba(245, 158, 11, 0.15);
+  --font-primary: 'Nunito', -apple-system, sans-serif;
+  --radius-lg: 20px;
+  --radius-xl: 24px;
+}
+
+[data-theme="fun"] body {
+  background: linear-gradient(135deg, #fdf4ff 0%, #fae8ff 50%, #f5d0fe 100%);
+}
+
+[data-theme="dark"] {
+  --bg-primary: #0f0f0f;
+  --bg-secondary: #1a1a1a;
+  --bg-card: #242424;
+  --bg-hover: rgba(99, 102, 241, 0.15);
+  --border-primary: #333333;
+  --border-secondary: #2a2a2a;
+  --border-accent: #6366f1;
+  --text-primary: #f5f5f5;
+  --text-secondary: #a3a3a3;
+  --text-muted: #737373;
+  --text-faint: #525252;
+  --accent-primary: #818cf8;
+  --accent-hover: #6366f1;
+  --accent-light: rgba(129, 140, 248, 0.2);
+  --danger: #f87171;
+  --danger-light: rgba(248, 113, 113, 0.2);
+  --success: #4ade80;
+  --success-light: rgba(74, 222, 128, 0.2);
+  --warning: #fbbf24;
+  --warning-light: rgba(251, 191, 36, 0.2);
+}
+
+[data-theme="dark"] body {
+  background: linear-gradient(180deg, #0a0a0a 0%, #0f0f0f 100%);
+}
+
+[data-theme="traditional"] {
+  --bg-primary: #f8f9fa;
+  --bg-secondary: #e9ecef;
+  --bg-card: #ffffff;
+  --bg-hover: rgba(0, 123, 255, 0.08);
+  --border-primary: #ced4da;
+  --border-secondary: #e9ecef;
+  --border-accent: #007bff;
+  --text-primary: #212529;
+  --text-secondary: #495057;
+  --text-muted: #6c757d;
+  --text-faint: #adb5bd;
+  --accent-primary: #007bff;
+  --accent-hover: #0056b3;
+  --accent-light: rgba(0, 123, 255, 0.1);
+  --danger: #dc3545;
+  --danger-light: rgba(220, 53, 69, 0.1);
+  --success: #28a745;
+  --success-light: rgba(40, 167, 69, 0.1);
+  --warning: #ffc107;
+  --warning-light: rgba(255, 193, 7, 0.1);
+  --font-primary: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --radius-lg: 4px;
+  --radius-xl: 8px;
+}
+
+[data-theme="traditional"] body { background: var(--bg-primary); }
+
+* { font-family: var(--font-primary); box-sizing: border-box; }
+body { background: var(--bg-primary); min-height: 100vh; margin: 0; padding: 0; color: var(--text-primary); }
+
+/* ============================================
+   COMMON COMPONENTS
+   ============================================ */
+.btn { padding: 8px 14px; border-radius: var(--radius-md); font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: all var(--transition-fast); display: inline-flex; align-items: center; gap: 6px; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-primary { background: var(--accent-primary); color: white; }
+.btn-primary:hover:not(:disabled) { filter: brightness(1.1); }
+.btn-secondary { background: var(--bg-card); border: 1px solid var(--border-primary); color: var(--text-secondary); }
+.btn-secondary:hover:not(:disabled) { background: var(--bg-secondary); border-color: var(--accent-primary); }
+.btn-danger { background: var(--danger-light); color: var(--danger); }
+.btn-danger:hover:not(:disabled) { background: var(--danger); color: white; }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-icon { width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; }
+
+.input-refined { background: var(--bg-card); border: 1px solid var(--border-primary); border-radius: var(--radius-md); padding: 8px 12px; font-size: 13px; color: var(--text-primary); width: 100%; transition: border-color var(--transition-fast), box-shadow var(--transition-fast); }
+.input-refined:focus { outline: none; border-color: var(--accent-primary); box-shadow: 0 0 0 3px var(--accent-light); }
+.input-refined::placeholder { color: var(--text-faint); }
+
+.select-refined { background: var(--bg-card); border: 1px solid var(--border-primary); border-radius: var(--radius-md); padding: 8px 32px 8px 12px; font-size: 13px; color: var(--text-secondary); cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2378716c' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; box-shadow: var(--shadow-sm); }
+.select-refined:focus { outline: none; border-color: var(--accent-primary); box-shadow: 0 0 0 3px var(--accent-light); }
+
+.textarea-refined { background: var(--bg-card); border: 1px solid var(--border-primary); border-radius: var(--radius-md); padding: 8px 12px; font-size: 13px; color: var(--text-primary); width: 100%; resize: vertical; min-height: 60px; transition: border-color var(--transition-fast); }
+.textarea-refined:focus { outline: none; border-color: var(--accent-primary); box-shadow: 0 0 0 3px var(--accent-light); }
+
+[data-theme="dark"] .select-refined, [data-theme="dark"] .input-refined, [data-theme="dark"] .textarea-refined { background-color: #1a1a1a; border-color: #333; color: #b0b0b0; }
+[data-theme="dark"] .select-refined { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23808080' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); }
+
+/* ============================================
+   HEADER
+   ============================================ */
+.app-header-icon { width: 48px; height: 48px; border-radius: var(--radius-lg); background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-md); }
+.theme-selector { display: flex; align-items: center; gap: 8px; }
+.theme-selector label { font-size: 12px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.settings-btn { width: 40px; height: 40px; border-radius: var(--radius-md); background: var(--bg-card); border: 1px solid var(--border-primary); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted); transition: all var(--transition-fast); }
+.settings-btn:hover { background: var(--bg-secondary); color: var(--text-primary); border-color: var(--accent-primary); }
+
+/* ============================================
+   DRAWER
+   ============================================ */
+.drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; }
+.drawer-overlay.open { opacity: 1; visibility: visible; }
+.drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 420px; max-width: 100vw; background: var(--bg-card); border-left: 1px solid var(--border-primary); box-shadow: var(--shadow-xl); z-index: 101; transform: translateX(100%); transition: transform 0.3s ease; display: flex; flex-direction: column; }
+.drawer.open { transform: translateX(0); }
+.drawer-header { padding: 20px 24px; border-bottom: 1px solid var(--border-primary); display: flex; align-items: center; justify-content: space-between; }
+.drawer-header h2 { font-size: 18px; font-weight: 600; color: var(--text-primary); margin: 0; }
+.drawer-close { width: 32px; height: 32px; border-radius: var(--radius-md); background: transparent; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted); transition: all var(--transition-fast); }
+.drawer-close:hover { background: var(--bg-secondary); color: var(--text-primary); }
+.drawer-body { flex: 1; overflow-y: auto; padding: 24px; }
+.drawer-body::-webkit-scrollbar { width: 6px; }
+.drawer-body::-webkit-scrollbar-track { background: transparent; }
+.drawer-body::-webkit-scrollbar-thumb { background: var(--border-primary); border-radius: 3px; }
+.drawer-section { margin-bottom: 28px; }
+.drawer-section:last-child { margin-bottom: 0; }
+.drawer-section-title { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; }
+
+/* ============================================
+   TOGGLE SWITCH
+   ============================================ */
+.toggle-switch { position: relative; width: 44px; height: 24px; display: inline-block; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider { position: absolute; cursor: pointer; inset: 0; background: var(--border-primary); border-radius: 24px; transition: background var(--transition-fast); }
+.toggle-slider:before { content: ''; position: absolute; height: 18px; width: 18px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: transform var(--transition-fast); box-shadow: var(--shadow-sm); }
+.toggle-switch input:checked + .toggle-slider { background: var(--accent-primary); }
+.toggle-switch input:checked + .toggle-slider:before { transform: translateX(20px); }
+
+/* ============================================
+   MATRIX TABLE
+   ============================================ */
+.matrix-wrapper { overflow-x: auto; border: 1px solid var(--border-primary); border-radius: var(--radius-lg); background: var(--bg-card); box-shadow: var(--shadow-md); }
+.matrix-table { width: 100%; border-collapse: collapse; min-width: 600px; }
+.matrix-table th, .matrix-table td { border: 1px solid var(--border-primary); padding: 0; text-align: center; position: relative; }
+.matrix-table th { background: var(--bg-secondary); font-size: 12px; font-weight: 600; color: var(--text-secondary); padding: 10px 8px; white-space: nowrap; }
+.matrix-table th.task-header { text-align: left; padding-left: 16px; min-width: 200px; }
+.matrix-table th.desc-header { text-align: left; padding-left: 12px; min-width: 160px; }
+.matrix-table th.role-header { min-width: 80px; max-width: 120px; cursor: default; }
+.matrix-table th.role-header .role-name { display: block; overflow: hidden; text-overflow: ellipsis; }
+.matrix-table th.role-group-header { background: var(--accent-light); color: var(--accent-primary); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; padding: 4px 8px; }
+
+.matrix-table td.task-cell { text-align: left; padding: 0; }
+.matrix-table td.task-cell .task-name { padding: 8px 12px; font-size: 13px; color: var(--text-primary); cursor: text; min-height: 36px; display: flex; align-items: center; }
+.matrix-table td.desc-cell { text-align: left; padding: 0; }
+.matrix-table td.desc-cell .desc-text { padding: 8px 12px; font-size: 12px; color: var(--text-muted); cursor: text; min-height: 36px; display: flex; align-items: center; }
+
+.matrix-table td.code-cell { width: 80px; min-width: 80px; max-width: 120px; height: 40px; cursor: pointer; transition: background var(--transition-fast); user-select: none; }
+.matrix-table td.code-cell:hover { filter: brightness(0.95); }
+.matrix-table td.code-cell .code-display { display: flex; align-items: center; justify-content: center; height: 100%; padding: 4px; font-weight: 700; font-size: 14px; position: relative; }
+.matrix-table td.code-cell .code-display.compact { font-size: 14px; }
+.matrix-table td.code-cell .code-display.expanded { font-size: 10px; font-weight: 600; }
+.matrix-table td.code-cell .note-dot { position: absolute; top: 3px; right: 3px; width: 6px; height: 6px; border-radius: 50%; background: var(--accent-primary); }
+
+.group-row td { background: var(--bg-secondary); font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em; padding: 8px 16px !important; text-align: left !important; cursor: pointer; }
+.group-row td:hover { background: var(--bg-hover); }
+
+.add-row td { border: none; padding: 4px 8px !important; }
+.add-row button { font-size: 12px; color: var(--text-faint); background: none; border: none; cursor: pointer; padding: 4px 8px; border-radius: var(--radius-sm); }
+.add-row button:hover { color: var(--accent-primary); background: var(--accent-light); }
+
+/* ============================================
+   VALIDATION BAR
+   ============================================ */
+.validation-bar { margin-top: 16px; padding: 12px 16px; border-radius: var(--radius-lg); background: var(--bg-card); border: 1px solid var(--border-primary); box-shadow: var(--shadow-sm); }
+.validation-item { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 12px; color: var(--text-secondary); cursor: pointer; }
+.validation-item:hover { color: var(--accent-primary); }
+.validation-item .severity-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.severity-error { background: var(--danger); }
+.severity-warning { background: var(--warning); }
+.severity-info { background: var(--accent-primary); }
+
+/* ============================================
+   CODE PICKER POPUP
+   ============================================ */
+.code-picker { position: fixed; z-index: 200; background: var(--bg-card); border: 1px solid var(--border-primary); border-radius: var(--radius-lg); box-shadow: var(--shadow-xl); padding: 8px; min-width: 160px; }
+.code-picker-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: var(--radius-md); cursor: pointer; font-size: 13px; transition: background var(--transition-fast); }
+.code-picker-item:hover { background: var(--bg-hover); }
+.code-picker-item .code-swatch { width: 24px; height: 24px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; color: white; }
+.code-picker-item .code-label { color: var(--text-primary); font-weight: 500; }
+.code-picker-item .code-desc { color: var(--text-muted); font-size: 11px; }
+.code-picker-clear { border-top: 1px solid var(--border-primary); margin-top: 4px; padding-top: 4px; }
+
+/* ============================================
+   LEGEND
+   ============================================ */
+.legend { display: flex; flex-wrap: wrap; gap: 16px; padding: 12px 16px; border-radius: var(--radius-lg); background: var(--bg-card); border: 1px solid var(--border-primary); margin-bottom: 16px; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+.legend-swatch { width: 20px; height: 20px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 10px; color: white; }
+
+/* ============================================
+   TOOLBAR
+   ============================================ */
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; align-items: center; position: relative; z-index: 60; }
+.toolbar-group { display: flex; gap: 4px; align-items: center; }
+.toolbar-sep { width: 1px; height: 24px; background: var(--border-primary); margin: 0 8px; }
+.dropdown { position: relative; display: inline-block; z-index: 60; }
+.dropdown-menu { position: absolute; top: 100%; left: 0; z-index: 90; background: var(--bg-card); border: 1px solid var(--border-primary); border-radius: var(--radius-md); box-shadow: var(--shadow-xl); min-width: 180px; padding: 4px; margin-top: 4px; }
+.dropdown-item { display: flex; align-items: center; gap: 8px; padding: 8px 12px; font-size: 13px; color: var(--text-secondary); cursor: pointer; border-radius: var(--radius-sm); border: none; background: none; width: 100%; text-align: left; }
+.dropdown-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+/* ============================================
+   COLOUR PICKER (settings)
+   ============================================ */
+.colour-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+.colour-swatch { width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: all var(--transition-fast); }
+.colour-swatch:hover { transform: scale(1.15); }
+.colour-swatch.active { border-color: var(--text-primary); box-shadow: 0 0 0 2px var(--bg-card), 0 0 0 4px var(--text-primary); }
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+.animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+@media print {
+  body { background: white !important; }
+  .no-print { display: none !important; }
+  .matrix-wrapper { border: none; box-shadow: none; overflow: visible; }
+  .matrix-table { min-width: auto; font-size: 11px; }
+  .matrix-table th, .matrix-table td { border: 1px solid #ccc; }
+  .print-header { display: block !important; text-align: center; margin-bottom: 16px; }
+  .print-header h1 { font-size: 18px; margin: 0; }
+  .print-header p { font-size: 12px; color: #666; margin: 4px 0 0 0; }
+  .legend { box-shadow: none; border: 1px solid #ccc; }
+  @page { size: landscape; margin: 1cm; }
+}
+.print-header { display: none; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useCallback } = React;
+
+    // ============================================
+    // CONSTANTS
+    // ============================================
+    const THEMES = {
+      blueprint: { name: 'Architectural Blueprint' },
+      fun: { name: 'Fun & Vibrant' },
+      traditional: { name: 'Traditional' },
+      dark: { name: 'Dark Mode' }
+    };
+
+    const COLOUR_PALETTE = ['#3b82f6','#ef4444','#f59e0b','#22c55e','#8b5cf6','#ec4899','#06b6d4','#f97316','#6366f1','#14b8a6','#e11d48','#84cc16'];
+
+    const FRAMEWORK_PRESETS = {
+      raci: {
+        name: 'RACI',
+        codes: [
+          { code: 'R', name: 'Responsible', colour: '#3b82f6', description: 'Does the work to complete the task' },
+          { code: 'A', name: 'Accountable', colour: '#ef4444', description: 'Owns the outcome, signs off' },
+          { code: 'C', name: 'Consulted', colour: '#f59e0b', description: 'Provides input (two-way communication)' },
+          { code: 'I', name: 'Informed', colour: '#22c55e', description: 'Kept updated (one-way communication)' }
+        ]
+      },
+      rasci: {
+        name: 'RASCI',
+        codes: [
+          { code: 'R', name: 'Responsible', colour: '#3b82f6', description: 'Does the work' },
+          { code: 'A', name: 'Accountable', colour: '#ef4444', description: 'Owns the outcome' },
+          { code: 'S', name: 'Supportive', colour: '#8b5cf6', description: 'Assists the responsible party' },
+          { code: 'C', name: 'Consulted', colour: '#f59e0b', description: 'Provides input' },
+          { code: 'I', name: 'Informed', colour: '#22c55e', description: 'Kept updated' }
+        ]
+      },
+      'raci-vs': {
+        name: 'RACI-VS',
+        codes: [
+          { code: 'R', name: 'Responsible', colour: '#3b82f6', description: 'Does the work' },
+          { code: 'A', name: 'Accountable', colour: '#ef4444', description: 'Owns the outcome' },
+          { code: 'C', name: 'Consulted', colour: '#f59e0b', description: 'Provides input' },
+          { code: 'I', name: 'Informed', colour: '#22c55e', description: 'Kept updated' },
+          { code: 'V', name: 'Verifier', colour: '#06b6d4', description: 'Checks quality/compliance' },
+          { code: 'S', name: 'Signatory', colour: '#8b5cf6', description: 'Provides formal approval' }
+        ]
+      },
+      racio: {
+        name: 'RACIO',
+        codes: [
+          { code: 'R', name: 'Responsible', colour: '#3b82f6', description: 'Does the work' },
+          { code: 'A', name: 'Accountable', colour: '#ef4444', description: 'Owns the outcome' },
+          { code: 'C', name: 'Consulted', colour: '#f59e0b', description: 'Provides input' },
+          { code: 'I', name: 'Informed', colour: '#22c55e', description: 'Kept updated' },
+          { code: 'O', name: 'Omitted', colour: '#737373', description: 'Deliberately excluded' }
+        ]
+      },
+      daci: {
+        name: 'DACI',
+        codes: [
+          { code: 'D', name: 'Driver', colour: '#3b82f6', description: 'Drives the work forward' },
+          { code: 'A', name: 'Approver', colour: '#ef4444', description: 'Makes final decision' },
+          { code: 'C', name: 'Contributor', colour: '#f59e0b', description: 'Contributes work or input' },
+          { code: 'I', name: 'Informed', colour: '#22c55e', description: 'Kept updated' }
+        ]
+      },
+      rapid: {
+        name: 'RAPID',
+        codes: [
+          { code: 'R', name: 'Recommend', colour: '#3b82f6', description: 'Proposes course of action' },
+          { code: 'A', name: 'Agree', colour: '#f59e0b', description: 'Must agree before proceeding' },
+          { code: 'P', name: 'Perform', colour: '#8b5cf6', description: 'Executes the decision' },
+          { code: 'I', name: 'Input', colour: '#22c55e', description: 'Provides data/expertise' },
+          { code: 'D', name: 'Decide', colour: '#ef4444', description: 'Final decision-maker' }
+        ]
+      },
+      cars: {
+        name: 'CARS',
+        codes: [
+          { code: 'C', name: 'Communicate', colour: '#3b82f6', description: 'In the communication loop' },
+          { code: 'A', name: 'Approve', colour: '#ef4444', description: 'Has approval authority' },
+          { code: 'R', name: 'Responsible', colour: '#f59e0b', description: 'Does the work' },
+          { code: 'S', name: 'Support', colour: '#22c55e', description: 'Provides assistance' }
+        ]
+      },
+      clam: {
+        name: 'CLAM',
+        codes: [
+          { code: 'C', name: 'Contribute', colour: '#3b82f6', description: 'Actively contributes' },
+          { code: 'L', name: 'Lead', colour: '#ef4444', description: 'Leads and directs' },
+          { code: 'A', name: 'Approve', colour: '#f59e0b', description: 'Decision-maker' },
+          { code: 'M', name: 'Monitor', colour: '#22c55e', description: 'Monitors progress' }
+        ]
+      },
+      custom: {
+        name: 'Custom',
+        codes: [
+          { code: 'R', name: 'Responsible', colour: '#3b82f6', description: 'Does the work' },
+          { code: 'A', name: 'Accountable', colour: '#ef4444', description: 'Owns the outcome' },
+          { code: 'C', name: 'Consulted', colour: '#f59e0b', description: 'Provides input' },
+          { code: 'I', name: 'Informed', colour: '#22c55e', description: 'Kept updated' }
+        ]
+      }
+    };
+
+    const TEMPLATES = {
+      waterfall: {
+        name: 'Waterfall Project',
+        roleGroups: [{ id: 'rg-mgmt', name: 'Management' }, { id: 'rg-tech', name: 'Technical' }],
+        roles: [
+          { id: 'r1', name: 'Project Sponsor', group: 'rg-mgmt' },
+          { id: 'r2', name: 'Project Manager', group: 'rg-mgmt' },
+          { id: 'r3', name: 'Business Analyst', group: 'rg-tech' },
+          { id: 'r4', name: 'Lead Developer', group: 'rg-tech' },
+          { id: 'r5', name: 'QA Lead', group: 'rg-tech' },
+          { id: 'r6', name: 'Operations', group: 'rg-tech' }
+        ],
+        groups: [
+          { id: 'g1', name: 'Initiation', collapsed: false, tasks: [
+            { id: 't1', name: 'Develop project charter', description: '' },
+            { id: 't2', name: 'Identify stakeholders', description: '' },
+            { id: 't3', name: 'Define scope', description: '' }
+          ]},
+          { id: 'g2', name: 'Planning', collapsed: false, tasks: [
+            { id: 't4', name: 'Create project plan', description: '' },
+            { id: 't5', name: 'Define requirements', description: '' },
+            { id: 't6', name: 'Estimate resources', description: '' },
+            { id: 't7', name: 'Risk assessment', description: '' }
+          ]},
+          { id: 'g3', name: 'Execution', collapsed: false, tasks: [
+            { id: 't8', name: 'Design solution', description: '' },
+            { id: 't9', name: 'Build deliverables', description: '' },
+            { id: 't10', name: 'Quality assurance', description: '' }
+          ]},
+          { id: 'g4', name: 'Monitoring & Control', collapsed: false, tasks: [
+            { id: 't11', name: 'Track progress', description: '' },
+            { id: 't12', name: 'Manage changes', description: '' },
+            { id: 't13', name: 'Status reporting', description: '' }
+          ]},
+          { id: 'g5', name: 'Closure', collapsed: false, tasks: [
+            { id: 't14', name: 'Final deliverable', description: '' },
+            { id: 't15', name: 'Lessons learned', description: '' },
+            { id: 't16', name: 'Project sign-off', description: '' }
+          ]}
+        ],
+        assignments: {
+          't1|r1':'A','t1|r2':'R','t2|r2':'A','t2|r3':'R','t2|r1':'C','t3|r1':'A','t3|r2':'R','t3|r3':'R',
+          't4|r2':'A','t4|r3':'C','t4|r4':'C','t5|r3':'R','t5|r2':'A','t5|r4':'C','t6|r2':'R','t6|r4':'C','t6|r5':'C',
+          't7|r2':'A','t7|r3':'R','t7|r4':'C','t7|r5':'C','t7|r6':'C',
+          't8|r4':'R','t8|r3':'C','t8|r2':'I','t9|r4':'A','t9|r2':'I','t10|r5':'R','t10|r4':'C','t10|r2':'I',
+          't11|r2':'R','t11|r1':'I','t12|r2':'A','t12|r1':'C','t13|r2':'R','t13|r1':'I','t13|r4':'I','t13|r5':'I',
+          't14|r4':'R','t14|r5':'C','t14|r2':'A','t14|r1':'I','t15|r2':'R','t15|r3':'C','t15|r4':'C','t16|r1':'A','t16|r2':'R'
+        },
+        notes: {}
+      },
+      agile: {
+        name: 'Agile / Scrum',
+        roleGroups: [],
+        roles: [
+          { id: 'r1', name: 'Product Owner', group: '' },
+          { id: 'r2', name: 'Scrum Master', group: '' },
+          { id: 'r3', name: 'Dev Team', group: '' },
+          { id: 'r4', name: 'Stakeholders', group: '' },
+          { id: 'r5', name: 'QA', group: '' }
+        ],
+        groups: [
+          { id: 'g1', name: 'Sprint Planning', collapsed: false, tasks: [
+            { id: 't1', name: 'Refine product backlog', description: '' },
+            { id: 't2', name: 'Sprint goal definition', description: '' },
+            { id: 't3', name: 'Sprint backlog selection', description: '' }
+          ]},
+          { id: 'g2', name: 'Sprint Execution', collapsed: false, tasks: [
+            { id: 't4', name: 'Daily standup', description: '' },
+            { id: 't5', name: 'Develop features', description: '' },
+            { id: 't6', name: 'Remove impediments', description: '' }
+          ]},
+          { id: 'g3', name: 'Sprint Review', collapsed: false, tasks: [
+            { id: 't7', name: 'Demo to stakeholders', description: '' },
+            { id: 't8', name: 'Gather feedback', description: '' }
+          ]},
+          { id: 'g4', name: 'Retrospective', collapsed: false, tasks: [
+            { id: 't9', name: 'Identify improvements', description: '' },
+            { id: 't10', name: 'Action items', description: '' }
+          ]},
+          { id: 'g5', name: 'Backlog Management', collapsed: false, tasks: [
+            { id: 't11', name: 'Prioritise stories', description: '' },
+            { id: 't12', name: 'Acceptance criteria', description: '' }
+          ]}
+        ],
+        assignments: {
+          't1|r1':'A','t1|r3':'C','t2|r1':'A','t2|r2':'C','t2|r3':'R','t3|r1':'A','t3|r3':'R',
+          't4|r2':'R','t4|r3':'R','t4|r1':'I','t5|r3':'R','t5|r1':'I','t5|r5':'C','t6|r2':'R','t6|r3':'I',
+          't7|r3':'R','t7|r1':'A','t7|r4':'I','t8|r1':'R','t8|r4':'C','t8|r3':'I',
+          't9|r2':'R','t9|r3':'R','t10|r2':'A','t10|r3':'R',
+          't11|r1':'A','t11|r4':'C','t12|r1':'R','t12|r3':'C','t12|r5':'C'
+        },
+        notes: {}
+      },
+      sdlc: {
+        name: 'Software Development Lifecycle',
+        roleGroups: [{ id: 'rg-prod', name: 'Product' }, { id: 'rg-eng', name: 'Engineering' }],
+        roles: [
+          { id: 'r1', name: 'Product Manager', group: 'rg-prod' },
+          { id: 'r2', name: 'Architect', group: 'rg-eng' },
+          { id: 'r3', name: 'Developer', group: 'rg-eng' },
+          { id: 'r4', name: 'QA Engineer', group: 'rg-eng' },
+          { id: 'r5', name: 'DevOps', group: 'rg-eng' },
+          { id: 'r6', name: 'Support', group: 'rg-prod' }
+        ],
+        groups: [
+          { id: 'g1', name: 'Requirements', collapsed: false, tasks: [
+            { id: 't1', name: 'Gather requirements', description: '' },
+            { id: 't2', name: 'Write specifications', description: '' }
+          ]},
+          { id: 'g2', name: 'Design', collapsed: false, tasks: [
+            { id: 't3', name: 'Architecture design', description: '' },
+            { id: 't4', name: 'Technical review', description: '' }
+          ]},
+          { id: 'g3', name: 'Development', collapsed: false, tasks: [
+            { id: 't5', name: 'Implement features', description: '' },
+            { id: 't6', name: 'Code review', description: '' },
+            { id: 't7', name: 'Unit testing', description: '' }
+          ]},
+          { id: 'g4', name: 'Testing', collapsed: false, tasks: [
+            { id: 't8', name: 'Integration testing', description: '' },
+            { id: 't9', name: 'UAT', description: '' }
+          ]},
+          { id: 'g5', name: 'Deployment', collapsed: false, tasks: [
+            { id: 't10', name: 'Release planning', description: '' },
+            { id: 't11', name: 'Deploy to production', description: '' }
+          ]},
+          { id: 'g6', name: 'Maintenance', collapsed: false, tasks: [
+            { id: 't12', name: 'Bug fixes', description: '' },
+            { id: 't13', name: 'Performance monitoring', description: '' }
+          ]}
+        ],
+        assignments: {
+          't1|r1':'A','t1|r6':'C','t2|r1':'R','t2|r2':'C',
+          't3|r2':'A','t3|r3':'C','t3|r1':'I','t4|r2':'R','t4|r3':'C','t4|r1':'I',
+          't5|r3':'R','t5|r2':'C','t5|r1':'I','t6|r2':'R','t6|r3':'R','t7|r3':'R','t7|r4':'C',
+          't8|r4':'R','t8|r3':'C','t8|r2':'I','t9|r1':'A','t9|r4':'R','t9|r6':'C',
+          't10|r5':'R','t10|r1':'A','t10|r3':'C','t11|r5':'R','t11|r3':'C','t11|r1':'I',
+          't12|r3':'R','t12|r6':'C','t12|r1':'I','t13|r5':'R','t13|r6':'C'
+        },
+        notes: {}
+      },
+      blank: {
+        name: 'Generic / Blank',
+        roleGroups: [],
+        roles: [
+          { id: 'r1', name: 'Role 1', group: '' },
+          { id: 'r2', name: 'Role 2', group: '' },
+          { id: 'r3', name: 'Role 3', group: '' }
+        ],
+        groups: [
+          { id: 'g1', name: 'Phase 1', collapsed: false, tasks: [
+            { id: 't1', name: 'Task 1', description: '' },
+            { id: 't2', name: 'Task 2', description: '' }
+          ]},
+          { id: 'g2', name: 'Phase 2', collapsed: false, tasks: [
+            { id: 't3', name: 'Task 3', description: '' },
+            { id: 't4', name: 'Task 4', description: '' }
+          ]}
+        ],
+        assignments: {},
+        notes: {}
+      }
+    };
+
+    const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+
+    const DEFAULT_STATE = () => ({
+      projectName: 'New RACI Matrix',
+      projectDescription: '',
+      framework: 'raci',
+      codes: [...FRAMEWORK_PRESETS.raci.codes],
+      roles: [
+        { id: uid(), name: 'Project Manager', group: '' },
+        { id: uid(), name: 'Developer', group: '' },
+        { id: uid(), name: 'QA', group: '' }
+      ],
+      roleGroups: [],
+      groups: [
+        { id: uid(), name: 'Phase 1', collapsed: false, tasks: [
+          { id: uid(), name: 'Task 1', description: '' },
+          { id: uid(), name: 'Task 2', description: '' }
+        ]}
+      ],
+      assignments: {},
+      notes: {},
+      theme: localStorage.getItem('coffeecup-theme') || 'blueprint',
+      settings: { showValidation: true, showLegend: true, compactMode: false, displayMode: 'letter', showDescriptions: false }
+    });
+
+    const STORAGE_KEY = 'raci-project';
+
+    // ============================================
+    // ICONS
+    // ============================================
+    const IconRaci = () => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>);
+    const IconPalette = () => (<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.555C21.965 6.012 17.461 2 12 2z"/></svg>);
+    const IconSettings = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>);
+    const IconX = () => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>);
+    const IconPlus = () => (<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>);
+    const IconTrash = () => (<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>);
+    const IconDownload = () => (<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>);
+    const IconUpload = () => (<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>);
+    const IconPrint = () => (<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>);
+    const IconCheck = () => (<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>);
+    const IconChevronDown = () => (<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>);
+    const IconChevronRight = () => (<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>);
+    const IconChevronUp = () => (<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="18 15 12 9 6 15"/></svg>);
+    const IconAlert = () => (<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>);
+    const IconFile = () => (<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>);
+    const IconNote = () => (<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>);
+    const IconUndo = () => (<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>);
+    const IconRedo = () => (<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>);
+
+    // ============================================
+    // VALIDATION ENGINE
+    // ============================================
+    function validate(state) {
+      const issues = [];
+      const { groups, roles, assignments, codes, framework } = state;
+      const allTasks = groups.flatMap(g => g.tasks);
+      const accountableCode = framework === 'rapid' ? 'D' : 'A';
+
+      allTasks.forEach(task => {
+        const taskCodes = roles.map(r => assignments[`${task.id}|${r.id}`]).filter(Boolean);
+        const aCount = taskCodes.filter(c => c === accountableCode).length;
+        const rCount = taskCodes.filter(c => c === (framework === 'rapid' ? 'P' : 'R')).length;
+
+        if (aCount === 0) issues.push({ severity: 'warning', message: `"${task.name}" has no ${accountableCode} (${accountableCode === 'A' ? 'Accountable' : 'Decide'})`, taskId: task.id });
+        if (aCount > 1) issues.push({ severity: 'error', message: `"${task.name}" has multiple ${accountableCode}s`, taskId: task.id });
+        if (rCount === 0 && taskCodes.length > 0) issues.push({ severity: 'warning', message: `"${task.name}" has no ${framework === 'rapid' ? 'P (Perform)' : 'R (Responsible)'}`, taskId: task.id });
+        if (taskCodes.length === 0) issues.push({ severity: 'warning', message: `"${task.name}" has no assignments`, taskId: task.id });
+      });
+
+      roles.forEach(role => {
+        const roleCodes = allTasks.map(t => assignments[`${t.id}|${role.id}`]).filter(Boolean);
+        if (roleCodes.length === 0 && allTasks.length > 0) issues.push({ severity: 'info', message: `"${role.name}" has no assignments`, roleId: role.id });
+        const heavyCount = roleCodes.filter(c => c === accountableCode || c === (framework === 'rapid' ? 'P' : 'R')).length;
+        if (allTasks.length > 3 && heavyCount / allTasks.length > 0.6) issues.push({ severity: 'info', message: `"${role.name}" is overloaded (${accountableCode}/${framework === 'rapid' ? 'P' : 'R'} on ${Math.round(heavyCount/allTasks.length*100)}% of tasks)`, roleId: role.id });
+      });
+
+      return issues;
+    }
+
+    // ============================================
+    // EXPORT / IMPORT HELPERS
+    // ============================================
+    function downloadFile(content, filename, type) {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename; a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function exportJSON(state) {
+      const data = { ...state };
+      delete data.theme;
+      delete data.settings;
+      downloadFile(JSON.stringify(data, null, 2), `${state.projectName.replace(/\s+/g, '_')}.raci.json`, 'application/json');
+    }
+
+    function exportCSV(state) {
+      const { groups, roles, assignments, codes } = state;
+      const headers = ['Group', 'Task', 'Description', ...roles.map(r => r.name)];
+      const rows = [headers.join(',')];
+      groups.forEach(g => {
+        g.tasks.forEach(t => {
+          const vals = roles.map(r => assignments[`${t.id}|${r.id}`] || '');
+          rows.push([`"${g.name}"`, `"${t.name}"`, `"${t.description || ''}"`, ...vals].join(','));
+        });
+      });
+      downloadFile(rows.join('\n'), `${state.projectName.replace(/\s+/g, '_')}.csv`, 'text/csv');
+    }
+
+    function exportExcel(state) {
+      if (typeof XLSX === 'undefined') { alert('SheetJS library not loaded.'); return; }
+      const { groups, roles, assignments, codes, roleGroups } = state;
+      const wb = XLSX.utils.book_new();
+
+      // Matrix sheet
+      const headers = ['Group', 'Task', 'Description', ...roles.map(r => r.name)];
+      const data = [headers];
+      groups.forEach(g => {
+        g.tasks.forEach(t => {
+          data.push([g.name, t.name, t.description || '', ...roles.map(r => assignments[`${t.id}|${r.id}`] || '')]);
+        });
+      });
+      const ws = XLSX.utils.aoa_to_sheet(data);
+      XLSX.utils.book_append_sheet(wb, ws, 'RACI Matrix');
+
+      // Legend sheet
+      const legendData = [['Code', 'Name', 'Description', 'Colour']];
+      codes.forEach(c => legendData.push([c.code, c.name, c.description, c.colour]));
+      const ws2 = XLSX.utils.aoa_to_sheet(legendData);
+      XLSX.utils.book_append_sheet(wb, ws2, 'Legend');
+
+      XLSX.writeFile(wb, `${state.projectName.replace(/\s+/g, '_')}.xlsx`);
+    }
+
+    function importJSON(file, onLoad) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          onLoad(data);
+        } catch (err) { alert('Invalid JSON file'); }
+      };
+      reader.readAsText(file);
+    }
+
+    function importCSV(file, onLoad) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const lines = e.target.result.split('\n').filter(l => l.trim());
+          if (lines.length < 2) { alert('CSV has no data rows'); return; }
+          const parseCSVLine = (line) => {
+            const result = []; let current = ''; let inQuotes = false;
+            for (let i = 0; i < line.length; i++) {
+              if (line[i] === '"') { inQuotes = !inQuotes; }
+              else if (line[i] === ',' && !inQuotes) { result.push(current.trim()); current = ''; }
+              else { current += line[i]; }
+            }
+            result.push(current.trim());
+            return result;
+          };
+          const headers = parseCSVLine(lines[0]);
+          const roleNames = headers.slice(3);
+          const roles = roleNames.map(name => ({ id: uid(), name, group: '' }));
+          const groupMap = {};
+          const assignments = {};
+          for (let i = 1; i < lines.length; i++) {
+            const cols = parseCSVLine(lines[i]);
+            const groupName = cols[0] || 'Imported';
+            const taskName = cols[1] || `Task ${i}`;
+            const taskDesc = cols[2] || '';
+            if (!groupMap[groupName]) groupMap[groupName] = { id: uid(), name: groupName, collapsed: false, tasks: [] };
+            const taskId = uid();
+            groupMap[groupName].tasks.push({ id: taskId, name: taskName, description: taskDesc });
+            roles.forEach((r, ri) => {
+              const val = (cols[3 + ri] || '').trim().toUpperCase();
+              if (val) assignments[`${taskId}|${r.id}`] = val;
+            });
+          }
+          onLoad({ roles, groups: Object.values(groupMap), assignments, roleGroups: [], notes: {}, projectName: file.name.replace(/\.\w+$/, '') });
+        } catch (err) { alert('Error parsing CSV: ' + err.message); }
+      };
+      reader.readAsText(file);
+    }
+
+    function importExcel(file, onLoad) {
+      if (typeof XLSX === 'undefined') { alert('SheetJS library not loaded.'); return; }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+          const ws = wb.Sheets[wb.SheetNames[0]];
+          const data = XLSX.utils.sheet_to_json(ws, { header: 1 });
+          if (data.length < 2) { alert('Excel has no data rows'); return; }
+          const headers = data[0];
+          const roleNames = headers.slice(3);
+          const roles = roleNames.map(name => ({ id: uid(), name: String(name), group: '' }));
+          const groupMap = {};
+          const assignments = {};
+          for (let i = 1; i < data.length; i++) {
+            const cols = data[i];
+            const groupName = String(cols[0] || 'Imported');
+            const taskName = String(cols[1] || `Task ${i}`);
+            const taskDesc = String(cols[2] || '');
+            if (!groupMap[groupName]) groupMap[groupName] = { id: uid(), name: groupName, collapsed: false, tasks: [] };
+            const taskId = uid();
+            groupMap[groupName].tasks.push({ id: taskId, name: taskName, description: taskDesc });
+            roles.forEach((r, ri) => {
+              const val = String(cols[3 + ri] || '').trim().toUpperCase();
+              if (val) assignments[`${taskId}|${r.id}`] = val;
+            });
+          }
+          onLoad({ roles, groups: Object.values(groupMap), assignments, roleGroups: [], notes: {}, projectName: file.name.replace(/\.\w+$/, '') });
+        } catch (err) { alert('Error parsing Excel: ' + err.message); }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    // ============================================
+    // SETTINGS DRAWER
+    // ============================================
+    const SettingsDrawer = ({ isOpen, onClose, state, dispatch }) => {
+      const { framework, codes, roles, roleGroups, settings, projectName, projectDescription } = state;
+      const [newCodeLetter, setNewCodeLetter] = useState('');
+      const [newCodeName, setNewCodeName] = useState('');
+      const [newRoleName, setNewRoleName] = useState('');
+      const [newGroupName, setNewGroupName] = useState('');
+
+      return (
+        <>
+          <div className={`drawer-overlay ${isOpen ? 'open' : ''}`} onClick={onClose} />
+          <div className={`drawer ${isOpen ? 'open' : ''}`}>
+            <div className="drawer-header">
+              <h2>Settings</h2>
+              <button className="drawer-close" onClick={onClose}><IconX /></button>
+            </div>
+            <div className="drawer-body">
+              {/* Project */}
+              <div className="drawer-section">
+                <div className="drawer-section-title">Project</div>
+                <input className="input-refined" value={projectName} onChange={e => dispatch({ type: 'SET_FIELD', field: 'projectName', value: e.target.value })} placeholder="Project name" style={{ marginBottom: 8 }} />
+                <textarea className="textarea-refined" value={projectDescription} onChange={e => dispatch({ type: 'SET_FIELD', field: 'projectDescription', value: e.target.value })} placeholder="Description (optional)" rows={2} />
+              </div>
+
+              {/* Framework */}
+              <div className="drawer-section">
+                <div className="drawer-section-title">Framework</div>
+                <select className="select-refined" value={framework} onChange={e => dispatch({ type: 'SET_FRAMEWORK', value: e.target.value })} style={{ width: '100%', marginBottom: 12 }}>
+                  {Object.entries(FRAMEWORK_PRESETS).map(([key, { name }]) => (
+                    <option key={key} value={key}>{name}</option>
+                  ))}
+                </select>
+
+                <div className="drawer-section-title" style={{ marginTop: 8 }}>Responsibility Codes</div>
+                {codes.map((c, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                    <div style={{ width: 28, height: 28, borderRadius: 'var(--radius-sm)', background: c.colour, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: 12, flexShrink: 0 }}>{c.code}</div>
+                    <input className="input-refined" value={c.name} onChange={e => dispatch({ type: 'UPDATE_CODE', index: i, updates: { name: e.target.value } })} style={{ flex: 1 }} />
+                    <div className="colour-grid">
+                      {COLOUR_PALETTE.slice(0, 6).map(col => (
+                        <div key={col} className={`colour-swatch ${c.colour === col ? 'active' : ''}`} style={{ background: col, width: 20, height: 20 }} onClick={() => dispatch({ type: 'UPDATE_CODE', index: i, updates: { colour: col } })} />
+                      ))}
+                    </div>
+                    {framework === 'custom' && codes.length > 2 && (
+                      <button className="btn btn-icon btn-sm btn-danger" onClick={() => dispatch({ type: 'REMOVE_CODE', index: i })}><IconTrash /></button>
+                    )}
+                  </div>
+                ))}
+                {framework === 'custom' && (
+                  <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                    <input className="input-refined" value={newCodeLetter} onChange={e => setNewCodeLetter(e.target.value.toUpperCase().slice(0,1))} placeholder="X" style={{ width: 40, textAlign: 'center' }} />
+                    <input className="input-refined" value={newCodeName} onChange={e => setNewCodeName(e.target.value)} placeholder="Name" style={{ flex: 1 }} />
+                    <button className="btn btn-secondary btn-sm" onClick={() => { if (newCodeLetter && newCodeName) { dispatch({ type: 'ADD_CODE', code: { code: newCodeLetter, name: newCodeName, colour: COLOUR_PALETTE[codes.length % COLOUR_PALETTE.length], description: newCodeName } }); setNewCodeLetter(''); setNewCodeName(''); } }}><IconPlus /> Add</button>
+                  </div>
+                )}
+              </div>
+
+              {/* Role Groups */}
+              <div className="drawer-section">
+                <div className="drawer-section-title">Role Groups (Departments)</div>
+                {roleGroups.map((rg, i) => (
+                  <div key={rg.id} style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'center' }}>
+                    <input className="input-refined" value={rg.name} onChange={e => dispatch({ type: 'UPDATE_ROLE_GROUP', id: rg.id, name: e.target.value })} style={{ flex: 1 }} />
+                    <button className="btn btn-icon btn-sm btn-danger" onClick={() => dispatch({ type: 'REMOVE_ROLE_GROUP', id: rg.id })}><IconTrash /></button>
+                  </div>
+                ))}
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input className="input-refined" value={newGroupName} onChange={e => setNewGroupName(e.target.value)} placeholder="Department name" style={{ flex: 1 }} onKeyDown={e => { if (e.key === 'Enter' && newGroupName.trim()) { dispatch({ type: 'ADD_ROLE_GROUP', name: newGroupName.trim() }); setNewGroupName(''); } }} />
+                  <button className="btn btn-secondary btn-sm" onClick={() => { if (newGroupName.trim()) { dispatch({ type: 'ADD_ROLE_GROUP', name: newGroupName.trim() }); setNewGroupName(''); } }}><IconPlus /></button>
+                </div>
+              </div>
+
+              {/* Roles */}
+              <div className="drawer-section">
+                <div className="drawer-section-title">Roles ({roles.length})</div>
+                {roles.map((r, i) => (
+                  <div key={r.id} style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'center' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      <button className="btn btn-icon btn-sm" style={{ width: 20, height: 16, padding: 0 }} disabled={i === 0} onClick={() => dispatch({ type: 'MOVE_ROLE', id: r.id, dir: -1 })}><IconChevronUp /></button>
+                      <button className="btn btn-icon btn-sm" style={{ width: 20, height: 16, padding: 0 }} disabled={i === roles.length - 1} onClick={() => dispatch({ type: 'MOVE_ROLE', id: r.id, dir: 1 })}><IconChevronDown /></button>
+                    </div>
+                    <input className="input-refined" value={r.name} onChange={e => dispatch({ type: 'UPDATE_ROLE', id: r.id, updates: { name: e.target.value } })} style={{ flex: 1 }} />
+                    {roleGroups.length > 0 && (
+                      <select className="select-refined" value={r.group || ''} onChange={e => dispatch({ type: 'UPDATE_ROLE', id: r.id, updates: { group: e.target.value } })} style={{ width: 120 }}>
+                        <option value="">No group</option>
+                        {roleGroups.map(rg => <option key={rg.id} value={rg.id}>{rg.name}</option>)}
+                      </select>
+                    )}
+                    <button className="btn btn-icon btn-sm btn-danger" disabled={roles.length <= 1} onClick={() => dispatch({ type: 'REMOVE_ROLE', id: r.id })}><IconTrash /></button>
+                  </div>
+                ))}
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input className="input-refined" value={newRoleName} onChange={e => setNewRoleName(e.target.value)} placeholder="New role name" style={{ flex: 1 }} onKeyDown={e => { if (e.key === 'Enter' && newRoleName.trim()) { dispatch({ type: 'ADD_ROLE', name: newRoleName.trim() }); setNewRoleName(''); } }} />
+                  <button className="btn btn-secondary btn-sm" onClick={() => { if (newRoleName.trim()) { dispatch({ type: 'ADD_ROLE', name: newRoleName.trim() }); setNewRoleName(''); } }}><IconPlus /> Add</button>
+                </div>
+              </div>
+
+              {/* Display */}
+              <div className="drawer-section">
+                <div className="drawer-section-title">Display</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Show legend</span>
+                  <label className="toggle-switch"><input type="checkbox" checked={settings.showLegend} onChange={e => dispatch({ type: 'SET_SETTING', key: 'showLegend', value: e.target.checked })} /><span className="toggle-slider"></span></label>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Show descriptions column</span>
+                  <label className="toggle-switch"><input type="checkbox" checked={settings.showDescriptions} onChange={e => dispatch({ type: 'SET_SETTING', key: 'showDescriptions', value: e.target.checked })} /><span className="toggle-slider"></span></label>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Show validation</span>
+                  <label className="toggle-switch"><input type="checkbox" checked={settings.showValidation} onChange={e => dispatch({ type: 'SET_SETTING', key: 'showValidation', value: e.target.checked })} /><span className="toggle-slider"></span></label>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Compact mode</span>
+                  <label className="toggle-switch"><input type="checkbox" checked={settings.compactMode} onChange={e => dispatch({ type: 'SET_SETTING', key: 'compactMode', value: e.target.checked })} /><span className="toggle-slider"></span></label>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Cell display</span>
+                  <select className="select-refined" value={settings.displayMode} onChange={e => dispatch({ type: 'SET_SETTING', key: 'displayMode', value: e.target.value })}>
+                    <option value="letter">Letter only</option>
+                    <option value="name">Full name</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Templates */}
+              <div className="drawer-section">
+                <div className="drawer-section-title">Templates</div>
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12 }}>Load a pre-built matrix template. This will replace your current data.</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {Object.entries(TEMPLATES).map(([key, tpl]) => (
+                    <button key={key} className="btn btn-secondary" onClick={() => { if (confirm(`Load "${tpl.name}" template? This will replace your current matrix.`)) dispatch({ type: 'LOAD_TEMPLATE', key }); }} style={{ justifyContent: 'flex-start' }}>
+                      <IconFile /> {tpl.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Data */}
+              <div className="drawer-section">
+                <div className="drawer-section-title">Data</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <button className="btn btn-secondary" onClick={() => exportJSON(state)}><IconDownload /> Save as JSON</button>
+                  <button className="btn btn-secondary" onClick={() => exportCSV(state)}><IconDownload /> Export CSV</button>
+                  <button className="btn btn-secondary" onClick={() => exportExcel(state)}><IconDownload /> Export Excel</button>
+                  <button className="btn btn-secondary" onClick={() => window.print()}><IconPrint /> Print</button>
+                  <label className="btn btn-secondary" style={{ cursor: 'pointer' }}>
+                    <IconUpload /> Import File
+                    <input type="file" accept=".json,.csv,.xlsx,.xls" style={{ display: 'none' }} onChange={e => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+                      const handler = (data) => dispatch({ type: 'IMPORT_DATA', data });
+                      if (file.name.endsWith('.json')) importJSON(file, handler);
+                      else if (file.name.endsWith('.csv')) importCSV(file, handler);
+                      else importExcel(file, handler);
+                      e.target.value = '';
+                    }} />
+                  </label>
+                  <button className="btn btn-danger" onClick={() => { if (confirm('Clear all data and start fresh?')) dispatch({ type: 'RESET' }); }}>New Project</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      );
+    };
+
+    // ============================================
+    // CODE PICKER POPUP
+    // ============================================
+    const CodePicker = ({ x, y, codes, current, onSelect, onClose }) => {
+      const ref = useRef();
+      useEffect(() => {
+        const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+      }, [onClose]);
+
+      const style = { left: Math.min(x, window.innerWidth - 200), top: Math.min(y, window.innerHeight - 300) };
+
+      return (
+        <div className="code-picker" style={style} ref={ref}>
+          {codes.map(c => (
+            <div key={c.code} className="code-picker-item" onClick={() => { onSelect(c.code); onClose(); }}>
+              <div className="code-swatch" style={{ background: c.colour }}>{c.code}</div>
+              <div>
+                <div className="code-label">{c.name}</div>
+                <div className="code-desc">{c.description}</div>
+              </div>
+              {current === c.code && <IconCheck />}
+            </div>
+          ))}
+          <div className="code-picker-clear">
+            <div className="code-picker-item" onClick={() => { onSelect(''); onClose(); }}>
+              <div className="code-swatch" style={{ background: 'var(--border-primary)' }}>-</div>
+              <div className="code-label">Clear</div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // ============================================
+    // NOTE EDITOR
+    // ============================================
+    const NoteEditor = ({ x, y, note, onSave, onClose }) => {
+      const [text, setText] = useState(note || '');
+      const ref = useRef();
+      useEffect(() => {
+        const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) { onSave(text); onClose(); } };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+      }, [text, onClose, onSave]);
+
+      return (
+        <div ref={ref} style={{ position: 'fixed', left: Math.min(x, window.innerWidth - 260), top: Math.min(y, window.innerHeight - 180), zIndex: 200, background: 'var(--bg-card)', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-xl)', padding: 12, width: 240 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Cell Note</div>
+          <textarea className="textarea-refined" value={text} onChange={e => setText(e.target.value)} rows={3} autoFocus placeholder="Add a note..." />
+          <div style={{ display: 'flex', gap: 8, marginTop: 8, justifyContent: 'flex-end' }}>
+            {note && <button className="btn btn-danger btn-sm" onClick={() => { onSave(''); onClose(); }}>Delete</button>}
+            <button className="btn btn-primary btn-sm" onClick={() => { onSave(text); onClose(); }}>Save</button>
+          </div>
+        </div>
+      );
+    };
+
+    // ============================================
+    // INLINE EDIT
+    // ============================================
+    const InlineEdit = ({ value, onChange, className, style, placeholder }) => {
+      const [editing, setEditing] = useState(false);
+      const [text, setText] = useState(value);
+      const inputRef = useRef();
+
+      useEffect(() => { setText(value); }, [value]);
+      useEffect(() => { if (editing && inputRef.current) inputRef.current.focus(); }, [editing]);
+
+      if (editing) {
+        return <input ref={inputRef} className="input-refined" value={text} onChange={e => setText(e.target.value)} onBlur={() => { onChange(text); setEditing(false); }} onKeyDown={e => { if (e.key === 'Enter') { onChange(text); setEditing(false); } if (e.key === 'Escape') { setText(value); setEditing(false); } }} style={{ ...style, padding: '4px 8px', margin: 0 }} />;
+      }
+      return <div className={className} style={{ ...style, cursor: 'text' }} onDoubleClick={() => setEditing(true)} title="Double-click to edit">{value || <span style={{ color: 'var(--text-faint)', fontStyle: 'italic' }}>{placeholder || 'Double-click to edit'}</span>}</div>;
+    };
+
+    // ============================================
+    // STATE REDUCER
+    // ============================================
+    function reducer(state, action) {
+      switch (action.type) {
+        case 'SET_FIELD': return { ...state, [action.field]: action.value };
+        case 'SET_SETTING': return { ...state, settings: { ...state.settings, [action.key]: action.value } };
+        case 'SET_FRAMEWORK': {
+          const preset = FRAMEWORK_PRESETS[action.value];
+          return { ...state, framework: action.value, codes: preset ? [...preset.codes] : state.codes };
+        }
+        case 'UPDATE_CODE': { const codes = [...state.codes]; codes[action.index] = { ...codes[action.index], ...action.updates }; return { ...state, codes }; }
+        case 'ADD_CODE': return { ...state, codes: [...state.codes, action.code] };
+        case 'REMOVE_CODE': return { ...state, codes: state.codes.filter((_, i) => i !== action.index) };
+        case 'ADD_ROLE': return { ...state, roles: [...state.roles, { id: uid(), name: action.name, group: '' }] };
+        case 'UPDATE_ROLE': return { ...state, roles: state.roles.map(r => r.id === action.id ? { ...r, ...action.updates } : r) };
+        case 'REMOVE_ROLE': {
+          const assignments = { ...state.assignments };
+          const notes = { ...state.notes };
+          Object.keys(assignments).forEach(k => { if (k.includes(`|${action.id}`)) delete assignments[k]; });
+          Object.keys(notes).forEach(k => { if (k.includes(`|${action.id}`)) delete notes[k]; });
+          return { ...state, roles: state.roles.filter(r => r.id !== action.id), assignments, notes };
+        }
+        case 'MOVE_ROLE': {
+          const idx = state.roles.findIndex(r => r.id === action.id);
+          const newIdx = idx + action.dir;
+          if (newIdx < 0 || newIdx >= state.roles.length) return state;
+          const roles = [...state.roles];
+          [roles[idx], roles[newIdx]] = [roles[newIdx], roles[idx]];
+          return { ...state, roles };
+        }
+        case 'ADD_ROLE_GROUP': return { ...state, roleGroups: [...state.roleGroups, { id: uid(), name: action.name }] };
+        case 'UPDATE_ROLE_GROUP': return { ...state, roleGroups: state.roleGroups.map(rg => rg.id === action.id ? { ...rg, name: action.name } : rg) };
+        case 'REMOVE_ROLE_GROUP': return { ...state, roleGroups: state.roleGroups.filter(rg => rg.id !== action.id), roles: state.roles.map(r => r.group === action.id ? { ...r, group: '' } : r) };
+        case 'ADD_GROUP': return { ...state, groups: [...state.groups, { id: uid(), name: action.name || 'New Group', collapsed: false, tasks: [] }] };
+        case 'UPDATE_GROUP': return { ...state, groups: state.groups.map(g => g.id === action.id ? { ...g, ...action.updates } : g) };
+        case 'REMOVE_GROUP': {
+          const grp = state.groups.find(g => g.id === action.id);
+          const assignments = { ...state.assignments };
+          const notes = { ...state.notes };
+          if (grp) grp.tasks.forEach(t => {
+            Object.keys(assignments).forEach(k => { if (k.startsWith(`${t.id}|`)) delete assignments[k]; });
+            Object.keys(notes).forEach(k => { if (k.startsWith(`${t.id}|`)) delete notes[k]; });
+          });
+          return { ...state, groups: state.groups.filter(g => g.id !== action.id), assignments, notes };
+        }
+        case 'TOGGLE_GROUP': return { ...state, groups: state.groups.map(g => g.id === action.id ? { ...g, collapsed: !g.collapsed } : g) };
+        case 'ADD_TASK': return { ...state, groups: state.groups.map(g => g.id === action.groupId ? { ...g, tasks: [...g.tasks, { id: uid(), name: action.name || 'New Task', description: '' }] } : g) };
+        case 'UPDATE_TASK': return { ...state, groups: state.groups.map(g => ({ ...g, tasks: g.tasks.map(t => t.id === action.id ? { ...t, ...action.updates } : t) })) };
+        case 'REMOVE_TASK': {
+          const assignments = { ...state.assignments };
+          const notes = { ...state.notes };
+          Object.keys(assignments).forEach(k => { if (k.startsWith(`${action.id}|`)) delete assignments[k]; });
+          Object.keys(notes).forEach(k => { if (k.startsWith(`${action.id}|`)) delete notes[k]; });
+          return { ...state, groups: state.groups.map(g => ({ ...g, tasks: g.tasks.filter(t => t.id !== action.id) })), assignments, notes };
+        }
+        case 'SET_ASSIGNMENT': {
+          const assignments = { ...state.assignments };
+          if (action.value) assignments[action.key] = action.value;
+          else delete assignments[action.key];
+          return { ...state, assignments };
+        }
+        case 'SET_NOTE': {
+          const notes = { ...state.notes };
+          if (action.value) notes[action.key] = action.value;
+          else delete notes[action.key];
+          return { ...state, notes };
+        }
+        case 'LOAD_TEMPLATE': {
+          const tpl = TEMPLATES[action.key];
+          if (!tpl) return state;
+          return { ...state, roles: tpl.roles.map(r => ({ ...r })), roleGroups: tpl.roleGroups.map(rg => ({ ...rg })), groups: tpl.groups.map(g => ({ ...g, tasks: g.tasks.map(t => ({ ...t })) })), assignments: { ...tpl.assignments }, notes: { ...tpl.notes }, projectName: tpl.name };
+        }
+        case 'IMPORT_DATA': {
+          const d = action.data;
+          return { ...state, projectName: d.projectName || state.projectName, projectDescription: d.projectDescription || '', framework: d.framework || state.framework, codes: d.codes || state.codes, roles: d.roles || state.roles, roleGroups: d.roleGroups || [], groups: d.groups || state.groups, assignments: d.assignments || {}, notes: d.notes || {} };
+        }
+        case 'RESET': return { ...DEFAULT_STATE(), theme: state.theme, settings: state.settings };
+        default: return state;
+      }
+    }
+
+    // ============================================
+    // UNDO/REDO HOOK
+    // ============================================
+    function useUndoReducer(reducerFn, initialState) {
+      const [history, setHistory] = useState({ past: [], present: initialState, future: [] });
+
+      const dispatch = useCallback((action) => {
+        if (action.type === 'UNDO') {
+          setHistory(h => {
+            if (h.past.length === 0) return h;
+            return { past: h.past.slice(0, -1), present: h.past[h.past.length - 1], future: [h.present, ...h.future] };
+          });
+        } else if (action.type === 'REDO') {
+          setHistory(h => {
+            if (h.future.length === 0) return h;
+            return { past: [...h.past, h.present], present: h.future[0], future: h.future.slice(1) };
+          });
+        } else {
+          setHistory(h => {
+            const next = reducerFn(h.present, action);
+            if (next === h.present) return h;
+            const past = [...h.past, h.present].slice(-50);
+            return { past, present: next, future: [] };
+          });
+        }
+      }, [reducerFn]);
+
+      return [history.present, dispatch, history.past.length > 0, history.future.length > 0];
+    }
+
+    // ============================================
+    // MAIN APP
+    // ============================================
+    const App = () => {
+      const loadSaved = () => {
+        try { const s = localStorage.getItem(STORAGE_KEY); if (s) return JSON.parse(s); } catch (e) {}
+        return DEFAULT_STATE();
+      };
+
+      const [state, dispatch, canUndo, canRedo] = useUndoReducer(reducer, loadSaved());
+      const { theme, settings, codes, roles, roleGroups, groups, assignments, notes, projectName, framework } = state;
+
+      const [drawerOpen, setDrawerOpen] = useState(false);
+      const [picker, setPicker] = useState(null);
+      const [noteEditor, setNoteEditor] = useState(null);
+      const [exportMenuOpen, setExportMenuOpen] = useState(false);
+      const fileInputRef = useRef();
+      const clickTimerRef = useRef(null);
+
+      // On mount: apply shared suite theme if available
+      useEffect(() => {
+        const shared = localStorage.getItem('coffeecup-theme');
+        if (shared && shared !== theme) dispatch({ type: 'SET_FIELD', field: 'theme', value: shared });
+      }, []);
+
+      // Theme — sync shared key
+      useEffect(() => { document.documentElement.setAttribute('data-theme', theme); localStorage.setItem('coffeecup-theme', theme); }, [theme]);
+
+      // Auto-save
+      useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }, [state]);
+
+      // Keyboard shortcuts
+      useEffect(() => {
+        const handler = (e) => {
+          if (e.ctrlKey && e.key === 'z') { e.preventDefault(); dispatch({ type: 'UNDO' }); }
+          if (e.ctrlKey && e.key === 'y') { e.preventDefault(); dispatch({ type: 'REDO' }); }
+          if (e.ctrlKey && e.key === 'p') { e.preventDefault(); window.print(); }
+        };
+        document.addEventListener('keydown', handler);
+        return () => document.removeEventListener('keydown', handler);
+      }, [dispatch]);
+
+      // Validation
+      const issues = settings.showValidation ? validate(state) : [];
+
+      // Click to cycle code
+      const cycleCode = (taskId, roleId) => {
+        const key = `${taskId}|${roleId}`;
+        const current = assignments[key] || '';
+        const codeLetters = codes.map(c => c.code);
+        const idx = codeLetters.indexOf(current);
+        const next = idx === -1 ? codeLetters[0] : (idx === codeLetters.length - 1 ? '' : codeLetters[idx + 1]);
+        dispatch({ type: 'SET_ASSIGNMENT', key, value: next });
+      };
+
+      // Right-click for picker
+      const openPicker = (e, taskId, roleId) => {
+        e.preventDefault();
+        const key = `${taskId}|${roleId}`;
+        setPicker({ x: e.clientX, y: e.clientY, key, current: assignments[key] || '' });
+      };
+
+      // Get sorted roles by group
+      const getSortedRoles = () => {
+        if (roleGroups.length === 0) return [{ group: null, roles }];
+        const grouped = [];
+        const ungrouped = roles.filter(r => !r.group);
+        roleGroups.forEach(rg => {
+          const groupRoles = roles.filter(r => r.group === rg.id);
+          if (groupRoles.length > 0) grouped.push({ group: rg, roles: groupRoles });
+        });
+        if (ungrouped.length > 0) grouped.push({ group: null, roles: ungrouped });
+        return grouped;
+      };
+
+      const roleGroupings = getSortedRoles();
+      const totalRoleCols = roles.length;
+      const extraCols = settings.showDescriptions ? 2 : 1; // task + optional desc
+
+      const getCodeStyle = (code) => {
+        const c = codes.find(cd => cd.code === code);
+        if (!c) return {};
+        return { background: c.colour + '22', color: c.colour };
+      };
+
+      const getCodeName = (code) => {
+        const c = codes.find(cd => cd.code === code);
+        return c ? c.name : code;
+      };
+
+      return (
+        <div className="min-h-screen p-4 md:p-8">
+          <div className="max-w-full mx-auto" style={{ maxWidth: 1400 }}>
+            {/* Print Header */}
+            <div className="print-header">
+              <h1>{projectName}</h1>
+              <p>{state.projectDescription} | {new Date().toLocaleDateString()}</p>
+            </div>
+
+            {/* Header */}
+            <div className="mb-6 animate-fade-in no-print">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="app-header-icon"><IconRaci /></div>
+                  <div>
+                    <h1 className="text-2xl font-semibold tracking-tight" style={{ color: 'var(--text-primary)' }}>{projectName}</h1>
+                    <p className="text-sm" style={{ color: 'var(--text-muted)' }}>RACI Matrix Builder &middot; {FRAMEWORK_PRESETS[framework]?.name || 'Custom'} Framework</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="theme-selector">
+                    <IconPalette />
+                    <label>Theme</label>
+                    <select value={theme} onChange={e => dispatch({ type: 'SET_FIELD', field: 'theme', value: e.target.value })} className="select-refined">
+                      {Object.entries(THEMES).map(([key, { name }]) => <option key={key} value={key}>{name}</option>)}
+                    </select>
+                  </div>
+                  <button className="settings-btn" onClick={() => setDrawerOpen(true)} title="Settings"><IconSettings /></button>
+                </div>
+              </div>
+            </div>
+
+            {/* Toolbar */}
+            <div className="toolbar no-print animate-fade-in">
+              <div className="toolbar-group">
+                <button className="btn btn-secondary btn-sm" onClick={() => dispatch({ type: 'ADD_GROUP' })}><IconPlus /> Group</button>
+                <button className="btn btn-secondary btn-sm" onClick={() => { const g = groups[groups.length - 1]; if (g) dispatch({ type: 'ADD_TASK', groupId: g.id }); else { dispatch({ type: 'ADD_GROUP' }); } }}><IconPlus /> Task</button>
+                <button className="btn btn-secondary btn-sm" onClick={() => dispatch({ type: 'ADD_ROLE', name: `Role ${roles.length + 1}` })}><IconPlus /> Role</button>
+              </div>
+              <div className="toolbar-sep" />
+              <div className="toolbar-group">
+                <button className="btn btn-secondary btn-sm" disabled={!canUndo} onClick={() => dispatch({ type: 'UNDO' })} title="Undo (Ctrl+Z)"><IconUndo /></button>
+                <button className="btn btn-secondary btn-sm" disabled={!canRedo} onClick={() => dispatch({ type: 'REDO' })} title="Redo (Ctrl+Y)"><IconRedo /></button>
+              </div>
+              <div className="toolbar-sep" />
+              <div className="toolbar-group">
+                <div className="dropdown">
+                  <button className="btn btn-secondary btn-sm" onClick={() => setExportMenuOpen(!exportMenuOpen)}><IconDownload /> Export</button>
+                  {exportMenuOpen && (
+                    <div className="dropdown-menu" onMouseLeave={() => setExportMenuOpen(false)}>
+                      <button className="dropdown-item" onClick={() => { exportJSON(state); setExportMenuOpen(false); }}><IconFile /> JSON</button>
+                      <button className="dropdown-item" onClick={() => { exportCSV(state); setExportMenuOpen(false); }}><IconFile /> CSV</button>
+                      <button className="dropdown-item" onClick={() => { exportExcel(state); setExportMenuOpen(false); }}><IconFile /> Excel (.xlsx)</button>
+                    </div>
+                  )}
+                </div>
+                <label className="btn btn-secondary btn-sm" style={{ cursor: 'pointer' }}>
+                  <IconUpload /> Import
+                  <input ref={fileInputRef} type="file" accept=".json,.csv,.xlsx,.xls" style={{ display: 'none' }} onChange={e => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const handler = (data) => dispatch({ type: 'IMPORT_DATA', data });
+                    if (file.name.endsWith('.json')) importJSON(file, handler);
+                    else if (file.name.endsWith('.csv')) importCSV(file, handler);
+                    else importExcel(file, handler);
+                    e.target.value = '';
+                  }} />
+                </label>
+                <button className="btn btn-secondary btn-sm" onClick={() => window.print()} title="Print (Ctrl+P)"><IconPrint /> Print</button>
+              </div>
+            </div>
+
+            {/* Legend */}
+            {settings.showLegend && (
+              <div className="legend animate-fade-in">
+                {codes.map(c => (
+                  <div key={c.code} className="legend-item">
+                    <div className="legend-swatch" style={{ background: c.colour }}>{c.code}</div>
+                    <span>{c.name}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Matrix */}
+            <div className="matrix-wrapper animate-fade-in">
+              <table className="matrix-table">
+                <thead>
+                  {/* Role group header row */}
+                  {roleGroups.length > 0 && (
+                    <tr>
+                      <th className="task-header" style={{ borderBottom: 'none' }}></th>
+                      {settings.showDescriptions && <th className="desc-header" style={{ borderBottom: 'none' }}></th>}
+                      {roleGroupings.map((rg, i) => (
+                        <th key={i} className="role-group-header" colSpan={rg.roles.length}>
+                          {rg.group ? rg.group.name : 'Ungrouped'}
+                        </th>
+                      ))}
+                      <th style={{ borderBottom: 'none', width: 40 }} className="no-print"></th>
+                    </tr>
+                  )}
+                  {/* Role names header */}
+                  <tr>
+                    <th className="task-header">Task / Activity</th>
+                    {settings.showDescriptions && <th className="desc-header">Description</th>}
+                    {roleGroupings.flatMap(rg => rg.roles).map(r => (
+                      <th key={r.id} className="role-header" title={`${r.name} (double-click to rename)`}>
+                        <InlineEdit value={r.name} onChange={v => dispatch({ type: 'UPDATE_ROLE', id: r.id, updates: { name: v } })} className="role-name" placeholder="Role name" style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'center' }} />
+                      </th>
+                    ))}
+                    <th style={{ width: 40 }} className="no-print"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {groups.map(group => (
+                    <React.Fragment key={group.id}>
+                      {/* Group header */}
+                      <tr className="group-row">
+                        <td colSpan={extraCols + totalRoleCols + 1} onClick={() => dispatch({ type: 'TOGGLE_GROUP', id: group.id })}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            {group.collapsed ? <IconChevronRight /> : <IconChevronDown />}
+                            <InlineEdit value={group.name} onChange={v => dispatch({ type: 'UPDATE_GROUP', id: group.id, updates: { name: v } })} style={{ display: 'inline', fontWeight: 700, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.06em' }} />
+                            <span style={{ fontSize: 11, fontWeight: 400, color: 'var(--text-faint)' }}>({group.tasks.length})</span>
+                            <button className="btn btn-icon btn-sm no-print" onClick={e => { e.stopPropagation(); if (confirm(`Delete group "${group.name}" and all its tasks?`)) dispatch({ type: 'REMOVE_GROUP', id: group.id }); }} style={{ marginLeft: 'auto', opacity: 0.5 }}><IconTrash /></button>
+                          </div>
+                        </td>
+                      </tr>
+                      {/* Tasks */}
+                      {!group.collapsed && group.tasks.map(task => (
+                        <tr key={task.id}>
+                          <td className="task-cell">
+                            <InlineEdit value={task.name} onChange={v => dispatch({ type: 'UPDATE_TASK', id: task.id, updates: { name: v } })} className="task-name" placeholder="Task name" />
+                          </td>
+                          {settings.showDescriptions && (
+                            <td className="desc-cell">
+                              <InlineEdit value={task.description} onChange={v => dispatch({ type: 'UPDATE_TASK', id: task.id, updates: { description: v } })} className="desc-text" placeholder="Description" />
+                            </td>
+                          )}
+                          {roleGroupings.flatMap(rg => rg.roles).map(role => {
+                            const key = `${task.id}|${role.id}`;
+                            const code = assignments[key] || '';
+                            const hasNote = !!notes[key];
+                            const codeObj = codes.find(c => c.code === code);
+                            return (
+                              <td key={role.id} className="code-cell" style={code ? { background: codeObj?.colour + '18' } : {}} onClick={() => { clearTimeout(clickTimerRef.current); clickTimerRef.current = setTimeout(() => cycleCode(task.id, role.id), 250); }} onContextMenu={e => openPicker(e, task.id, role.id)} onDoubleClick={e => { e.preventDefault(); clearTimeout(clickTimerRef.current); setNoteEditor({ x: e.clientX, y: e.clientY, key, note: notes[key] || '' }); }}>
+                                <div className={`code-display ${settings.displayMode === 'letter' ? 'compact' : 'expanded'}`} style={code ? { color: codeObj?.colour } : {}}>
+                                  {code ? (settings.displayMode === 'letter' ? code : getCodeName(code)) : ''}
+                                  {hasNote && <div className="note-dot" title={notes[key]} />}
+                                </div>
+                              </td>
+                            );
+                          })}
+                          <td className="no-print" style={{ padding: 4 }}>
+                            <button className="btn btn-icon btn-sm" onClick={() => dispatch({ type: 'REMOVE_TASK', id: task.id })} style={{ opacity: 0.3 }} title="Remove task"><IconTrash /></button>
+                          </td>
+                        </tr>
+                      ))}
+                      {/* Add task row */}
+                      {!group.collapsed && (
+                        <tr className="add-row no-print">
+                          <td colSpan={extraCols + totalRoleCols + 1}>
+                            <button onClick={() => dispatch({ type: 'ADD_TASK', groupId: group.id })}><IconPlus /> Add task</button>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Validation */}
+            {settings.showValidation && issues.length > 0 && (
+              <div className="validation-bar no-print animate-fade-in">
+                <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
+                  Validation ({issues.length} issue{issues.length !== 1 ? 's' : ''})
+                </div>
+                {issues.slice(0, 10).map((issue, i) => (
+                  <div key={i} className="validation-item">
+                    <div className={`severity-dot severity-${issue.severity}`} />
+                    <span>{issue.message}</span>
+                  </div>
+                ))}
+                {issues.length > 10 && <div style={{ fontSize: 11, color: 'var(--text-faint)', paddingTop: 4 }}>...and {issues.length - 10} more</div>}
+              </div>
+            )}
+
+            {/* Code Picker Popup */}
+            {picker && (
+              <CodePicker x={picker.x} y={picker.y} codes={codes} current={picker.current} onSelect={code => dispatch({ type: 'SET_ASSIGNMENT', key: picker.key, value: code })} onClose={() => setPicker(null)} />
+            )}
+
+            {/* Note Editor Popup */}
+            {noteEditor && (
+              <NoteEditor x={noteEditor.x} y={noteEditor.y} note={noteEditor.note} onSave={text => dispatch({ type: 'SET_NOTE', key: noteEditor.key, value: text })} onClose={() => setNoteEditor(null)} />
+            )}
+
+            {/* Settings Drawer */}
+            <SettingsDrawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} state={state} dispatch={dispatch} />
+          </div>
+        </div>
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>

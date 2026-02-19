@@ -1,0 +1,3814 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="blueprint">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CoffeeCup — Risk Register</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23dc7c7c'/%3E%3Cstop offset='100%25' stop-color='%23c56565'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='6' fill='url(%23g)'/%3E%3Cpath d='M14.5 8L7 22h18L17.5 8a1.7 1.7 0 00-3 0z' fill='none' stroke='white' stroke-width='2' stroke-linejoin='round'/%3E%3Cline x1='16' y1='14' x2='16' y2='17' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='20' r='0.5' fill='white' stroke='white' stroke-width='1'/%3E%3C/svg%3E">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- React -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+/* ============================================
+   RISK REGISTER - STYLES
+   ============================================ */
+
+/* ============================================
+   CSS CUSTOM PROPERTIES (THEME VARIABLES)
+   ============================================ */
+:root {
+  /* Base colors - overridden by themes */
+  --bg-primary: #fafaf9;
+  --bg-secondary: #f5f5f4;
+  --bg-card: #ffffff;
+  --bg-hover: rgba(0,0,0,0.02);
+
+  --border-primary: #e7e5e4;
+  --border-secondary: #f5f5f4;
+  --border-accent: #d6d3d1;
+
+  --text-primary: #292524;
+  --text-secondary: #57534e;
+  --text-muted: #78716c;
+  --text-faint: #a8a29e;
+
+  --accent-primary: #b8956a;
+  --accent-hover: #a07d4f;
+  --accent-light: rgba(185, 149, 106, 0.12);
+
+  --danger: #dc7c7c;
+  --danger-hover: #c56565;
+  --danger-light: rgba(220, 124, 124, 0.12);
+  --success: #22c55e;
+  --success-light: rgba(34, 197, 94, 0.12);
+
+  /* Bar colors */
+  --bar-1: #64748b;
+  --bar-2: #84a98c;
+  --bar-3: #c9a96e;
+  --bar-4: #c9a9a6;
+  --bar-5: #94a3b8;
+  --bar-6: #d4a574;
+
+  /* Risk type colors */
+  --threat-bg: rgba(220, 124, 124, 0.08);
+  --threat-border: rgba(220, 124, 124, 0.3);
+  --opportunity-bg: rgba(34, 197, 94, 0.08);
+  --opportunity-border: rgba(34, 197, 94, 0.3);
+
+  /* Typography */
+  --font-primary: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Spacing & Sizing */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.2s ease;
+  --transition-slow: 0.3s ease;
+}
+
+/* ============================================
+   THEME: ARCHITECTURAL BLUEPRINT
+   ============================================ */
+[data-theme="blueprint"] {
+  --bg-primary: #fafaf9;
+  --bg-secondary: #f5f5f4;
+  --bg-card: #ffffff;
+  --bg-hover: rgba(0,0,0,0.02);
+
+  --border-primary: #e7e5e4;
+  --border-secondary: #f5f5f4;
+  --border-accent: #d6d3d1;
+
+  --text-primary: #292524;
+  --text-secondary: #57534e;
+  --text-muted: #78716c;
+  --text-faint: #a8a29e;
+
+  --accent-primary: #b8956a;
+  --accent-hover: #a07d4f;
+  --accent-light: rgba(185, 149, 106, 0.12);
+
+  --bar-1: #64748b;
+  --bar-2: #84a98c;
+  --bar-3: #c9a96e;
+  --bar-4: #c9a9a6;
+  --bar-5: #94a3b8;
+  --bar-6: #d4a574;
+
+  --font-primary: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --radius-lg: 12px;
+  --radius-md: 6px;
+}
+
+[data-theme="blueprint"] body {
+  background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+  background-image:
+    linear-gradient(rgba(0,0,0,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.015) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* ============================================
+   THEME: FUN & VIBRANT
+   ============================================ */
+[data-theme="fun"] {
+  --bg-primary: #fef7ff;
+  --bg-secondary: #fae8ff;
+  --bg-card: #ffffff;
+  --bg-hover: rgba(217, 70, 239, 0.05);
+
+  --border-primary: #f0abfc;
+  --border-secondary: #fae8ff;
+  --border-accent: #e879f9;
+
+  --text-primary: #701a75;
+  --text-secondary: #86198f;
+  --text-muted: #a21caf;
+  --text-faint: #c026d3;
+
+  --accent-primary: #d946ef;
+  --accent-hover: #c026d3;
+  --accent-light: rgba(217, 70, 239, 0.15);
+
+  --danger: #f43f5e;
+  --danger-hover: #e11d48;
+  --danger-light: rgba(244, 63, 94, 0.15);
+  --success: #10b981;
+  --success-light: rgba(16, 185, 129, 0.15);
+
+  --bar-1: #f472b6;
+  --bar-2: #a78bfa;
+  --bar-3: #60a5fa;
+  --bar-4: #34d399;
+  --bar-5: #fbbf24;
+  --bar-6: #fb923c;
+
+  --threat-bg: rgba(244, 63, 94, 0.1);
+  --threat-border: rgba(244, 63, 94, 0.4);
+  --opportunity-bg: rgba(16, 185, 129, 0.1);
+  --opportunity-border: rgba(16, 185, 129, 0.4);
+
+  --font-primary: 'Nunito', 'Comic Neue', -apple-system, sans-serif;
+  --radius-lg: 20px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --radius-full: 9999px;
+
+  --shadow-md: 0 8px 16px -4px rgba(217, 70, 239, 0.15), 0 4px 8px -4px rgba(217, 70, 239, 0.1);
+  --shadow-lg: 0 12px 24px -4px rgba(217, 70, 239, 0.2);
+}
+
+[data-theme="fun"] body {
+  background: linear-gradient(135deg, #fdf4ff 0%, #fae8ff 50%, #f5d0fe 100%);
+}
+
+[data-theme="fun"] .card {
+  border: 2px solid var(--border-primary);
+  box-shadow: 0 8px 24px -8px rgba(217, 70, 239, 0.2);
+}
+
+[data-theme="fun"] .btn-accent {
+  background: linear-gradient(135deg, #f472b6 0%, #d946ef 50%, #a78bfa 100%);
+  border-radius: var(--radius-full);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+[data-theme="fun"] .btn-accent:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 20px rgba(217, 70, 239, 0.4);
+}
+
+[data-theme="fun"] .app-header-icon {
+  background: linear-gradient(135deg, #f472b6 0%, #d946ef 50%, #a78bfa 100%);
+  border-radius: var(--radius-full);
+}
+
+/* ============================================
+   THEME: DARK MODE
+   ============================================ */
+[data-theme="dark"] {
+  --bg-primary: #0f0f0f;
+  --bg-secondary: #1a1a1a;
+  --bg-card: #242424;
+  --bg-hover: rgba(255,255,255,0.04);
+
+  --border-primary: #333333;
+  --border-secondary: #2a2a2a;
+  --border-accent: #444444;
+
+  --text-primary: #f0f0f0;
+  --text-secondary: #b0b0b0;
+  --text-muted: #808080;
+  --text-faint: #606060;
+
+  --accent-primary: #6366f1;
+  --accent-hover: #818cf8;
+  --accent-light: rgba(99, 102, 241, 0.15);
+
+  --danger: #ef4444;
+  --danger-hover: #f87171;
+  --danger-light: rgba(239, 68, 68, 0.15);
+  --success: #22c55e;
+  --success-light: rgba(34, 197, 94, 0.15);
+
+  --bar-1: #6366f1;
+  --bar-2: #22c55e;
+  --bar-3: #f59e0b;
+  --bar-4: #ec4899;
+  --bar-5: #06b6d4;
+  --bar-6: #8b5cf6;
+
+  --threat-bg: rgba(239, 68, 68, 0.12);
+  --threat-border: rgba(239, 68, 68, 0.4);
+  --opportunity-bg: rgba(34, 197, 94, 0.12);
+  --opportunity-border: rgba(34, 197, 94, 0.4);
+
+  --font-primary: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --radius-lg: 10px;
+  --radius-md: 6px;
+  --radius-sm: 4px;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+}
+
+[data-theme="dark"] body {
+  background: linear-gradient(180deg, #0a0a0a 0%, #0f0f0f 100%);
+}
+
+[data-theme="dark"] .card {
+  border: 1px solid var(--border-primary);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+[data-theme="dark"] .input-refined {
+  background: #1a1a1a;
+  border-color: var(--border-primary);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .input-refined:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+[data-theme="dark"] .input-refined::placeholder {
+  color: var(--text-faint);
+}
+
+[data-theme="dark"] .select-refined {
+  background-color: #1a1a1a;
+  border-color: var(--border-primary);
+  color: var(--text-secondary);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23808080' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+}
+
+[data-theme="dark"] .select-refined option {
+  background-color: #1a1a1a;
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .btn-secondary {
+  background: #1a1a1a;
+  border-color: var(--border-primary);
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .btn-secondary:hover {
+  background: #2a2a2a;
+  border-color: var(--border-accent);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .btn-accent {
+  background: linear-gradient(180deg, #6366f1 0%, #4f46e5 100%);
+}
+
+[data-theme="dark"] .btn-accent:hover {
+  background: linear-gradient(180deg, #818cf8 0%, #6366f1 100%);
+}
+
+[data-theme="dark"] .btn-danger {
+  background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);
+}
+
+[data-theme="dark"] .app-header-icon {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+}
+
+/* ============================================
+   THEME: TRADITIONAL / CLASSIC
+   ============================================ */
+[data-theme="traditional"] {
+  --bg-primary: #f8f9fa;
+  --bg-secondary: #e9ecef;
+  --bg-card: #ffffff;
+  --bg-hover: rgba(0,0,0,0.03);
+
+  --border-primary: #ced4da;
+  --border-secondary: #dee2e6;
+  --border-accent: #adb5bd;
+
+  --text-primary: #212529;
+  --text-secondary: #495057;
+  --text-muted: #6c757d;
+  --text-faint: #adb5bd;
+
+  --accent-primary: #0d6efd;
+  --accent-hover: #0b5ed7;
+  --accent-light: rgba(13, 110, 253, 0.1);
+
+  --danger: #dc3545;
+  --danger-hover: #bb2d3b;
+  --danger-light: rgba(220, 53, 69, 0.1);
+  --success: #198754;
+  --success-light: rgba(25, 135, 84, 0.1);
+
+  --bar-1: #0d6efd;
+  --bar-2: #198754;
+  --bar-3: #ffc107;
+  --bar-4: #dc3545;
+  --bar-5: #6f42c1;
+  --bar-6: #fd7e14;
+
+  --threat-bg: rgba(220, 53, 69, 0.08);
+  --threat-border: rgba(220, 53, 69, 0.3);
+  --opportunity-bg: rgba(25, 135, 84, 0.08);
+  --opportunity-border: rgba(25, 135, 84, 0.3);
+
+  --font-primary: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --font-mono: 'Consolas', 'Courier New', monospace;
+  --radius-lg: 4px;
+  --radius-md: 4px;
+  --radius-sm: 2px;
+
+  --shadow-md: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+[data-theme="traditional"] body {
+  background: var(--bg-primary);
+}
+
+[data-theme="traditional"] .card {
+  border: 1px solid var(--border-primary);
+  box-shadow: var(--shadow-md);
+}
+
+[data-theme="traditional"] .btn-accent {
+  background: var(--accent-primary);
+  border-radius: var(--radius-md);
+}
+
+[data-theme="traditional"] .btn-accent:hover {
+  background: var(--accent-hover);
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+* {
+  font-family: var(--font-primary);
+  box-sizing: border-box;
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+body {
+  background: var(--bg-primary);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  color: var(--text-primary);
+}
+
+/* ============================================
+   CUSTOM SCROLLBAR
+   ============================================ */
+.custom-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scroll::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: 3px;
+}
+
+.custom-scroll::-webkit-scrollbar-thumb {
+  background: var(--border-accent);
+  border-radius: 3px;
+}
+
+.custom-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--text-faint);
+}
+
+/* ============================================
+   INPUT STYLES
+   ============================================ */
+.input-refined {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-size: 14px;
+  color: var(--text-primary);
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-sm);
+}
+
+.input-refined:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--accent-light), var(--shadow-sm);
+}
+
+.input-refined::placeholder {
+  color: var(--text-faint);
+}
+
+.input-refined.input-sm {
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+/* Textarea */
+.textarea-refined {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-size: 14px;
+  color: var(--text-primary);
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-sm);
+  resize: vertical;
+  min-height: 80px;
+}
+
+.textarea-refined:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--accent-light), var(--shadow-sm);
+}
+
+.textarea-refined::placeholder {
+  color: var(--text-faint);
+}
+
+/* ============================================
+   BUTTON STYLES
+   ============================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  border: none;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--text-secondary);
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--bg-secondary);
+  border-color: var(--border-accent);
+}
+
+.btn-accent {
+  background: var(--accent-primary);
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-accent:hover:not(:disabled) {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: var(--danger-hover);
+}
+
+.btn-success {
+  background: var(--success);
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-sm {
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.btn-icon {
+  padding: 8px;
+  min-width: 36px;
+  height: 36px;
+}
+
+/* ============================================
+   CARD STYLES
+   ============================================ */
+.card {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-primary);
+  box-shadow: var(--shadow-md);
+}
+
+/* ============================================
+   SELECT STYLES
+   ============================================ */
+.select-refined {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  padding: 8px 32px 8px 12px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2378716c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  box-shadow: var(--shadow-sm);
+}
+
+.select-refined:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn var(--transition-slow) ease-out forwards;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-slide-in {
+  animation: slideIn 0.25s ease-out forwards;
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.2s ease-out forwards;
+}
+
+/* Fun theme bounce animation */
+[data-theme="fun"] .animate-fade-in {
+  animation: funFadeIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes funFadeIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ============================================
+   APP HEADER
+   ============================================ */
+.app-header-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, var(--text-secondary) 0%, var(--text-primary) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+}
+
+/* ============================================
+   THEME SELECTOR
+   ============================================ */
+.theme-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.theme-selector label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ============================================
+   RISK TABLE STYLES
+   ============================================ */
+.risk-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.risk-table th {
+  background: var(--bg-secondary);
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-primary);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.risk-table th:first-child {
+  border-top-left-radius: var(--radius-md);
+}
+
+.risk-table th:last-child {
+  border-top-right-radius: var(--radius-md);
+}
+
+.risk-row {
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
+
+.risk-row:hover {
+  background: var(--bg-hover);
+}
+
+.risk-row.threat {
+  background: var(--threat-bg);
+}
+
+.risk-row.threat:hover {
+  background: var(--threat-border);
+}
+
+.risk-row.opportunity {
+  background: var(--opportunity-bg);
+}
+
+.risk-row.opportunity:hover {
+  background: var(--opportunity-border);
+}
+
+.risk-row.expanded {
+  background: var(--accent-light);
+}
+
+.risk-row.excluded {
+  opacity: 0.5;
+}
+
+.risk-row.excluded td {
+  text-decoration: line-through;
+  text-decoration-color: var(--text-muted);
+}
+
+.risk-row.excluded td:first-child,
+.risk-row.excluded td:last-child {
+  text-decoration: none;
+}
+
+.risk-row td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-secondary);
+  font-size: 13px;
+  color: var(--text-secondary);
+  vertical-align: middle;
+}
+
+.risk-row td:first-child {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Risk Type Badge */
+.type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.type-badge.threat {
+  background: var(--danger-light);
+  color: var(--danger);
+}
+
+.type-badge.opportunity {
+  background: var(--success-light);
+  color: var(--success);
+}
+
+/* Expanded Form */
+.risk-form-row {
+  background: var(--bg-card);
+}
+
+.risk-form-row td {
+  padding: 0;
+}
+
+.risk-form {
+  padding: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.risk-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.risk-form-field.full-width {
+  grid-column: 1 / -1;
+}
+
+.risk-form-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.risk-form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-secondary);
+  margin-top: 8px;
+}
+
+/* Distribution Input Group */
+.distribution-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.distribution-group input {
+  width: 120px;
+  text-align: right;
+}
+
+.distribution-group span {
+  color: var(--text-faint);
+  font-size: 12px;
+}
+
+/* ============================================
+   SIMULATION PANEL STYLES
+   ============================================ */
+.simulation-panel {
+  margin-top: 24px;
+}
+
+.chart-container {
+  position: relative;
+  height: 300px;
+  width: 100%;
+}
+
+.chart-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.chart-toggle button {
+  flex: 1;
+}
+
+.chart-toggle button.active {
+  background: var(--accent-primary);
+  color: white;
+}
+
+.stats-panel {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.stat-item {
+  background: var(--bg-secondary);
+  padding: 12px;
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+
+.stat-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+}
+
+/* P-Value Slider */
+.p-slider-container {
+  margin-top: 16px;
+  padding: 16px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+}
+
+.p-slider-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.p-slider-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.p-slider-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--accent-primary);
+  font-family: var(--font-mono);
+}
+
+.p-slider {
+  width: 100%;
+  height: 8px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--border-primary);
+  border-radius: 4px;
+  outline: none;
+}
+
+.p-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: var(--accent-primary);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+}
+
+.p-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: var(--accent-primary);
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+  box-shadow: var(--shadow-md);
+}
+
+.p-presets {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.p-presets button {
+  flex: 1;
+  padding: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.p-presets button:hover {
+  background: var(--accent-light);
+  border-color: var(--accent-primary);
+}
+
+.p-presets button.active {
+  background: var(--accent-primary);
+  color: white;
+  border-color: var(--accent-primary);
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-muted { color: var(--text-muted); }
+.text-faint { color: var(--text-faint); }
+
+.bg-primary { background: var(--bg-primary); }
+.bg-secondary { background: var(--bg-secondary); }
+.bg-card { background: var(--bg-card); }
+
+.hidden {
+  display: none;
+}
+
+/* ============================================
+   TAB NAVIGATION
+   ============================================ */
+.tab-navigation {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-secondary);
+  padding: 4px;
+  border-radius: var(--radius-md);
+  margin-bottom: 0;
+}
+
+.tab-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.tab-button:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.tab-button.active {
+  color: var(--text-primary);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-sm);
+}
+
+.tab-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+[data-theme="fun"] .tab-navigation {
+  border-radius: var(--radius-full);
+  padding: 6px;
+}
+
+[data-theme="fun"] .tab-button {
+  border-radius: var(--radius-full);
+  font-weight: 600;
+}
+
+[data-theme="fun"] .tab-button.active {
+  background: linear-gradient(135deg, #f472b6 0%, #d946ef 50%, #a78bfa 100%);
+  color: white;
+}
+
+[data-theme="dark"] .tab-navigation {
+  background: #1a1a1a;
+}
+
+[data-theme="dark"] .tab-button.active {
+  background: var(--bg-card);
+}
+
+.tab-content {
+  margin-top: 16px;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+  .risk-form {
+    grid-template-columns: 1fr;
+  }
+
+  .distribution-group {
+    flex-wrap: wrap;
+  }
+
+  .distribution-group input {
+    width: 100px;
+  }
+}
+
+/* ============================================
+   DRAWER / SETTINGS PANEL
+   ============================================ */
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 100;
+  animation: fadeInOverlay 0.2s ease;
+}
+
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 400px;
+  max-width: 100vw;
+  background: var(--bg-card);
+  box-shadow: var(--shadow-lg);
+  z-index: 101;
+  animation: slideInRight 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.drawer-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.drawer-header h2 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.drawer-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.settings-section {
+  margin-bottom: 24px;
+}
+
+.settings-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-secondary);
+}
+
+.settings-field {
+  margin-bottom: 16px;
+}
+
+.settings-field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.settings-field .hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.settings-row {
+  display: flex;
+  gap: 12px;
+  align-items: end;
+}
+
+.settings-row > div {
+  flex: 1;
+}
+
+[data-theme="dark"] .drawer {
+  border-left: 1px solid var(--border-primary);
+}
+
+[data-theme="fun"] .drawer {
+  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+}
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useMemo } = React;
+
+    // ============================================
+    // THEME CONFIGURATION
+    // ============================================
+    const THEMES = {
+      blueprint: { name: 'Architectural Blueprint', description: 'Professional and refined' },
+      fun: { name: 'Fun & Vibrant', description: 'Playful and energetic' },
+      traditional: { name: 'Traditional', description: 'Classic and familiar' },
+      dark: { name: 'Dark Mode', description: 'Easy on the eyes' }
+    };
+
+    // ============================================
+    // ICONS
+    // ============================================
+    const IconRisk = () => (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+        <line x1="12" y1="9" x2="12" y2="13"/>
+        <line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+    );
+
+    const IconPlus = () => (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+    );
+
+    const IconPalette = () => (
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/>
+        <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.555C21.965 6.012 17.461 2 12 2z"/>
+      </svg>
+    );
+
+    const IconUpload = () => (
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+    );
+
+    const IconDownload = () => (
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+    );
+
+    const IconTrash = () => (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+      </svg>
+    );
+
+    const IconCheck = () => (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+    );
+
+    const IconX = () => (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M18 6L6 18M6 6l12 12"/>
+      </svg>
+    );
+
+    const IconPlay = () => (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <polygon points="5 3 19 12 5 21 5 3"/>
+      </svg>
+    );
+
+    const IconTrendingUp = () => (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+        <polyline points="17 6 23 6 23 12"/>
+      </svg>
+    );
+
+    const IconTrendingDown = () => (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/>
+        <polyline points="17 18 23 18 23 12"/>
+      </svg>
+    );
+
+    const IconChevronDown = () => (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+    );
+
+    const IconChevronUp = () => (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <polyline points="18 15 12 9 6 15"/>
+      </svg>
+    );
+
+    const IconSettings = () => (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    );
+
+    // ============================================
+    // DISTRIBUTION TYPES
+    // ============================================
+    const DISTRIBUTION_TYPES = {
+      triangular: { name: 'Triangular', description: 'Uses min, likely (mode), max' },
+      pert: { name: 'Beta-PERT', description: 'Weighted towards likely value (lambda=4)' },
+      uniform: { name: 'Uniform', description: 'Equal probability between min and max' }
+    };
+
+    // ============================================
+    // MONTE CARLO SIMULATION ENGINE
+    // ============================================
+
+    // Triangular distribution sampling
+    function sampleTriangular(min, mode, max) {
+      if (min === max) return min;
+      if (mode < min) mode = min;
+      if (mode > max) mode = max;
+
+      const u = Math.random();
+      const fc = (mode - min) / (max - min);
+
+      if (u < fc) {
+        return min + Math.sqrt(u * (max - min) * (mode - min));
+      } else {
+        return max - Math.sqrt((1 - u) * (max - min) * (max - mode));
+      }
+    }
+
+    // Uniform distribution sampling
+    function sampleUniform(min, max) {
+      if (min === max) return min;
+      return min + Math.random() * (max - min);
+    }
+
+    // Beta-PERT distribution sampling
+    // Uses the standard PERT with lambda=4 (default weighting)
+    function samplePERT(min, mode, max, lambda = 4) {
+      if (min === max) return min;
+      if (mode < min) mode = min;
+      if (mode > max) mode = max;
+
+      // Calculate mean of PERT distribution
+      const mean = (min + lambda * mode + max) / (lambda + 2);
+
+      // Calculate alpha and beta parameters for the beta distribution
+      // Using the standard PERT formulas
+      const range = max - min;
+      if (range === 0) return min;
+
+      // Avoid division by zero when mode equals mean
+      const modeMeanDiff = mean - min;
+      const maxMeanDiff = max - mean;
+
+      if (modeMeanDiff <= 0 || maxMeanDiff <= 0) {
+        // Fallback to triangular if parameters are degenerate
+        return sampleTriangular(min, mode, max);
+      }
+
+      const alpha = ((mean - min) * (2 * mode - min - max)) / ((mode - mean) * (max - min));
+      const beta = alpha * (max - mean) / (mean - min);
+
+      // Handle edge cases where alpha or beta might be invalid
+      if (!isFinite(alpha) || !isFinite(beta) || alpha <= 0 || beta <= 0) {
+        // Fallback to triangular distribution
+        return sampleTriangular(min, mode, max);
+      }
+
+      // Sample from beta distribution using the Jöhnk algorithm for alpha,beta < 1
+      // or rejection sampling for larger values
+      const betaSample = sampleBeta(alpha, beta);
+
+      // Scale to [min, max]
+      return min + betaSample * range;
+    }
+
+    // Beta distribution sampling using Gamma distribution method
+    function sampleBeta(alpha, beta) {
+      const gammaA = sampleGamma(alpha);
+      const gammaB = sampleGamma(beta);
+      return gammaA / (gammaA + gammaB);
+    }
+
+    // Gamma distribution sampling using Marsaglia and Tsang's method
+    function sampleGamma(shape) {
+      if (shape < 1) {
+        // Use Ahrens-Dieter method for shape < 1
+        return sampleGamma(shape + 1) * Math.pow(Math.random(), 1 / shape);
+      }
+
+      const d = shape - 1/3;
+      const c = 1 / Math.sqrt(9 * d);
+
+      while (true) {
+        let x, v;
+        do {
+          x = randomNormal();
+          v = 1 + c * x;
+        } while (v <= 0);
+
+        v = v * v * v;
+        const u = Math.random();
+
+        if (u < 1 - 0.0331 * (x * x) * (x * x)) {
+          return d * v;
+        }
+
+        if (Math.log(u) < 0.5 * x * x + d * (1 - v + Math.log(v))) {
+          return d * v;
+        }
+      }
+    }
+
+    // Box-Muller transform for normal distribution
+    function randomNormal() {
+      const u1 = Math.random();
+      const u2 = Math.random();
+      return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+    }
+
+    // Generic sampling function that selects the right distribution
+    function sampleDistribution(impact, distributionType = 'triangular') {
+      const { min, likely, max } = impact;
+
+      switch (distributionType) {
+        case 'uniform':
+          return sampleUniform(min, max);
+        case 'pert':
+          return samplePERT(min, likely, max);
+        case 'triangular':
+        default:
+          return sampleTriangular(min, likely, max);
+      }
+    }
+
+    // Calculate expected value based on distribution type
+    function getExpectedValue(impact, distributionType = 'triangular') {
+      const { min, likely, max } = impact;
+
+      switch (distributionType) {
+        case 'uniform':
+          // Uniform: mean = (min + max) / 2
+          return (min + max) / 2;
+        case 'pert':
+          // PERT with lambda=4: mean = (min + 4*mode + max) / 6
+          return (min + 4 * likely + max) / 6;
+        case 'triangular':
+        default:
+          // Triangular: mean = (min + mode + max) / 3
+          return (min + likely + max) / 3;
+      }
+    }
+
+    function runMonteCarloSimulation(risks, iterations = 5000, usePostAction = false) {
+      const costResults = [];
+      const timeResults = [];
+
+      for (let i = 0; i < iterations; i++) {
+        let totalCost = 0;
+        let totalTime = 0;
+
+        for (const risk of risks) {
+          // Use pre-action or post-action values based on flag
+          const likelihood = usePostAction ? (risk.postLikelihood ?? risk.likelihood) : risk.likelihood;
+          const impactCost = usePostAction ? (risk.postImpactCost ?? risk.impactCost) : risk.impactCost;
+          const impactTime = usePostAction ? (risk.postImpactTime ?? risk.impactTime) : risk.impactTime;
+          const costDistribution = usePostAction ? (risk.postCostDistribution ?? risk.costDistribution ?? 'triangular') : (risk.costDistribution ?? 'triangular');
+          const timeDistribution = usePostAction ? (risk.postTimeDistribution ?? risk.timeDistribution ?? 'triangular') : (risk.timeDistribution ?? 'triangular');
+
+          // Determine if risk occurs based on likelihood
+          if (Math.random() * 100 < likelihood) {
+            // Sample from the appropriate distribution
+            const costImpact = sampleDistribution(impactCost, costDistribution);
+            const timeImpact = sampleDistribution(impactTime, timeDistribution);
+
+            // Threats add, opportunities subtract
+            const multiplier = risk.type === 'threat' ? 1 : -1;
+            totalCost += costImpact * multiplier;
+            totalTime += timeImpact * multiplier;
+          }
+        }
+
+        costResults.push(totalCost);
+        timeResults.push(totalTime);
+      }
+
+      return { costResults, timeResults };
+    }
+
+    function runBothSimulations(risks, iterations = 10000) {
+      const preAction = runMonteCarloSimulation(risks, iterations, false);
+      const postAction = runMonteCarloSimulation(risks, iterations, true);
+      return { preAction, postAction };
+    }
+
+    function calculateStatistics(data) {
+      const sorted = [...data].sort((a, b) => a - b);
+      const n = sorted.length;
+
+      const mean = data.reduce((sum, v) => sum + v, 0) / n;
+      const min = sorted[0];
+      const max = sorted[n - 1];
+
+      const getPercentile = (p) => {
+        const index = Math.ceil((p / 100) * n) - 1;
+        return sorted[Math.max(0, Math.min(index, n - 1))];
+      };
+
+      return {
+        mean,
+        min,
+        max,
+        p10: getPercentile(10),
+        p50: getPercentile(50),
+        p80: getPercentile(80),
+        p90: getPercentile(90),
+        sorted
+      };
+    }
+
+    function createHistogramData(data, bins = 30) {
+      const min = Math.min(...data);
+      const max = Math.max(...data);
+      const binWidth = (max - min) / bins;
+
+      const histogram = Array(bins).fill(0);
+      const labels = [];
+
+      for (let i = 0; i < bins; i++) {
+        const binStart = min + i * binWidth;
+        const binEnd = binStart + binWidth;
+        labels.push(Math.round(binStart + binWidth / 2));
+      }
+
+      for (const value of data) {
+        const binIndex = Math.min(Math.floor((value - min) / binWidth), bins - 1);
+        histogram[binIndex]++;
+      }
+
+      return { histogram, labels, binWidth };
+    }
+
+    function createCDFData(sortedData, samplePoints = 100) {
+      const n = sortedData.length;
+      const step = Math.max(1, Math.floor(n / samplePoints));
+
+      const xValues = [];
+      const yValues = [];
+
+      for (let i = 0; i < n; i += step) {
+        xValues.push(sortedData[i]);
+        yValues.push((i + 1) / n * 100);
+      }
+
+      // Always include the last point
+      if (xValues[xValues.length - 1] !== sortedData[n - 1]) {
+        xValues.push(sortedData[n - 1]);
+        yValues.push(100);
+      }
+
+      return { xValues, yValues };
+    }
+
+    function getValueAtPercentile(sortedData, percentile) {
+      const n = sortedData.length;
+      const index = Math.ceil((percentile / 100) * n) - 1;
+      return sortedData[Math.max(0, Math.min(index, n - 1))];
+    }
+
+    // ============================================
+    // EMV TORNADO CHART CALCULATIONS
+    // ============================================
+    function calculateEMVData(risks, usePostAction = false) {
+      // Calculate EMV for each risk: EMV = Probability × Expected Impact
+      return risks.map(risk => {
+        const likelihood = usePostAction
+          ? (risk.postLikelihood ?? risk.likelihood) / 100
+          : risk.likelihood / 100;
+        const impactCost = usePostAction
+          ? (risk.postImpactCost ?? risk.impactCost)
+          : risk.impactCost;
+        const impactTime = usePostAction
+          ? (risk.postImpactTime ?? risk.impactTime)
+          : risk.impactTime;
+        const costDistribution = usePostAction
+          ? (risk.postCostDistribution ?? risk.costDistribution ?? 'triangular')
+          : (risk.costDistribution ?? 'triangular');
+        const timeDistribution = usePostAction
+          ? (risk.postTimeDistribution ?? risk.timeDistribution ?? 'triangular')
+          : (risk.timeDistribution ?? 'triangular');
+
+        // Expected value based on distribution type
+        const expectedCost = getExpectedValue(impactCost, costDistribution);
+        const expectedTime = getExpectedValue(impactTime, timeDistribution);
+
+        // EMV = Probability × Expected Impact
+        const emvCost = likelihood * expectedCost;
+        const emvTime = likelihood * expectedTime;
+
+        // Calculate range (swing) for sensitivity - difference between max and min possible outcomes
+        const costSwingLow = likelihood * impactCost.min;
+        const costSwingHigh = likelihood * impactCost.max;
+        const timeSwingLow = likelihood * impactTime.min;
+        const timeSwingHigh = likelihood * impactTime.max;
+
+        // Apply sign based on risk type (threats are positive cost/time, opportunities are negative)
+        const multiplier = risk.type === 'threat' ? 1 : -1;
+
+        return {
+          id: risk.id,
+          name: risk.name || risk.id,
+          type: risk.type,
+          emvCost: emvCost * multiplier,
+          emvTime: emvTime * multiplier,
+          costSwingLow: costSwingLow * multiplier,
+          costSwingHigh: costSwingHigh * multiplier,
+          timeSwingLow: timeSwingLow * multiplier,
+          timeSwingHigh: timeSwingHigh * multiplier,
+          // Absolute swing for sorting (largest impact first)
+          costSwing: Math.abs(costSwingHigh - costSwingLow),
+          timeSwing: Math.abs(timeSwingHigh - timeSwingLow)
+        };
+      });
+    }
+
+    function prepareTornadoData(risks, viewMode = 'cost', usePostAction = false) {
+      const emvData = calculateEMVData(risks, usePostAction);
+
+      // Sort by swing magnitude (largest first) - tornado shape
+      const sortField = viewMode === 'cost' ? 'costSwing' : 'timeSwing';
+      const sorted = [...emvData].sort((a, b) => b[sortField] - a[sortField]);
+
+      // Prepare chart data
+      const labels = sorted.map(r => r.name);
+      const lowValues = sorted.map(r => viewMode === 'cost' ? r.costSwingLow : r.timeSwingLow);
+      const highValues = sorted.map(r => viewMode === 'cost' ? r.costSwingHigh : r.timeSwingHigh);
+      const emvValues = sorted.map(r => viewMode === 'cost' ? r.emvCost : r.emvTime);
+      const types = sorted.map(r => r.type);
+
+      return { labels, lowValues, highValues, emvValues, types, sorted };
+    }
+
+    // ============================================
+    // UTILITY FUNCTIONS
+    // ============================================
+    const formatNumber = (num) => {
+      if (Math.abs(num) >= 1000000) {
+        return (num / 1000000).toFixed(2) + 'M';
+      } else if (Math.abs(num) >= 1000) {
+        return (num / 1000).toFixed(1) + 'K';
+      }
+      return num.toFixed(0);
+    };
+
+    const formatNumberFull = (num) => {
+      if (num === null || num === undefined || num === '') return '0';
+      return Number(num).toLocaleString();
+    };
+
+    const generateRiskId = (existingRisks) => {
+      const maxNum = existingRisks.reduce((max, r) => {
+        const match = r.id.match(/R(\d+)/);
+        return match ? Math.max(max, parseInt(match[1])) : max;
+      }, 0);
+      return `R${String(maxNum + 1).padStart(3, '0')}`;
+    };
+
+    // ============================================
+    // RISK ROW COMPONENT
+    // ============================================
+    const RiskRow = ({ risk, isExpanded, onToggleExpand, onUpdate, onDelete }) => {
+      // Ensure post-action fields have defaults for backwards compatibility
+      const riskWithDefaults = {
+        ...risk,
+        costDistribution: risk.costDistribution ?? 'triangular',
+        timeDistribution: risk.timeDistribution ?? 'triangular',
+        postLikelihood: risk.postLikelihood ?? risk.likelihood ?? 50,
+        postImpactCost: risk.postImpactCost ?? risk.impactCost ?? { min: 0, likely: 0, max: 0 },
+        postImpactTime: risk.postImpactTime ?? risk.impactTime ?? { min: 0, likely: 0, max: 0 },
+        postCostDistribution: risk.postCostDistribution ?? risk.costDistribution ?? 'triangular',
+        postTimeDistribution: risk.postTimeDistribution ?? risk.timeDistribution ?? 'triangular'
+      };
+      const [editData, setEditData] = useState({ ...riskWithDefaults });
+
+      useEffect(() => {
+        setEditData({ ...riskWithDefaults });
+      }, [risk]);
+
+      const handleSave = () => {
+        onUpdate(risk.id, editData);
+        onToggleExpand(null);
+      };
+
+      const handleCancel = () => {
+        setEditData({ ...risk });
+        onToggleExpand(null);
+      };
+
+      const handleDelete = () => {
+        if (confirm('Delete this risk? This cannot be undone.')) {
+          onDelete(risk.id);
+        }
+      };
+
+      const updateField = (field, value) => {
+        setEditData(prev => ({ ...prev, [field]: value }));
+      };
+
+      const updateNestedField = (parent, field, value) => {
+        setEditData(prev => ({
+          ...prev,
+          [parent]: { ...(prev[parent] || { min: 0, likely: 0, max: 0 }), [field]: parseFloat(value) || 0 }
+        }));
+      };
+
+      return (
+        <>
+          <tr
+            className={`risk-row ${risk.type} ${isExpanded ? 'expanded' : ''} ${risk.included === false ? 'excluded' : ''}`}
+            onClick={() => !isExpanded && onToggleExpand(risk.id)}
+          >
+            <td onClick={(e) => e.stopPropagation()} style={{ textAlign: 'center' }}>
+              <input
+                type="checkbox"
+                checked={risk.included !== false}
+                onChange={(e) => onUpdate(risk.id, { included: e.target.checked })}
+                style={{ cursor: 'pointer', width: '16px', height: '16px' }}
+              />
+            </td>
+            <td>{risk.id}</td>
+            <td style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{risk.name || '(unnamed)'}</td>
+            <td>
+              <span className={`type-badge ${risk.type}`}>
+                {risk.type === 'threat' ? <IconTrendingDown /> : <IconTrendingUp />}
+                {risk.type}
+              </span>
+            </td>
+            <td>{risk.owner || '-'}</td>
+            <td style={{ fontFamily: 'var(--font-mono)' }}>{risk.likelihood}%</td>
+            <td style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', whiteSpace: 'nowrap' }}>
+              {formatNumberFull(risk.impactCost.min)} / {formatNumberFull(risk.impactCost.likely)} / {formatNumberFull(risk.impactCost.max)}
+            </td>
+            <td style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', whiteSpace: 'nowrap' }}>
+              {formatNumberFull(risk.impactTime.min)} / {formatNumberFull(risk.impactTime.likely)} / {formatNumberFull(risk.impactTime.max)}
+            </td>
+            <td onClick={(e) => e.stopPropagation()}>
+              <button
+                className="btn btn-secondary btn-sm btn-icon"
+                onClick={() => onToggleExpand(isExpanded ? null : risk.id)}
+              >
+                {isExpanded ? <IconChevronUp /> : <IconChevronDown />}
+              </button>
+            </td>
+          </tr>
+          {isExpanded && (
+            <tr className="risk-form-row">
+              <td colSpan="9">
+                <div className="risk-form">
+                  <div className="risk-form-field">
+                    <label className="risk-form-label">Risk ID</label>
+                    <input
+                      type="text"
+                      className="input-refined input-sm"
+                      value={editData.id}
+                      onChange={(e) => updateField('id', e.target.value)}
+                    />
+                  </div>
+
+                  <div className="risk-form-field">
+                    <label className="risk-form-label">Risk Name</label>
+                    <input
+                      type="text"
+                      className="input-refined input-sm"
+                      value={editData.name}
+                      onChange={(e) => updateField('name', e.target.value)}
+                      placeholder="Risk name"
+                    />
+                  </div>
+
+                  <div className="risk-form-field">
+                    <label className="risk-form-label">Type</label>
+                    <select
+                      className="select-refined"
+                      value={editData.type}
+                      onChange={(e) => updateField('type', e.target.value)}
+                    >
+                      <option value="threat">Threat</option>
+                      <option value="opportunity">Opportunity</option>
+                    </select>
+                  </div>
+
+                  <div className="risk-form-field">
+                    <label className="risk-form-label">Owner</label>
+                    <input
+                      type="text"
+                      className="input-refined input-sm"
+                      value={editData.owner}
+                      onChange={(e) => updateField('owner', e.target.value)}
+                      placeholder="Risk owner"
+                    />
+                  </div>
+
+                  <div className="risk-form-field">
+                    <label className="risk-form-label">Include in Analysis</label>
+                    <div style={{ display: 'flex', alignItems: 'center', height: '36px' }}>
+                      <input
+                        type="checkbox"
+                        checked={editData.included !== false}
+                        onChange={(e) => updateField('included', e.target.checked)}
+                        style={{ cursor: 'pointer', width: '18px', height: '18px' }}
+                      />
+                      <span style={{ marginLeft: '8px', fontSize: '13px', color: 'var(--text-secondary)' }}>
+                        {editData.included !== false ? 'Included' : 'Excluded'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="risk-form-field full-width">
+                    <label className="risk-form-label">Description</label>
+                    <textarea
+                      className="textarea-refined"
+                      value={editData.description}
+                      onChange={(e) => updateField('description', e.target.value)}
+                      placeholder="Risk description..."
+                      rows="2"
+                    />
+                  </div>
+
+                  {/* Pre-Action Assessment Section */}
+                  <div className="risk-form-field full-width" style={{ marginTop: '8px', marginBottom: '4px' }}>
+                    <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.05em', paddingBottom: '8px', borderBottom: '1px solid var(--border-secondary)' }}>
+                      Pre-Action Assessment
+                    </div>
+                  </div>
+
+                  <div className="risk-form-field full-width">
+                    <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr 1fr', gap: '16px', alignItems: 'end' }}>
+                      <div>
+                        <label className="risk-form-label">Likelihood (%)</label>
+                        <input
+                          type="number"
+                          className="input-refined input-sm"
+                          value={editData.likelihood}
+                          onChange={(e) => updateField('likelihood', parseFloat(e.target.value) || 0)}
+                          min="0"
+                          max="100"
+                        />
+                      </div>
+                      <div>
+                        <label className="risk-form-label">Impact Cost (Min / Likely / Max)</label>
+                        <div className="distribution-group">
+                          <select
+                            className="select-refined"
+                            value={editData.costDistribution}
+                            onChange={(e) => updateField('costDistribution', e.target.value)}
+                            style={{ width: '100px', padding: '6px 24px 6px 8px', fontSize: '11px' }}
+                            title="Distribution type"
+                          >
+                            {Object.entries(DISTRIBUTION_TYPES).map(([key, { name }]) => (
+                              <option key={key} value={key}>{name}</option>
+                            ))}
+                          </select>
+                          <input
+                            type="number"
+                            className="input-refined input-sm"
+                            value={editData.impactCost.min}
+                            onChange={(e) => updateNestedField('impactCost', 'min', e.target.value)}
+                            placeholder="Min"
+                          />
+                          <span>/</span>
+                          <input
+                            type="number"
+                            className="input-refined input-sm"
+                            value={editData.impactCost.likely}
+                            onChange={(e) => updateNestedField('impactCost', 'likely', e.target.value)}
+                            placeholder="Likely"
+                            disabled={editData.costDistribution === 'uniform'}
+                            style={{ opacity: editData.costDistribution === 'uniform' ? 0.5 : 1 }}
+                          />
+                          <span>/</span>
+                          <input
+                            type="number"
+                            className="input-refined input-sm"
+                            value={editData.impactCost.max}
+                            onChange={(e) => updateNestedField('impactCost', 'max', e.target.value)}
+                            placeholder="Max"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="risk-form-label">Impact Time (Min / Likely / Max)</label>
+                        <div className="distribution-group">
+                          <select
+                            className="select-refined"
+                            value={editData.timeDistribution}
+                            onChange={(e) => updateField('timeDistribution', e.target.value)}
+                            style={{ width: '100px', padding: '6px 24px 6px 8px', fontSize: '11px' }}
+                            title="Distribution type"
+                          >
+                            {Object.entries(DISTRIBUTION_TYPES).map(([key, { name }]) => (
+                              <option key={key} value={key}>{name}</option>
+                            ))}
+                          </select>
+                          <input
+                            type="number"
+                            className="input-refined input-sm"
+                            value={editData.impactTime.min}
+                            onChange={(e) => updateNestedField('impactTime', 'min', e.target.value)}
+                            placeholder="Min"
+                          />
+                          <span>/</span>
+                          <input
+                            type="number"
+                            className="input-refined input-sm"
+                            value={editData.impactTime.likely}
+                            onChange={(e) => updateNestedField('impactTime', 'likely', e.target.value)}
+                            placeholder="Likely"
+                            disabled={editData.timeDistribution === 'uniform'}
+                            style={{ opacity: editData.timeDistribution === 'uniform' ? 0.5 : 1 }}
+                          />
+                          <span>/</span>
+                          <input
+                            type="number"
+                            className="input-refined input-sm"
+                            value={editData.impactTime.max}
+                            onChange={(e) => updateNestedField('impactTime', 'max', e.target.value)}
+                            placeholder="Max"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Mitigation Action Section */}
+                  <div className="risk-form-field full-width" style={{ marginTop: '16px', marginBottom: '4px' }}>
+                    <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.05em', paddingBottom: '8px', borderBottom: '1px solid var(--border-secondary)' }}>
+                      Mitigation Action
+                    </div>
+                  </div>
+
+                  <div className="risk-form-field full-width">
+                    <label className="risk-form-label">Action Name</label>
+                    <input
+                      type="text"
+                      className="input-refined input-sm"
+                      value={editData.actionName}
+                      onChange={(e) => updateField('actionName', e.target.value)}
+                      placeholder="Mitigation action"
+                    />
+                  </div>
+
+                  <div className="risk-form-field full-width">
+                    <label className="risk-form-label">Action Description</label>
+                    <textarea
+                      className="textarea-refined"
+                      value={editData.actionDescription}
+                      onChange={(e) => updateField('actionDescription', e.target.value)}
+                      placeholder="Action details..."
+                      rows="2"
+                    />
+                  </div>
+
+                  {/* Post-Action Assessment Section */}
+                  <div className="risk-form-field full-width" style={{ marginTop: '16px', marginBottom: '4px' }}>
+                    <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.05em', paddingBottom: '8px', borderBottom: '1px solid var(--border-secondary)' }}>
+                      Post-Action Assessment
+                    </div>
+                  </div>
+
+                  <div className="risk-form-field full-width">
+                    <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr 1fr', gap: '16px', alignItems: 'end' }}>
+                      <div>
+                        <label className="risk-form-label">Likelihood (%)</label>
+                        <input
+                          type="number"
+                          className="input-refined input-sm"
+                          value={editData.postLikelihood}
+                          onChange={(e) => updateField('postLikelihood', parseFloat(e.target.value) || 0)}
+                          min="0"
+                          max="100"
+                        />
+                      </div>
+                      <div>
+                        <label className="risk-form-label">Impact Cost (Min / Likely / Max)</label>
+                        <div className="distribution-group">
+                          <select
+                            className="select-refined"
+                            value={editData.postCostDistribution}
+                            onChange={(e) => updateField('postCostDistribution', e.target.value)}
+                            style={{ width: '100px', padding: '6px 24px 6px 8px', fontSize: '11px' }}
+                            title="Distribution type"
+                          >
+                            {Object.entries(DISTRIBUTION_TYPES).map(([key, { name }]) => (
+                              <option key={key} value={key}>{name}</option>
+                            ))}
+                          </select>
+                          <input
+                            type="number"
+                            className="input-refined input-sm"
+                            value={editData.postImpactCost.min}
+                            onChange={(e) => updateNestedField('postImpactCost', 'min', e.target.value)}
+                            placeholder="Min"
+                          />
+                          <span>/</span>
+                          <input
+                            type="number"
+                            className="input-refined input-sm"
+                            value={editData.postImpactCost.likely}
+                            onChange={(e) => updateNestedField('postImpactCost', 'likely', e.target.value)}
+                            placeholder="Likely"
+                            disabled={editData.postCostDistribution === 'uniform'}
+                            style={{ opacity: editData.postCostDistribution === 'uniform' ? 0.5 : 1 }}
+                          />
+                          <span>/</span>
+                          <input
+                            type="number"
+                            className="input-refined input-sm"
+                            value={editData.postImpactCost.max}
+                            onChange={(e) => updateNestedField('postImpactCost', 'max', e.target.value)}
+                            placeholder="Max"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="risk-form-label">Impact Time (Min / Likely / Max)</label>
+                        <div className="distribution-group">
+                          <select
+                            className="select-refined"
+                            value={editData.postTimeDistribution}
+                            onChange={(e) => updateField('postTimeDistribution', e.target.value)}
+                            style={{ width: '100px', padding: '6px 24px 6px 8px', fontSize: '11px' }}
+                            title="Distribution type"
+                          >
+                            {Object.entries(DISTRIBUTION_TYPES).map(([key, { name }]) => (
+                              <option key={key} value={key}>{name}</option>
+                            ))}
+                          </select>
+                          <input
+                            type="number"
+                            className="input-refined input-sm"
+                            value={editData.postImpactTime.min}
+                            onChange={(e) => updateNestedField('postImpactTime', 'min', e.target.value)}
+                            placeholder="Min"
+                          />
+                          <span>/</span>
+                          <input
+                            type="number"
+                            className="input-refined input-sm"
+                            value={editData.postImpactTime.likely}
+                            onChange={(e) => updateNestedField('postImpactTime', 'likely', e.target.value)}
+                            placeholder="Likely"
+                            disabled={editData.postTimeDistribution === 'uniform'}
+                            style={{ opacity: editData.postTimeDistribution === 'uniform' ? 0.5 : 1 }}
+                          />
+                          <span>/</span>
+                          <input
+                            type="number"
+                            className="input-refined input-sm"
+                            value={editData.postImpactTime.max}
+                            onChange={(e) => updateNestedField('postImpactTime', 'max', e.target.value)}
+                            placeholder="Max"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="risk-form-actions">
+                    <button className="btn btn-danger btn-sm" onClick={handleDelete}>
+                      <IconTrash /> Delete
+                    </button>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button className="btn btn-secondary btn-sm" onClick={handleCancel}>
+                        Cancel
+                      </button>
+                      <button className="btn btn-accent btn-sm" onClick={handleSave}>
+                        <IconCheck /> Save
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          )}
+        </>
+      );
+    };
+
+    // ============================================
+    // TORNADO CHART COMPONENT
+    // ============================================
+    const TornadoChart = ({ risks, viewMode }) => {
+      const tornadoChartRef = useRef(null);
+      const tornadoInstanceRef = useRef(null);
+
+      // Calculate tornado data for both pre and post action
+      const preTornadoData = useMemo(() => prepareTornadoData(risks, viewMode, false), [risks, viewMode]);
+      const postTornadoData = useMemo(() => prepareTornadoData(risks, viewMode, true), [risks, viewMode]);
+
+      // Total EMV calculations
+      const preTotalEMV = useMemo(() =>
+        preTornadoData.emvValues.reduce((sum, v) => sum + v, 0),
+        [preTornadoData]
+      );
+      const postTotalEMV = useMemo(() =>
+        postTornadoData.emvValues.reduce((sum, v) => sum + v, 0),
+        [postTornadoData]
+      );
+
+      useEffect(() => {
+        if (!tornadoChartRef.current || risks.length === 0) return;
+
+        if (tornadoInstanceRef.current) {
+          tornadoInstanceRef.current.destroy();
+        }
+
+        const ctx = tornadoChartRef.current.getContext('2d');
+        const dangerColor = getComputedStyle(document.documentElement).getPropertyValue('--danger').trim() || '#dc7c7c';
+        const successColor = getComputedStyle(document.documentElement).getPropertyValue('--success').trim() || '#22c55e';
+
+        // Use pre-action data for the tornado chart (sorted by impact)
+        const { labels, lowValues, highValues, emvValues, types } = preTornadoData;
+
+        // Create floating bar data for tornado effect
+        // Each bar shows the range from low to high impact
+        const barData = lowValues.map((low, i) => {
+          const high = highValues[i];
+          // For tornado chart, we show [min, max] as the bar range
+          return [Math.min(low, high), Math.max(low, high)];
+        });
+
+        // Color bars based on risk type
+        const backgroundColors = types.map(type =>
+          type === 'threat' ? dangerColor + '80' : successColor + '80'
+        );
+        const borderColors = types.map(type =>
+          type === 'threat' ? dangerColor : successColor
+        );
+
+        tornadoInstanceRef.current = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Impact Range (EMV)',
+              data: barData,
+              backgroundColor: backgroundColors,
+              borderColor: borderColors,
+              borderWidth: 1,
+              borderSkipped: false
+            }]
+          },
+          options: {
+            indexAxis: 'y', // Horizontal bars for tornado chart
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: false
+              },
+              title: {
+                display: true,
+                text: `EMV Tornado Chart - ${viewMode === 'cost' ? 'Cost' : 'Time'} Impact Sensitivity`,
+                font: { size: 14, weight: '500' }
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    const idx = context.dataIndex;
+                    const low = lowValues[idx];
+                    const high = highValues[idx];
+                    const emv = emvValues[idx];
+                    const type = types[idx];
+                    return [
+                      `Type: ${type === 'threat' ? 'Threat' : 'Opportunity'}`,
+                      `Range: ${formatNumber(low)} to ${formatNumber(high)}`,
+                      `EMV: ${formatNumber(emv)}`,
+                      `Swing: ${formatNumber(Math.abs(high - low))}`
+                    ];
+                  }
+                }
+              }
+            },
+            scales: {
+              x: {
+                title: {
+                  display: true,
+                  text: viewMode === 'cost' ? 'Cost Impact (EMV)' : 'Time Impact (EMV, days)'
+                },
+                grid: { display: true, color: 'rgba(0,0,0,0.05)' }
+              },
+              y: {
+                title: { display: false },
+                grid: { display: false }
+              }
+            }
+          }
+        });
+
+        return () => {
+          if (tornadoInstanceRef.current) {
+            tornadoInstanceRef.current.destroy();
+          }
+        };
+      }, [preTornadoData, viewMode, risks.length]);
+
+      if (risks.length === 0) {
+        return null;
+      }
+
+      const emvReduction = preTotalEMV !== 0 ? ((preTotalEMV - postTotalEMV) / Math.abs(preTotalEMV) * 100) : 0;
+
+      return (
+        <div className="card" style={{ padding: '16px', marginBottom: '16px' }}>
+          {/* EMV Summary */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '16px',
+            padding: '12px 16px',
+            background: 'var(--bg-secondary)',
+            borderRadius: 'var(--radius-md)'
+          }}>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '11px', fontWeight: '500', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>
+                Pre-Action Total EMV
+              </div>
+              <div style={{ fontSize: '20px', fontWeight: '600', color: 'var(--danger)', fontFamily: 'var(--font-mono)' }}>
+                {formatNumber(preTotalEMV)}
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ color: 'var(--text-faint)', fontSize: '20px' }}>→</span>
+              {emvReduction !== 0 && (
+                <span style={{
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  color: emvReduction > 0 ? 'var(--success)' : 'var(--danger)',
+                  background: emvReduction > 0 ? 'var(--success-light)' : 'var(--danger-light)',
+                  padding: '4px 10px',
+                  borderRadius: 'var(--radius-sm)'
+                }}>
+                  {emvReduction > 0 ? '↓' : '↑'} {Math.abs(emvReduction).toFixed(1)}%
+                </span>
+              )}
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '11px', fontWeight: '500', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>
+                Post-Action Total EMV
+              </div>
+              <div style={{ fontSize: '20px', fontWeight: '600', color: 'var(--success)', fontFamily: 'var(--font-mono)' }}>
+                {formatNumber(postTotalEMV)}
+              </div>
+            </div>
+          </div>
+
+          {/* Tornado Chart */}
+          <div className="chart-container" style={{ height: Math.max(200, risks.length * 40 + 80) + 'px' }}>
+            <canvas ref={tornadoChartRef}></canvas>
+          </div>
+
+          {/* Legend */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', marginTop: '12px', fontSize: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ width: '16px', height: '12px', background: 'var(--danger)', opacity: 0.5, borderRadius: '2px', border: '1px solid var(--danger)' }}></div>
+              <span style={{ color: 'var(--text-muted)' }}>Threats (cost/time increase)</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ width: '16px', height: '12px', background: 'var(--success)', opacity: 0.5, borderRadius: '2px', border: '1px solid var(--success)' }}></div>
+              <span style={{ color: 'var(--text-muted)' }}>Opportunities (cost/time decrease)</span>
+            </div>
+          </div>
+
+          {/* Risk EMV Table */}
+          <div style={{ marginTop: '16px', overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border-primary)' }}>
+                  <th style={{ padding: '8px', textAlign: 'left', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '10px' }}>Rank</th>
+                  <th style={{ padding: '8px', textAlign: 'left', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '10px' }}>Risk</th>
+                  <th style={{ padding: '8px', textAlign: 'left', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '10px' }}>Type</th>
+                  <th style={{ padding: '8px', textAlign: 'right', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '10px' }}>Pre-EMV</th>
+                  <th style={{ padding: '8px', textAlign: 'right', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '10px' }}>Post-EMV</th>
+                  <th style={{ padding: '8px', textAlign: 'right', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '10px' }}>Swing</th>
+                </tr>
+              </thead>
+              <tbody>
+                {preTornadoData.sorted.map((risk, idx) => {
+                  const postRisk = postTornadoData.sorted.find(r => r.id === risk.id);
+                  const preEMV = viewMode === 'cost' ? risk.emvCost : risk.emvTime;
+                  const postEMV = postRisk ? (viewMode === 'cost' ? postRisk.emvCost : postRisk.emvTime) : preEMV;
+                  const swing = viewMode === 'cost' ? risk.costSwing : risk.timeSwing;
+                  return (
+                    <tr key={risk.id} style={{ borderBottom: '1px solid var(--border-secondary)' }}>
+                      <td style={{ padding: '8px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{idx + 1}</td>
+                      <td style={{ padding: '8px', color: 'var(--text-primary)', fontWeight: '500' }}>{risk.name}</td>
+                      <td style={{ padding: '8px' }}>
+                        <span style={{
+                          fontSize: '10px',
+                          fontWeight: '600',
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                          background: risk.type === 'threat' ? 'var(--danger-light)' : 'var(--success-light)',
+                          color: risk.type === 'threat' ? 'var(--danger)' : 'var(--success)'
+                        }}>
+                          {risk.type}
+                        </span>
+                      </td>
+                      <td style={{ padding: '8px', textAlign: 'right', fontFamily: 'var(--font-mono)', color: 'var(--danger)' }}>
+                        {formatNumber(preEMV)}
+                      </td>
+                      <td style={{ padding: '8px', textAlign: 'right', fontFamily: 'var(--font-mono)', color: 'var(--success)' }}>
+                        {formatNumber(postEMV)}
+                      </td>
+                      <td style={{ padding: '8px', textAlign: 'right', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
+                        {formatNumber(swing)}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+              <tfoot>
+                <tr style={{ borderTop: '2px solid var(--border-primary)', fontWeight: '600' }}>
+                  <td colSpan="3" style={{ padding: '8px', textAlign: 'right', color: 'var(--text-muted)' }}>TOTAL</td>
+                  <td style={{ padding: '8px', textAlign: 'right', fontFamily: 'var(--font-mono)', color: 'var(--danger)' }}>
+                    {formatNumber(preTotalEMV)}
+                  </td>
+                  <td style={{ padding: '8px', textAlign: 'right', fontFamily: 'var(--font-mono)', color: 'var(--success)' }}>
+                    {formatNumber(postTotalEMV)}
+                  </td>
+                  <td style={{ padding: '8px', textAlign: 'right', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
+                    -
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      );
+    };
+
+    // ============================================
+    // TORNADO PANEL COMPONENT (Tab 2)
+    // ============================================
+    const TornadoPanel = ({ risks, isSimulating }) => {
+      const [viewMode, setViewMode] = useState('cost');
+
+      if (isSimulating) {
+        return (
+          <div className="card p-8 text-center animate-fade-in">
+            <div style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Running simulation...</div>
+          </div>
+        );
+      }
+
+      if (risks.length === 0) {
+        return (
+          <div className="card p-8 text-center animate-fade-in">
+            <div style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Add risks in the Risk Register tab to see the Tornado Chart.</div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="animate-fade-in">
+          {/* View Mode Toggle */}
+          <div className="chart-toggle" style={{ marginBottom: '16px' }}>
+            <button
+              className={`btn btn-secondary ${viewMode === 'cost' ? 'active' : ''}`}
+              onClick={() => setViewMode('cost')}
+            >
+              Cost Impact
+            </button>
+            <button
+              className={`btn btn-secondary ${viewMode === 'time' ? 'active' : ''}`}
+              onClick={() => setViewMode('time')}
+            >
+              Time Impact
+            </button>
+          </div>
+
+          {/* Tornado Chart */}
+          <TornadoChart risks={risks} viewMode={viewMode} />
+        </div>
+      );
+    };
+
+    // ============================================
+    // PRIORITY CHART COMPONENT (Tab 4)
+    // ============================================
+    const PriorityPanel = ({ risks, isSimulating }) => {
+      const [viewMode, setViewMode] = useState('cost'); // 'cost' or 'time'
+      const [usePostAction, setUsePostAction] = useState(false);
+      const [highlightedRisk, setHighlightedRisk] = useState(null);
+      const chartRef = useRef(null);
+      const chartInstanceRef = useRef(null);
+
+      // Calculate priority data for each risk
+      const priorityData = useMemo(() => {
+        return risks.map(risk => {
+          const likelihood = usePostAction
+            ? (risk.postLikelihood ?? risk.likelihood)
+            : risk.likelihood;
+          const impact = viewMode === 'cost'
+            ? (usePostAction ? (risk.postImpactCost ?? risk.impactCost) : risk.impactCost)
+            : (usePostAction ? (risk.postImpactTime ?? risk.impactTime) : risk.impactTime);
+          const distributionType = viewMode === 'cost'
+            ? (usePostAction ? (risk.postCostDistribution ?? risk.costDistribution ?? 'triangular') : (risk.costDistribution ?? 'triangular'))
+            : (usePostAction ? (risk.postTimeDistribution ?? risk.timeDistribution ?? 'triangular') : (risk.timeDistribution ?? 'triangular'));
+
+          // Expected value based on distribution type
+          const expectedImpact = getExpectedValue(impact, distributionType);
+          // EMV for sizing/priority
+          const emv = (likelihood / 100) * expectedImpact;
+
+          // For opportunities, negate the impact values (they represent savings/benefits)
+          const isOpportunity = risk.type === 'opportunity';
+          const sign = isOpportunity ? -1 : 1;
+
+          return {
+            id: risk.id,
+            name: risk.name || risk.id,
+            type: risk.type,
+            likelihood,
+            // For opportunities: min becomes -max (largest saving), max becomes -min (smallest saving)
+            min: isOpportunity ? -impact.max : impact.min,
+            likely: isOpportunity ? -impact.likely : impact.likely,
+            max: isOpportunity ? -impact.min : impact.max,
+            expected: sign * expectedImpact,
+            distributionType,
+            emv: sign * emv
+          };
+        });
+      }, [risks, viewMode, usePostAction]);
+
+      // Calculate axis bounds to include all whiskers (threats positive, opportunities negative)
+      const xAxisBounds = useMemo(() => {
+        if (priorityData.length === 0) return { min: -100, max: 100 };
+        const allValues = priorityData.flatMap(r => [r.min, r.max]);
+        const maxValue = Math.max(...allValues, 0);
+        const minValue = Math.min(...allValues, 0);
+        // Add 10% padding, ensure symmetric if needed
+        const absMax = Math.max(Math.abs(maxValue), Math.abs(minValue));
+        return {
+          min: minValue < 0 ? minValue * 1.1 : 0,
+          max: maxValue > 0 ? maxValue * 1.1 : absMax * 0.1
+        };
+      }, [priorityData]);
+
+      useEffect(() => {
+        if (!chartRef.current || risks.length === 0) return;
+
+        if (chartInstanceRef.current) {
+          chartInstanceRef.current.destroy();
+        }
+
+        const ctx = chartRef.current.getContext('2d');
+        const dangerColor = getComputedStyle(document.documentElement).getPropertyValue('--danger').trim() || '#dc7c7c';
+        const successColor = getComputedStyle(document.documentElement).getPropertyValue('--success').trim() || '#22c55e';
+
+        // Prepare data for scatter chart with error bars
+        const threatData = priorityData
+          .filter(r => r.type === 'threat')
+          .map(r => {
+            const isHighlighted = highlightedRisk === null || highlightedRisk === r.id;
+            return {
+              x: r.expected,
+              y: r.likelihood,
+              xMin: r.min,
+              xMax: r.max,
+              name: r.name,
+              id: r.id,
+              emv: r.emv,
+              isHighlighted
+            };
+          });
+
+        const opportunityData = priorityData
+          .filter(r => r.type === 'opportunity')
+          .map(r => {
+            const isHighlighted = highlightedRisk === null || highlightedRisk === r.id;
+            return {
+              x: r.expected,
+              y: r.likelihood,
+              xMin: r.min,
+              xMax: r.max,
+              name: r.name,
+              id: r.id,
+              emv: r.emv,
+              isHighlighted
+            };
+          });
+
+        // Custom plugin to draw horizontal error bars
+        const errorBarPlugin = {
+          id: 'errorBars',
+          afterDatasetsDraw(chart) {
+            const ctx = chart.ctx;
+
+            chart.data.datasets.forEach((dataset, datasetIndex) => {
+              const meta = chart.getDatasetMeta(datasetIndex);
+              const baseColor = dataset.borderColor;
+
+              meta.data.forEach((point, index) => {
+                const data = dataset.data[index];
+                if (!data || data.xMin === undefined || data.xMax === undefined) return;
+
+                const xScale = chart.scales.x;
+                const yPos = point.y;
+                const xMin = xScale.getPixelForValue(data.xMin);
+                const xMax = xScale.getPixelForValue(data.xMax);
+
+                ctx.save();
+                ctx.strokeStyle = baseColor;
+                ctx.lineWidth = data.isHighlighted ? 3 : 1;
+                ctx.globalAlpha = data.isHighlighted ? 1 : 0.15;
+
+                // Draw horizontal line (the range bar)
+                ctx.beginPath();
+                ctx.moveTo(xMin, yPos);
+                ctx.lineTo(xMax, yPos);
+                ctx.stroke();
+
+                // Draw caps at ends
+                const capHeight = data.isHighlighted ? 10 : 6;
+                ctx.beginPath();
+                ctx.moveTo(xMin, yPos - capHeight/2);
+                ctx.lineTo(xMin, yPos + capHeight/2);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(xMax, yPos - capHeight/2);
+                ctx.lineTo(xMax, yPos + capHeight/2);
+                ctx.stroke();
+
+                ctx.restore();
+              });
+            });
+          }
+        };
+
+        // Generate per-point colours based on highlight state
+        const threatBgColors = threatData.map(d =>
+          d.isHighlighted ? dangerColor + 'cc' : dangerColor + '20'
+        );
+        const threatBorderColors = threatData.map(d =>
+          d.isHighlighted ? dangerColor : dangerColor + '40'
+        );
+        const opportunityBgColors = opportunityData.map(d =>
+          d.isHighlighted ? successColor + 'cc' : successColor + '20'
+        );
+        const opportunityBorderColors = opportunityData.map(d =>
+          d.isHighlighted ? successColor : successColor + '40'
+        );
+        const threatRadii = threatData.map(d => d.isHighlighted ? 10 : 6);
+        const opportunityRadii = opportunityData.map(d => d.isHighlighted ? 10 : 6);
+
+        chartInstanceRef.current = new Chart(ctx, {
+          type: 'scatter',
+          data: {
+            datasets: [
+              {
+                label: 'Threats',
+                data: threatData,
+                backgroundColor: threatBgColors,
+                borderColor: threatBorderColors,
+                borderWidth: 2,
+                pointRadius: threatRadii,
+                pointHoverRadius: 12
+              },
+              {
+                label: 'Opportunities',
+                data: opportunityData,
+                backgroundColor: opportunityBgColors,
+                borderColor: opportunityBorderColors,
+                borderWidth: 2,
+                pointRadius: opportunityRadii,
+                pointHoverRadius: 12
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: true,
+                position: 'top',
+                labels: { usePointStyle: true, padding: 20 }
+              },
+              title: {
+                display: true,
+                text: `Risk Priority: Likelihood vs ${viewMode === 'cost' ? 'Cost' : 'Time'} Impact`,
+                font: { size: 14, weight: '500' }
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    const data = context.raw;
+                    return [
+                      `${data.name}`,
+                      `Likelihood: ${data.y.toFixed(0)}%`,
+                      `Impact Range: ${formatNumber(data.xMin)} - ${formatNumber(data.xMax)}`,
+                      `Expected: ${formatNumber(data.x)}`,
+                      `EMV: ${formatNumber(Math.abs(data.emv))}`
+                    ];
+                  }
+                }
+              }
+            },
+            scales: {
+              x: {
+                type: 'linear',
+                position: 'bottom',
+                title: {
+                  display: true,
+                  text: viewMode === 'cost' ? 'Cost Impact (Opportunities ← 0 → Threats)' : 'Time Impact (Opportunities ← 0 → Threats)'
+                },
+                min: xAxisBounds.min,
+                max: xAxisBounds.max,
+                grid: { display: true, color: 'rgba(0,0,0,0.05)' }
+              },
+              y: {
+                type: 'linear',
+                title: {
+                  display: true,
+                  text: 'Likelihood (%)'
+                },
+                min: 0,
+                max: 100,
+                grid: { display: true, color: 'rgba(0,0,0,0.05)' }
+              }
+            }
+          },
+          plugins: [errorBarPlugin]
+        });
+
+        return () => {
+          if (chartInstanceRef.current) {
+            chartInstanceRef.current.destroy();
+          }
+        };
+      }, [priorityData, viewMode, risks.length, highlightedRisk, xAxisBounds]);
+
+      if (isSimulating) {
+        return (
+          <div className="card p-8 text-center animate-fade-in">
+            <div style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Loading...</div>
+          </div>
+        );
+      }
+
+      if (risks.length === 0) {
+        return (
+          <div className="card p-8 text-center animate-fade-in">
+            <div style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Add risks in the Risk Register tab to see the Priority Chart.</div>
+          </div>
+        );
+      }
+
+      // Sort by EMV magnitude for the table
+      const sortedByPriority = [...priorityData].sort((a, b) => Math.abs(b.emv) - Math.abs(a.emv));
+
+      return (
+        <div className="animate-fade-in">
+          {/* Controls */}
+          <div style={{ display: 'flex', gap: '16px', marginBottom: '16px', flexWrap: 'wrap' }}>
+            <div className="chart-toggle">
+              <button
+                className={`btn btn-secondary ${viewMode === 'cost' ? 'active' : ''}`}
+                onClick={() => setViewMode('cost')}
+              >
+                Cost Impact
+              </button>
+              <button
+                className={`btn btn-secondary ${viewMode === 'time' ? 'active' : ''}`}
+                onClick={() => setViewMode('time')}
+              >
+                Time Impact
+              </button>
+            </div>
+            <div className="chart-toggle">
+              <button
+                className={`btn btn-secondary ${!usePostAction ? 'active' : ''}`}
+                onClick={() => setUsePostAction(false)}
+              >
+                Pre-Action
+              </button>
+              <button
+                className={`btn btn-secondary ${usePostAction ? 'active' : ''}`}
+                onClick={() => setUsePostAction(true)}
+              >
+                Post-Action
+              </button>
+            </div>
+          </div>
+
+          {/* Chart */}
+          <div className="card" style={{ padding: '16px', marginBottom: '16px' }}>
+            <div className="chart-container" style={{ height: '400px' }}>
+              <canvas ref={chartRef}></canvas>
+            </div>
+
+            {/* Interpretation Guide */}
+            <div style={{
+              marginTop: '16px',
+              padding: '12px 16px',
+              background: 'var(--bg-secondary)',
+              borderRadius: 'var(--radius-md)',
+              fontSize: '12px',
+              color: 'var(--text-muted)'
+            }}>
+              <strong style={{ color: 'var(--text-secondary)' }}>Reading the chart:</strong> Each point shows the expected impact (centre) with horizontal bars indicating the min-max range.
+              Wider bars = more uncertainty. Upper-right quadrant = high priority threats. Lower values = lower priority.
+            </div>
+          </div>
+
+          {/* Priority Table */}
+          <div className="card" style={{ padding: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <h3 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)', margin: 0 }}>
+                Priority Ranking (by EMV)
+              </h3>
+              {highlightedRisk && (
+                <button
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => setHighlightedRisk(null)}
+                  style={{ fontSize: '11px', padding: '4px 10px' }}
+                >
+                  Clear highlight
+                </button>
+              )}
+            </div>
+            <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '12px' }}>
+              Click a row to highlight that risk in the chart. Click again to toggle off.
+            </p>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border-primary)' }}>
+                  <th style={{ padding: '8px', textAlign: 'left', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '10px' }}>Rank</th>
+                  <th style={{ padding: '8px', textAlign: 'left', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '10px' }}>Risk</th>
+                  <th style={{ padding: '8px', textAlign: 'left', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '10px' }}>Type</th>
+                  <th style={{ padding: '8px', textAlign: 'left', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '10px' }}>Dist.</th>
+                  <th style={{ padding: '8px', textAlign: 'right', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '10px' }}>Likelihood</th>
+                  <th style={{ padding: '8px', textAlign: 'right', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '10px' }}>Min</th>
+                  <th style={{ padding: '8px', textAlign: 'right', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '10px' }}>Likely</th>
+                  <th style={{ padding: '8px', textAlign: 'right', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '10px' }}>Max</th>
+                  <th style={{ padding: '8px', textAlign: 'right', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '10px' }}>EMV</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedByPriority.map((risk, idx) => {
+                  const isHighlighted = highlightedRisk === risk.id;
+                  const isDimmed = highlightedRisk !== null && !isHighlighted;
+                  return (
+                    <tr
+                      key={risk.id}
+                      onClick={() => setHighlightedRisk(isHighlighted ? null : risk.id)}
+                      style={{
+                        borderBottom: '1px solid var(--border-secondary)',
+                        cursor: 'pointer',
+                        background: isHighlighted ? 'var(--accent-light)' : 'transparent',
+                        opacity: isDimmed ? 0.4 : 1,
+                        transition: 'all 0.15s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isHighlighted) e.currentTarget.style.background = 'var(--bg-hover)';
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isHighlighted) e.currentTarget.style.background = 'transparent';
+                      }}
+                    >
+                      <td style={{ padding: '8px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{idx + 1}</td>
+                      <td style={{ padding: '8px', color: 'var(--text-primary)', fontWeight: isHighlighted ? '600' : '500' }}>{risk.name}</td>
+                      <td style={{ padding: '8px' }}>
+                        <span style={{
+                          fontSize: '10px',
+                          fontWeight: '600',
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                          background: risk.type === 'threat' ? 'var(--danger-light)' : 'var(--success-light)',
+                          color: risk.type === 'threat' ? 'var(--danger)' : 'var(--success)'
+                        }}>
+                          {risk.type}
+                        </span>
+                      </td>
+                      <td style={{ padding: '8px' }}>
+                        <span style={{
+                          fontSize: '10px',
+                          fontWeight: '500',
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                          background: 'var(--bg-secondary)',
+                          color: 'var(--text-muted)'
+                        }}>
+                          {DISTRIBUTION_TYPES[risk.distributionType]?.name || 'Tri'}
+                        </span>
+                      </td>
+                      <td style={{ padding: '8px', textAlign: 'right', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
+                        {risk.likelihood.toFixed(0)}%
+                      </td>
+                      <td style={{ padding: '8px', textAlign: 'right', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
+                        {formatNumber(risk.min)}
+                      </td>
+                      <td style={{ padding: '8px', textAlign: 'right', fontFamily: 'var(--font-mono)', color: risk.distributionType === 'uniform' ? 'var(--text-faint)' : 'var(--text-secondary)' }}>
+                        {risk.distributionType === 'uniform' ? '-' : formatNumber(risk.likely)}
+                      </td>
+                      <td style={{ padding: '8px', textAlign: 'right', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
+                        {formatNumber(risk.max)}
+                      </td>
+                      <td style={{
+                        padding: '8px',
+                        textAlign: 'right',
+                        fontFamily: 'var(--font-mono)',
+                        fontWeight: '600',
+                        color: risk.type === 'threat' ? 'var(--danger)' : 'var(--success)'
+                      }}>
+                        {formatNumber(Math.abs(risk.emv))}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    };
+
+    // ============================================
+    // MONTE CARLO PANEL COMPONENT (Tab 3)
+    // ============================================
+    const MonteCarloPanel = ({ simulationResults, risks, isSimulating }) => {
+      const [viewMode, setViewMode] = useState('cost');
+      const [prePValue, setPrePValue] = useState(80);
+      const [postPValue, setPostPValue] = useState(80);
+      const histogramChartRef = useRef(null);
+      const cdfChartRef = useRef(null);
+      const histogramInstanceRef = useRef(null);
+      const cdfInstanceRef = useRef(null);
+
+      // Determine if we have valid data to display
+      const hasValidData = simulationResults && risks.length > 0 && !isSimulating;
+
+      // Get pre-action and post-action data (use empty arrays as fallback)
+      const preData = hasValidData
+        ? (viewMode === 'cost' ? simulationResults.preAction.costResults : simulationResults.preAction.timeResults)
+        : [];
+      const postData = hasValidData
+        ? (viewMode === 'cost' ? simulationResults.postAction.costResults : simulationResults.postAction.timeResults)
+        : [];
+
+      // All hooks must be called unconditionally (before any early returns)
+      const preStats = useMemo(() => preData.length > 0 ? calculateStatistics(preData) : { sorted: [], mean: 0, min: 0, max: 0, p10: 0, p50: 0, p80: 0, p90: 0 }, [preData]);
+      const postStats = useMemo(() => postData.length > 0 ? calculateStatistics(postData) : { sorted: [], mean: 0, min: 0, max: 0, p10: 0, p50: 0, p80: 0, p90: 0 }, [postData]);
+
+      const preHistogramData = useMemo(() => preData.length > 0 ? createHistogramData(preData) : { labels: [], histogram: [] }, [preData]);
+      const postHistogramData = useMemo(() => postData.length > 0 ? createHistogramData(postData) : { labels: [], histogram: [] }, [postData]);
+
+      const preCdfData = useMemo(() => preStats.sorted.length > 0 ? createCDFData(preStats.sorted) : { xValues: [], yValues: [] }, [preStats.sorted]);
+      const postCdfData = useMemo(() => postStats.sorted.length > 0 ? createCDFData(postStats.sorted) : { xValues: [], yValues: [] }, [postStats.sorted]);
+
+      const preValueAtP = useMemo(() => preStats.sorted.length > 0 ? getValueAtPercentile(preStats.sorted, prePValue) : 0, [preStats.sorted, prePValue]);
+      const postValueAtP = useMemo(() => postStats.sorted.length > 0 ? getValueAtPercentile(postStats.sorted, postPValue) : 0, [postStats.sorted, postPValue]);
+
+      const reduction = preValueAtP !== 0 ? ((preValueAtP - postValueAtP) / Math.abs(preValueAtP) * 100) : 0;
+
+      // Create/Update Histogram Chart with both pre and post action bars
+      useEffect(() => {
+        if (!histogramChartRef.current || !hasValidData) return;
+
+        if (histogramInstanceRef.current) {
+          histogramInstanceRef.current.destroy();
+        }
+
+        const ctx = histogramChartRef.current.getContext('2d');
+        const dangerColor = getComputedStyle(document.documentElement).getPropertyValue('--danger').trim() || '#dc7c7c';
+        const successColor = getComputedStyle(document.documentElement).getPropertyValue('--success').trim() || '#22c55e';
+
+        histogramInstanceRef.current = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: preHistogramData.labels,
+            datasets: [
+              {
+                label: 'Pre-Action',
+                data: preHistogramData.histogram,
+                backgroundColor: dangerColor + '80',
+                borderColor: dangerColor,
+                borderWidth: 1
+              },
+              {
+                label: 'Post-Action',
+                data: postHistogramData.histogram,
+                backgroundColor: successColor + '80',
+                borderColor: successColor,
+                borderWidth: 1
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: true,
+                position: 'top',
+                labels: { usePointStyle: true, padding: 20 }
+              },
+              title: {
+                display: true,
+                text: `${viewMode === 'cost' ? 'Cost' : 'Time'} Impact Distribution (10,000 iterations)`,
+                font: { size: 14, weight: '500' }
+              }
+            },
+            scales: {
+              x: {
+                title: { display: true, text: viewMode === 'cost' ? 'Cost Impact' : 'Time Impact (days)' },
+                grid: { display: false }
+              },
+              y: {
+                title: { display: true, text: 'Frequency' },
+                beginAtZero: true
+              }
+            }
+          }
+        });
+
+        return () => {
+          if (histogramInstanceRef.current) {
+            histogramInstanceRef.current.destroy();
+          }
+        };
+      }, [preHistogramData, postHistogramData, viewMode, hasValidData]);
+
+      // Create/Update CDF Chart with both pre and post action curves
+      useEffect(() => {
+        if (!cdfChartRef.current || !hasValidData) return;
+
+        if (cdfInstanceRef.current) {
+          cdfInstanceRef.current.destroy();
+        }
+
+        const ctx = cdfChartRef.current.getContext('2d');
+        const dangerColor = getComputedStyle(document.documentElement).getPropertyValue('--danger').trim() || '#dc7c7c';
+        const successColor = getComputedStyle(document.documentElement).getPropertyValue('--success').trim() || '#22c55e';
+
+        cdfInstanceRef.current = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: preCdfData.xValues,
+            datasets: [
+              {
+                label: 'Pre-Action',
+                data: preCdfData.xValues.map((x, i) => ({ x, y: preCdfData.yValues[i] })),
+                borderColor: dangerColor,
+                backgroundColor: dangerColor + '20',
+                fill: false,
+                tension: 0.3,
+                pointRadius: 0,
+                borderWidth: 2
+              },
+              {
+                label: 'Post-Action',
+                data: postCdfData.xValues.map((x, i) => ({ x, y: postCdfData.yValues[i] })),
+                borderColor: successColor,
+                backgroundColor: successColor + '20',
+                fill: false,
+                tension: 0.3,
+                pointRadius: 0,
+                borderWidth: 2
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: true,
+                position: 'top',
+                labels: { usePointStyle: true, padding: 20 }
+              },
+              title: {
+                display: true,
+                text: `${viewMode === 'cost' ? 'Cost' : 'Time'} Impact - Pre vs Post Action S-Curves`,
+                font: { size: 14, weight: '500' }
+              }
+            },
+            scales: {
+              x: {
+                type: 'linear',
+                title: { display: true, text: viewMode === 'cost' ? 'Cost Impact' : 'Time Impact (days)' },
+                grid: { display: false }
+              },
+              y: {
+                title: { display: true, text: 'Cumulative Probability (%)' },
+                min: 0,
+                max: 100
+              }
+            }
+          }
+        });
+
+        return () => {
+          if (cdfInstanceRef.current) {
+            cdfInstanceRef.current.destroy();
+          }
+        };
+      }, [preCdfData, postCdfData, viewMode, hasValidData]);
+
+      // Early returns AFTER all hooks have been called
+      if (isSimulating) {
+        return (
+          <div className="card p-8 text-center animate-fade-in">
+            <div style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Running simulation (10,000 iterations)...</div>
+          </div>
+        );
+      }
+
+      if (!simulationResults || risks.length === 0) {
+        return (
+          <div className="card p-8 text-center animate-fade-in">
+            <div style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Add risks in the Risk Register tab to see Monte Carlo results.</div>
+          </div>
+        );
+      }
+
+      const presets = [10, 50, 80, 90];
+
+      const StatComparison = ({ label, preValue, postValue }) => {
+        const diff = preValue - postValue;
+        const improved = diff > 0;
+        return (
+          <div className="stat-item" style={{ textAlign: 'left' }}>
+            <div className="stat-label">{label}</div>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'baseline' }}>
+              <span style={{ fontSize: '14px', color: 'var(--danger)', fontFamily: 'var(--font-mono)' }}>{formatNumber(preValue)}</span>
+              <span style={{ fontSize: '12px', color: 'var(--text-faint)' }}>→</span>
+              <span style={{ fontSize: '14px', color: 'var(--success)', fontFamily: 'var(--font-mono)' }}>{formatNumber(postValue)}</span>
+              {diff !== 0 && (
+                <span style={{ fontSize: '11px', color: improved ? 'var(--success)' : 'var(--danger)', fontWeight: '500' }}>
+                  ({improved ? '↓' : '↑'}{formatNumber(Math.abs(diff))})
+                </span>
+              )}
+            </div>
+          </div>
+        );
+      };
+
+      return (
+        <div className="animate-fade-in">
+          {/* View Mode Toggle */}
+          <div className="chart-toggle" style={{ marginBottom: '16px' }}>
+            <button
+              className={`btn btn-secondary ${viewMode === 'cost' ? 'active' : ''}`}
+              onClick={() => setViewMode('cost')}
+            >
+              Cost Impact
+            </button>
+            <button
+              className={`btn btn-secondary ${viewMode === 'time' ? 'active' : ''}`}
+              onClick={() => setViewMode('time')}
+            >
+              Time Impact
+            </button>
+          </div>
+
+          {/* Statistics Comparison Panel */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px', marginBottom: '16px' }}>
+            <StatComparison label="Mean" preValue={preStats.mean} postValue={postStats.mean} />
+            <StatComparison label="P10" preValue={preStats.p10} postValue={postStats.p10} />
+            <StatComparison label="P50 (Median)" preValue={preStats.p50} postValue={postStats.p50} />
+            <StatComparison label="P80" preValue={preStats.p80} postValue={postStats.p80} />
+            <StatComparison label="P90" preValue={preStats.p90} postValue={postStats.p90} />
+            <StatComparison label="Max" preValue={preStats.max} postValue={postStats.max} />
+          </div>
+
+          {/* Legend */}
+          <div style={{ display: 'flex', gap: '24px', marginBottom: '16px', fontSize: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ width: '12px', height: '3px', background: 'var(--danger)', borderRadius: '2px' }}></div>
+              <span style={{ color: 'var(--text-muted)' }}>Pre-Action (before mitigation)</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ width: '12px', height: '3px', background: 'var(--success)', borderRadius: '2px' }}></div>
+              <span style={{ color: 'var(--text-muted)' }}>Post-Action (after mitigation)</span>
+            </div>
+          </div>
+
+          {/* Histogram Chart */}
+          <div className="card" style={{ padding: '16px', marginBottom: '16px' }}>
+            <div className="chart-container" style={{ height: '280px' }}>
+              <canvas ref={histogramChartRef}></canvas>
+            </div>
+          </div>
+
+          {/* CDF Chart */}
+          <div className="card" style={{ padding: '16px' }}>
+            <div className="chart-container" style={{ height: '350px' }}>
+              <canvas ref={cdfChartRef}></canvas>
+            </div>
+
+            {/* P-Value Comparison Summary */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: '16px',
+              padding: '12px 16px',
+              marginTop: '16px',
+              background: 'var(--bg-secondary)',
+              borderRadius: 'var(--radius-md)'
+            }}>
+              <span style={{ color: 'var(--danger)', fontFamily: 'var(--font-mono)', fontSize: '14px', fontWeight: '500' }}>
+                Pre P{prePValue}: {formatNumber(preValueAtP)}
+              </span>
+              <span style={{ color: 'var(--text-faint)' }}>→</span>
+              <span style={{ color: 'var(--success)', fontFamily: 'var(--font-mono)', fontSize: '14px', fontWeight: '500' }}>
+                Post P{postPValue}: {formatNumber(postValueAtP)}
+              </span>
+              {reduction !== 0 && (
+                <span style={{
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  color: reduction > 0 ? 'var(--success)' : 'var(--danger)',
+                  background: reduction > 0 ? 'var(--success-light)' : 'var(--danger-light)',
+                  padding: '2px 8px',
+                  borderRadius: 'var(--radius-sm)'
+                }}>
+                  {reduction > 0 ? '↓' : '↑'} {Math.abs(reduction).toFixed(1)}% {reduction > 0 ? 'reduction' : 'increase'}
+                </span>
+              )}
+            </div>
+
+            {/* P-Value Sliders */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginTop: '16px' }}>
+              {/* Pre-Action P-Value Slider */}
+              <div className="p-slider-container" style={{ borderLeft: '3px solid var(--danger)', paddingLeft: '12px' }}>
+                <div className="p-slider-header">
+                  <span className="p-slider-label" style={{ color: 'var(--danger)' }}>Pre-Action P{prePValue}</span>
+                  <span style={{ color: 'var(--danger)', fontFamily: 'var(--font-mono)', fontSize: '14px' }}>{formatNumber(preValueAtP)}</span>
+                </div>
+                <input
+                  type="range"
+                  className="p-slider"
+                  min="1"
+                  max="99"
+                  value={prePValue}
+                  onChange={(e) => setPrePValue(parseInt(e.target.value))}
+                  style={{ accentColor: 'var(--danger)' }}
+                />
+                <div className="p-presets">
+                  {presets.map(p => (
+                    <button
+                      key={p}
+                      className={prePValue === p ? 'active' : ''}
+                      onClick={() => setPrePValue(p)}
+                      style={{ borderColor: prePValue === p ? 'var(--danger)' : undefined, color: prePValue === p ? 'var(--danger)' : undefined }}
+                    >
+                      P{p}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Post-Action P-Value Slider */}
+              <div className="p-slider-container" style={{ borderLeft: '3px solid var(--success)', paddingLeft: '12px' }}>
+                <div className="p-slider-header">
+                  <span className="p-slider-label" style={{ color: 'var(--success)' }}>Post-Action P{postPValue}</span>
+                  <span style={{ color: 'var(--success)', fontFamily: 'var(--font-mono)', fontSize: '14px' }}>{formatNumber(postValueAtP)}</span>
+                </div>
+                <input
+                  type="range"
+                  className="p-slider"
+                  min="1"
+                  max="99"
+                  value={postPValue}
+                  onChange={(e) => setPostPValue(parseInt(e.target.value))}
+                  style={{ accentColor: 'var(--success)' }}
+                />
+                <div className="p-presets">
+                  {presets.map(p => (
+                    <button
+                      key={p}
+                      className={postPValue === p ? 'active' : ''}
+                      onClick={() => setPostPValue(p)}
+                      style={{ borderColor: postPValue === p ? 'var(--success)' : undefined, color: postPValue === p ? 'var(--success)' : undefined }}
+                    >
+                      P{p}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // ============================================
+    // SETTINGS PANEL COMPONENT
+    // ============================================
+    const SettingsPanel = ({ settings, onUpdate, onClose }) => {
+      const [localSettings, setLocalSettings] = useState({ ...settings });
+
+      const handleSave = () => {
+        onUpdate(localSettings);
+        onClose();
+      };
+
+      const updateSetting = (field, value) => {
+        setLocalSettings(prev => ({ ...prev, [field]: value }));
+      };
+
+      // Common currency symbols
+      const currencyOptions = [
+        { value: '£', label: '£ (GBP)' },
+        { value: '$', label: '$ (USD)' },
+        { value: '€', label: '€ (EUR)' },
+        { value: '¥', label: '¥ (JPY/CNY)' },
+        { value: 'CHF', label: 'CHF' },
+        { value: 'AUD', label: 'AUD' },
+        { value: 'CAD', label: 'CAD' },
+        { value: '', label: 'None (numeric only)' }
+      ];
+
+      // Common time units
+      const timeUnitOptions = [
+        { value: 'days', label: 'Days' },
+        { value: 'weeks', label: 'Weeks' },
+        { value: 'months', label: 'Months' },
+        { value: 'hours', label: 'Hours' },
+        { value: 'years', label: 'Years' }
+      ];
+
+      return (
+        <>
+          <div className="drawer-overlay" onClick={onClose} />
+          <div className="drawer">
+            <div className="drawer-header">
+              <h2>Settings</h2>
+              <button className="btn btn-secondary btn-icon" onClick={onClose}>
+                <IconX />
+              </button>
+            </div>
+
+            <div className="drawer-content custom-scroll">
+              {/* Cost Impact Settings */}
+              <div className="settings-section">
+                <div className="settings-section-title">Cost Impact</div>
+
+                <div className="settings-field">
+                  <label>Currency Symbol</label>
+                  <select
+                    className="select-refined"
+                    value={localSettings.costUnit}
+                    onChange={(e) => updateSetting('costUnit', e.target.value)}
+                    style={{ width: '100%' }}
+                  >
+                    {currencyOptions.map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                  <div className="hint">Displayed before cost values in charts and tables</div>
+                </div>
+
+                <div className="settings-field">
+                  <label>Custom Currency (if not listed)</label>
+                  <input
+                    type="text"
+                    className="input-refined"
+                    value={localSettings.costUnit}
+                    onChange={(e) => updateSetting('costUnit', e.target.value)}
+                    placeholder="e.g. kr, R, ₹"
+                    maxLength={5}
+                    style={{ width: '100%' }}
+                  />
+                </div>
+
+                <div className="settings-field">
+                  <label>Cost Scale Label</label>
+                  <input
+                    type="text"
+                    className="input-refined"
+                    value={localSettings.costLabel}
+                    onChange={(e) => updateSetting('costLabel', e.target.value)}
+                    placeholder="e.g. Cost Impact, Budget Impact"
+                    style={{ width: '100%' }}
+                  />
+                  <div className="hint">Label shown on chart axes (default: "Cost Impact")</div>
+                </div>
+              </div>
+
+              {/* Time Impact Settings */}
+              <div className="settings-section">
+                <div className="settings-section-title">Time Impact</div>
+
+                <div className="settings-field">
+                  <label>Time Unit</label>
+                  <select
+                    className="select-refined"
+                    value={localSettings.timeUnit}
+                    onChange={(e) => updateSetting('timeUnit', e.target.value)}
+                    style={{ width: '100%' }}
+                  >
+                    {timeUnitOptions.map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                  <div className="hint">Displayed after time values in charts and tables</div>
+                </div>
+
+                <div className="settings-field">
+                  <label>Time Scale Label</label>
+                  <input
+                    type="text"
+                    className="input-refined"
+                    value={localSettings.timeLabel}
+                    onChange={(e) => updateSetting('timeLabel', e.target.value)}
+                    placeholder="e.g. Schedule Impact, Duration Impact"
+                    style={{ width: '100%' }}
+                  />
+                  <div className="hint">Label shown on chart axes (default: "Time Impact")</div>
+                </div>
+              </div>
+
+              {/* Simulation Settings */}
+              <div className="settings-section">
+                <div className="settings-section-title">Simulation</div>
+
+                <div className="settings-field">
+                  <label>Monte Carlo Iterations</label>
+                  <select
+                    className="select-refined"
+                    value={localSettings.iterations}
+                    onChange={(e) => updateSetting('iterations', parseInt(e.target.value))}
+                    style={{ width: '100%' }}
+                  >
+                    <option value={1000}>1,000 (fast)</option>
+                    <option value={5000}>5,000</option>
+                    <option value={10000}>10,000 (default)</option>
+                    <option value={25000}>25,000</option>
+                    <option value={50000}>50,000 (slow)</option>
+                  </select>
+                  <div className="hint">More iterations = more accurate but slower</div>
+                </div>
+
+                <div className="settings-field">
+                  <label>Default Distribution</label>
+                  <select
+                    className="select-refined"
+                    value={localSettings.defaultDistribution}
+                    onChange={(e) => updateSetting('defaultDistribution', e.target.value)}
+                    style={{ width: '100%' }}
+                  >
+                    {Object.entries(DISTRIBUTION_TYPES).map(([key, { name, description }]) => (
+                      <option key={key} value={key}>{name} - {description}</option>
+                    ))}
+                  </select>
+                  <div className="hint">Default distribution type for new risks</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer with Save/Cancel */}
+            <div style={{
+              padding: '16px 20px',
+              borderTop: '1px solid var(--border-primary)',
+              display: 'flex',
+              gap: '12px',
+              justifyContent: 'flex-end'
+            }}>
+              <button className="btn btn-secondary" onClick={onClose}>
+                Cancel
+              </button>
+              <button className="btn btn-accent" onClick={handleSave}>
+                <IconCheck /> Save Settings
+              </button>
+            </div>
+          </div>
+        </>
+      );
+    };
+
+    // ============================================
+    // MAIN RISK REGISTER COMPONENT
+    // ============================================
+    const RiskRegister = () => {
+      // Load from localStorage
+      const loadSaved = () => {
+        try {
+          const saved = localStorage.getItem('risk-register');
+          if (saved) return JSON.parse(saved);
+        } catch (e) {}
+        return null;
+      };
+
+      const saved = loadSaved();
+      const [risks, setRisks] = useState(saved?.risks || []);
+      const [theme, setTheme] = useState(localStorage.getItem('coffeecup-theme') || saved?.theme || 'blueprint');
+      const [settings, setSettings] = useState(saved?.settings || {
+        costUnit: '£',
+        costLabel: 'Cost Impact',
+        timeUnit: 'days',
+        timeLabel: 'Time Impact',
+        iterations: 10000,
+        defaultDistribution: 'triangular'
+      });
+      const [expandedRisk, setExpandedRisk] = useState(null);
+      const [simulationResults, setSimulationResults] = useState(null);
+      const [isSimulating, setIsSimulating] = useState(false);
+      const [activeTab, setActiveTab] = useState('register'); // 'register', 'tornado', 'montecarlo', 'priority'
+      const [showSettings, setShowSettings] = useState(false);
+
+      const fileInputRef = useRef(null);
+
+      // Track if we need to run simulation (when risks change or switching to analysis tabs)
+      const [simulationNeeded, setSimulationNeeded] = useState(false);
+
+      // Apply theme and sync shared key
+      useEffect(() => {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('coffeecup-theme', theme);
+      }, [theme]);
+
+      // Auto-save to localStorage
+      useEffect(() => {
+        const data = { risks, theme, settings };
+        localStorage.setItem('risk-register', JSON.stringify(data));
+      }, [risks, theme, settings]);
+
+      // ============================================
+      // CRUD OPERATIONS
+      // ============================================
+      const addRisk = () => {
+        const defaultDist = settings.defaultDistribution || 'triangular';
+        const newRisk = {
+          id: generateRiskId(risks),
+          name: '',
+          description: '',
+          owner: '',
+          type: 'threat',
+          included: true,
+          likelihood: 50,
+          impactCost: { min: 0, likely: 0, max: 0 },
+          impactTime: { min: 0, likely: 0, max: 0 },
+          costDistribution: defaultDist,
+          timeDistribution: defaultDist,
+          actionName: '',
+          actionDescription: '',
+          postLikelihood: 50,
+          postImpactCost: { min: 0, likely: 0, max: 0 },
+          postImpactTime: { min: 0, likely: 0, max: 0 },
+          postCostDistribution: defaultDist,
+          postTimeDistribution: defaultDist
+        };
+        setRisks([...risks, newRisk]);
+        setExpandedRisk(newRisk.id);
+      };
+
+      const updateRisk = (oldId, updates) => {
+        setRisks(risks.map(r => r.id === oldId ? { ...r, ...updates } : r));
+      };
+
+      const deleteRisk = (id) => {
+        setRisks(risks.filter(r => r.id !== id));
+        if (expandedRisk === id) setExpandedRisk(null);
+      };
+
+      // ============================================
+      // SIMULATION
+      // ============================================
+      const runSimulation = () => {
+        const includedRisks = risks.filter(r => r.included !== false);
+        if (includedRisks.length === 0 || isSimulating) return;
+
+        setIsSimulating(true);
+        setSimulationNeeded(false);
+
+        // Run simulation in next tick to allow UI update
+        const iterations = settings.iterations || 10000;
+        setTimeout(() => {
+          const results = runBothSimulations(includedRisks, iterations);
+          setSimulationResults(results);
+          setIsSimulating(false);
+        }, 50);
+      };
+
+      // Mark simulation as needed when risks change
+      useEffect(() => {
+        if (risks.length > 0) {
+          setSimulationNeeded(true);
+          setSimulationResults(null);
+        }
+      }, [risks]);
+
+      // Auto-run simulation when switching to analysis tabs (if needed)
+      useEffect(() => {
+        if ((activeTab === 'tornado' || activeTab === 'montecarlo' || activeTab === 'priority') && risks.length > 0) {
+          if (simulationNeeded || !simulationResults) {
+            runSimulation();
+          }
+        }
+      }, [activeTab]);
+
+      // Tab change handler
+      const handleTabChange = (tab) => {
+        setActiveTab(tab);
+      };
+
+      // ============================================
+      // FILE OPERATIONS
+      // ============================================
+      const saveToFile = () => {
+        const data = { risks, settings };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'risk-register.json';
+        a.click();
+        URL.revokeObjectURL(url);
+      };
+
+      const loadFromFile = (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const data = JSON.parse(event.target.result);
+            if (data.risks) {
+              setRisks(data.risks);
+              setSimulationResults(null);
+            }
+            if (data.settings) {
+              setSettings(prev => ({ ...prev, ...data.settings }));
+            }
+          } catch (err) {
+            alert('Error loading file. Please ensure it is a valid JSON file.');
+          }
+        };
+        reader.readAsText(file);
+        e.target.value = '';
+      };
+
+      const clearAll = () => {
+        if (confirm('Clear all risks? This cannot be undone.')) {
+          setRisks([]);
+          setExpandedRisk(null);
+          setSimulationResults(null);
+        }
+      };
+
+      return (
+        <div className="min-h-screen p-6 md:p-8">
+          <div className="max-w-7xl mx-auto">
+            {/* Header */}
+            <div className="mb-8 animate-fade-in">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="app-header-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                      <line x1="12" y1="9" x2="12" y2="13"/>
+                      <line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h1 className="text-2xl font-semibold text-primary tracking-tight">Risk Register</h1>
+                    <p className="text-sm text-muted">Record risks and analyse</p>
+                  </div>
+                </div>
+
+                {/* Theme Selector */}
+                <div className="theme-selector">
+                  <IconPalette />
+                  <label>Theme</label>
+                  <select
+                    value={theme}
+                    onChange={(e) => setTheme(e.target.value)}
+                    className="select-refined"
+                  >
+                    {Object.entries(THEMES).map(([key, { name }]) => (
+                      <option key={key} value={key}>{name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Toolbar with Tabs */}
+            <div className="card p-4 mb-6 animate-fade-in" style={{ animationDelay: '0.05s' }}>
+              <div className="flex flex-wrap items-center gap-3">
+                {/* Tab Navigation */}
+                <div className="tab-navigation">
+                  <button
+                    className={`tab-button ${activeTab === 'register' ? 'active' : ''}`}
+                    onClick={() => handleTabChange('register')}
+                  >
+                    <IconRisk />
+                    Risk Register
+                  </button>
+                  <button
+                    className={`tab-button ${activeTab === 'tornado' ? 'active' : ''}`}
+                    onClick={() => handleTabChange('tornado')}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M21 4H3M18 8H6M15 12H9M12 16H12M9 20H15"/>
+                    </svg>
+                    Tornado
+                  </button>
+                  <button
+                    className={`tab-button ${activeTab === 'montecarlo' ? 'active' : ''}`}
+                    onClick={() => handleTabChange('montecarlo')}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M3 3v18h18"/>
+                      <path d="M18 17V9"/>
+                      <path d="M13 17V5"/>
+                      <path d="M8 17v-3"/>
+                    </svg>
+                    Monte Carlo
+                  </button>
+                  <button
+                    className={`tab-button ${activeTab === 'priority' ? 'active' : ''}`}
+                    onClick={() => handleTabChange('priority')}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="10"/>
+                      <circle cx="12" cy="12" r="6"/>
+                      <circle cx="12" cy="12" r="2"/>
+                    </svg>
+                    Priority
+                  </button>
+                </div>
+
+                <div className="flex-1"></div>
+
+                {/* Action Buttons - only show on register tab */}
+                {activeTab === 'register' && (
+                  <>
+                    <button className="btn btn-accent" onClick={addRisk}>
+                      <IconPlus /> Add Risk
+                    </button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".json"
+                      onChange={loadFromFile}
+                      className="hidden"
+                    />
+                    <button
+                      className="btn btn-secondary btn-sm"
+                      onClick={saveToFile}
+                      title="Save file"
+                    >
+                      <IconDownload /> Save
+                    </button>
+                    <button
+                      className="btn btn-secondary btn-sm"
+                      onClick={() => fileInputRef.current?.click()}
+                      title="Open file"
+                    >
+                      <IconUpload /> Open
+                    </button>
+                    <button
+                      className="btn btn-danger btn-sm"
+                      onClick={clearAll}
+                      title="Clear all risks"
+                    >
+                      <IconTrash /> Clear
+                    </button>
+                  </>
+                )}
+
+                {/* Settings Button - always visible */}
+                <button
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => setShowSettings(true)}
+                  title="Settings"
+                >
+                  <IconSettings /> Settings
+                </button>
+              </div>
+            </div>
+
+            {/* Tab Content */}
+            <div className="tab-content">
+              {/* Risk Register Tab */}
+              {activeTab === 'register' && (
+                <div className="card mb-6 animate-fade-in" style={{ overflow: 'hidden' }}>
+                  {risks.length === 0 ? (
+                    <div style={{ padding: '48px 24px', textAlign: 'center' }}>
+                      <div style={{
+                        width: '64px',
+                        height: '64px',
+                        margin: '0 auto 16px',
+                        borderRadius: '50%',
+                        background: 'var(--bg-secondary)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <IconRisk />
+                      </div>
+                      <p style={{ color: 'var(--text-muted)', marginBottom: '16px' }}>
+                        No risks added yet. Add your first risk to get started.
+                      </p>
+                      <button className="btn btn-accent" onClick={addRisk}>
+                    <IconPlus /> Add Risk
+                  </button>
+                </div>
+              ) : (
+                  <div style={{ overflowX: 'auto' }}>
+                    <table className="risk-table">
+                      <thead>
+                        <tr>
+                          <th style={{ width: '50px' }}>Include</th>
+                          <th style={{ width: '80px' }}>ID</th>
+                          <th>Name</th>
+                          <th style={{ width: '120px' }}>Type</th>
+                          <th style={{ width: '120px' }}>Owner</th>
+                          <th style={{ width: '80px' }}>Likelihood</th>
+                          <th style={{ width: '280px' }}>Cost Impact</th>
+                          <th style={{ width: '280px' }}>Time Impact</th>
+                          <th style={{ width: '60px' }}></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {risks.map(risk => (
+                          <RiskRow
+                            key={risk.id}
+                            risk={risk}
+                            isExpanded={expandedRisk === risk.id}
+                            onToggleExpand={setExpandedRisk}
+                            onUpdate={updateRisk}
+                            onDelete={deleteRisk}
+                          />
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+              )}
+
+              {/* Tornado Chart Tab */}
+              {activeTab === 'tornado' && (
+                <TornadoPanel risks={risks.filter(r => r.included !== false)} isSimulating={isSimulating} />
+              )}
+
+              {/* Monte Carlo Tab */}
+              {activeTab === 'montecarlo' && (
+                <MonteCarloPanel
+                  simulationResults={simulationResults}
+                  risks={risks.filter(r => r.included !== false)}
+                  isSimulating={isSimulating}
+                />
+              )}
+
+              {/* Priority Tab */}
+              {activeTab === 'priority' && (
+                <PriorityPanel
+                  risks={risks.filter(r => r.included !== false)}
+                  isSimulating={isSimulating}
+                />
+              )}
+            </div>
+          </div>
+
+          {/* Settings Panel */}
+          {showSettings && (
+            <SettingsPanel
+              settings={settings}
+              onUpdate={setSettings}
+              onClose={() => setShowSettings(false)}
+            />
+          )}
+        </div>
+      );
+    };
+
+    // ============================================
+    // RENDER
+    // ============================================
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<RiskRegister />);
+  </script>
+</body>
+</html>

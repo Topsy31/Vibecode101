@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>test1 - Round 1 Questionnaire</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { font-family: "DM Sans", sans-serif; box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #f5f5f4; min-height: 100vh; padding: 24px; color: #292524; }
+    .container { max-width: 800px; margin: 0 auto; }
+    .card { background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 24px; overflow: hidden; }
+    .card-header { padding: 16px 20px; border-bottom: 1px solid #e7e5e4; }
+    .card-body { padding: 20px; }
+    h1 { font-size: 24px; font-weight: 700; color: #292524; }
+    h2 { font-size: 18px; font-weight: 600; color: #292524; margin-bottom: 8px; }
+    h3 { font-size: 14px; font-weight: 600; color: #57534e; margin-bottom: 12px; }
+    p { color: #57534e; line-height: 1.6; }
+    .text-muted { color: #78716c; font-size: 14px; }
+    .badge { display: inline-block; padding: 2px 8px; font-size: 11px; font-weight: 600; border-radius: 9999px; background: rgba(185,149,106,0.12); color: #b8956a; }
+    .risk-item { background: #f5f5f4; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+    .risk-name { font-weight: 600; margin-bottom: 4px; }
+    .risk-desc { font-size: 14px; color: #78716c; margin-bottom: 12px; }
+    .form-group { margin-bottom: 16px; }
+    label { display: block; font-size: 13px; font-weight: 500; color: #57534e; margin-bottom: 6px; }
+    input[type="range"] { width: 100%; height: 6px; border-radius: 9999px; background: #e7e5e4; -webkit-appearance: none; }
+    input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #b8956a; cursor: pointer; }
+    .range-labels { display: flex; justify-content: space-between; font-size: 11px; color: #78716c; margin-top: 4px; }
+    .range-value { text-align: center; font-size: 20px; font-weight: 700; color: #b8956a; font-family: monospace; margin: 8px 0; }
+    textarea { width: 100%; padding: 10px 14px; border: 1px solid #e7e5e4; border-radius: 6px; font-size: 14px; resize: vertical; min-height: 60px; }
+    textarea:focus { outline: none; border-color: #b8956a; box-shadow: 0 0 0 3px rgba(185,149,106,0.12); }
+    input[type="text"] { width: 100%; padding: 10px 14px; border: 1px solid #e7e5e4; border-radius: 6px; font-size: 14px; }
+    input[type="text"]:focus { outline: none; border-color: #b8956a; }
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 12px 20px; font-size: 14px; font-weight: 600; border-radius: 6px; cursor: pointer; border: none; transition: all 0.2s; }
+    .btn-primary { background: linear-gradient(180deg, #b8956a 0%, #a07d4f 100%); color: white; }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
+    .btn-secondary { background: white; border: 1px solid #e7e5e4; color: #57534e; }
+    .btn-secondary:hover { background: #f5f5f4; }
+    .response-code { background: #f5f5f4; border-radius: 8px; padding: 16px; margin-top: 16px; }
+    .response-code textarea { font-family: monospace; font-size: 12px; min-height: 100px; }
+    .previous-round { background: rgba(185,149,106,0.08); border-radius: 8px; padding: 12px; margin-bottom: 12px; font-size: 13px; }
+    .stats { display: flex; gap: 16px; margin-top: 8px; }
+    .stat { text-align: center; }
+    .stat-value { font-size: 16px; font-weight: 700; font-family: monospace; color: #b8956a; }
+    .stat-label { font-size: 10px; color: #78716c; text-transform: uppercase; }
+    .expert-select { margin-bottom: 24px; }
+    select { width: 100%; padding: 10px 14px; border: 1px solid #e7e5e4; border-radius: 6px; font-size: 14px; background: white; }
+    .hidden { display: none; }
+    .suggest-risk { border: 2px dashed #e7e5e4; border-radius: 8px; padding: 16px; margin-top: 16px; }
+    .three-point-inputs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    .three-point-inputs input[type="number"] { width: 100%; padding: 10px 14px; border: 1px solid #e7e5e4; border-radius: 6px; font-size: 14px; }
+    .three-point-inputs input[type="number"]:focus { outline: none; border-color: #b8956a; box-shadow: 0 0 0 3px rgba(185,149,106,0.12); }
+    .sub-label { font-size: 11px; color: #78716c; margin-bottom: 4px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card"><div class="card-header"><h1>test1</h1><p class="text-muted">Round 1 of 3 | Delphi Risk Assessment</p></div>
+    <div class="card-body"><h3>Problem Statement</h3><p>test</p><p class="text-muted" style="margin-top: 12px;">test</p></div></div>
+    <div class="card"><div class="card-header"><h2>Your Identity</h2></div>
+    <div class="card-body expert-select"><label>Select your expert code:</label>
+    <select id="expertCode" onchange="updateExpert()"><option value="">-- Select --</option><option value="E001">E001</option><option value="E002">E002</option><option value="E003">E003</option></select>
+    <p class="text-muted" style="margin-top: 8px;">Your identity is anonymous to other experts. Only the facilitator knows your code.</p></div></div>
+    <div class="card"><div class="card-header"><h2>Risk Assessment</h2><p class="text-muted">Rate each risk for probability and impact.</p></div>
+    <div class="card-body"><div class="risk-item" data-risk-id="RISK001"><div class="risk-name"><span class="badge">RISK001</span> Risk 1</div><div class="form-group"><label>Probability (0-100%)</label><input type="range" id="prob-RISK001" min="0" max="100" value="50" oninput="document.getElementById('prob-val-RISK001').textContent = this.value + '%'"><div class="range-value" id="prob-val-RISK001">50%</div></div><div class="form-group"><label>Cost Impact (£) - Triangular Estimate</label><div class="three-point-inputs"><div><label class="sub-label">Min</label><input type="number" id="cost-min-RISK001" min="0" step="any" placeholder="0"></div><div><label class="sub-label">Likely</label><input type="number" id="cost-likely-RISK001" min="0" step="any" placeholder="0"></div><div><label class="sub-label">Max</label><input type="number" id="cost-max-RISK001" min="0" step="any" placeholder="0"></div></div></div><div class="form-group"><label>Time Impact (days) - Triangular Estimate</label><div class="three-point-inputs"><div><label class="sub-label">Min</label><input type="number" id="time-min-RISK001" min="0" step="any" placeholder="0"></div><div><label class="sub-label">Likely</label><input type="number" id="time-likely-RISK001" min="0" step="any" placeholder="0"></div><div><label class="sub-label">Max</label><input type="number" id="time-max-RISK001" min="0" step="any" placeholder="0"></div></div></div><div class="form-group"><label>Comments / Rationale (optional)</label><textarea id="comment-RISK001" placeholder="Explain your reasoning..."></textarea></div></div><div class="suggest-risk"><h3>Suggest Additional Risks</h3><p class="text-muted" style="margin-bottom: 12px;">Identify any risks not listed above that should be considered.</p><div id="suggested-risks"></div><button class="btn btn-secondary" onclick="addSuggestedRisk()">+ Add Suggested Risk</button></div></div></div>
+    <div class="card"><div class="card-header"><h2>Submit Response</h2></div>
+    <div class="card-body"><button class="btn btn-primary" onclick="generateResponse()">Generate Response Code</button>
+    <div class="response-code hidden" id="response-output"><p style="margin-bottom: 8px;"><strong>Copy this code and email it to the facilitator:</strong></p>
+    <textarea id="response-code" readonly></textarea>
+    <button class="btn btn-secondary" style="margin-top: 8px;" onclick="copyCode()">Copy to Clipboard</button></div></div></div>
+  </div>
+  <script>const studyId = "8a032a7f-bf29-4897-8fba-99f726347cf5";
+const roundNumber = 1;
+const risks = [{"id":"RISK001","name":"Risk 1","description":"","type":"threat"}];
+const costEnabled = true;
+const timeEnabled = true;
+let suggestedRiskCount = 0;
+
+function updateExpert() {}
+
+function addSuggestedRisk() {
+  suggestedRiskCount++;
+  const container = document.getElementById("suggested-risks");
+  const div = document.createElement("div");
+  div.className = "risk-item";
+  div.innerHTML = '<div class="form-group"><label>Risk Name</label><input type="text" id="suggested-name-' + suggestedRiskCount + '" placeholder="Name of the risk"></div><div class="form-group"><label>Description</label><textarea id="suggested-desc-' + suggestedRiskCount + '" placeholder="Describe the risk..."></textarea></div>';
+  container.appendChild(div);
+}
+
+function getNumVal(id) { const el = document.getElementById(id); return el ? parseFloat(el.value) || 0 : 0; }
+
+function generateResponse() {
+  const expertCode = document.getElementById("expertCode").value;
+  if (!expertCode) { alert("Please select your expert code first."); return; }
+  const responses = risks.map(risk => {
+    const resp = {
+      riskId: risk.id,
+      probability: parseFloat(document.getElementById("prob-" + risk.id).value),
+      comment: document.getElementById("comment-" + risk.id).value || ""
+    };
+    if (costEnabled) {
+      resp.costMin = getNumVal("cost-min-" + risk.id);
+      resp.costLikely = getNumVal("cost-likely-" + risk.id);
+      resp.costMax = getNumVal("cost-max-" + risk.id);
+    }
+    if (timeEnabled) {
+      resp.timeMin = getNumVal("time-min-" + risk.id);
+      resp.timeLikely = getNumVal("time-likely-" + risk.id);
+      resp.timeMax = getNumVal("time-max-" + risk.id);
+    }
+    return resp;
+  });
+  const suggestedRisks = [];
+  for (let i = 1; i <= suggestedRiskCount; i++) {
+    const name = document.getElementById("suggested-name-" + i)?.value;
+    if (name) { suggestedRisks.push({ name: name, description: document.getElementById("suggested-desc-" + i)?.value || "" }); }
+  }
+  const responseData = { studyId: studyId, roundNumber: roundNumber, expertCode: expertCode, timestamp: new Date().toISOString(), responses: responses, suggestedRisks: suggestedRisks };
+  const encoded = btoa(encodeURIComponent(JSON.stringify(responseData)));
+  document.getElementById("response-code").value = encoded;
+  document.getElementById("response-output").classList.remove("hidden");
+}
+
+function copyCode() {
+  const textarea = document.getElementById("response-code");
+  textarea.select();
+  document.execCommand("copy");
+  alert("Response code copied to clipboard!");
+}</script>
+</body>
+</html>

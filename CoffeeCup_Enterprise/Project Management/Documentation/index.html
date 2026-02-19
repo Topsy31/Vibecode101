@@ -1,0 +1,2224 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="blueprint">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CoffeeCup — Documentation</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23b8956a'/%3E%3Cstop offset='100%25' stop-color='%23a07d4f'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='6' fill='url(%23g)'/%3E%3Cpath d='M8 23.5A2.5 2.5 0 0110.5 21H24' fill='none' stroke='white' stroke-width='2'/%3E%3Cpath d='M10.5 6H24v20H10.5A2.5 2.5 0 018 23.5v-15A2.5 2.5 0 0110.5 6z' fill='none' stroke='white' stroke-width='2'/%3E%3Cline x1='12' y1='11' x2='20' y2='11' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3Cline x1='12' y1='15' x2='18' y2='15' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+/* ============================================
+   COFFEECUP DOCUMENTATION - STYLES
+   ============================================ */
+
+:root {
+  --bg-primary: #fafaf9;
+  --bg-secondary: #f5f5f4;
+  --bg-card: #ffffff;
+  --bg-hover: rgba(0,0,0,0.02);
+
+  --border-primary: #e7e5e4;
+  --border-secondary: #f5f5f4;
+  --border-accent: #d6d3d1;
+
+  --text-primary: #292524;
+  --text-secondary: #57534e;
+  --text-muted: #78716c;
+  --text-faint: #a8a29e;
+
+  --accent-primary: #b8956a;
+  --accent-hover: #a07d4f;
+  --accent-light: rgba(185, 149, 106, 0.12);
+
+  --bar-1: #b8956a;
+  --bar-2: #7c9885;
+  --bar-3: #8b7ba8;
+  --bar-4: #c98a7d;
+  --bar-5: #6b8ba8;
+  --bar-6: #a89b6b;
+
+  --danger: #dc2626;
+  --danger-hover: #b91c1c;
+  --success: #16a34a;
+
+  --font-primary: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.2s ease;
+  --transition-slow: 0.3s ease;
+
+  --sidebar-width: 260px;
+}
+
+[data-theme="blueprint"] body {
+  background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+  background-image:
+    linear-gradient(rgba(0,0,0,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.015) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+[data-theme="fun"] {
+  --bg-primary: #fef7ff;
+  --bg-secondary: #fae8ff;
+  --bg-card: #ffffff;
+  --bg-hover: rgba(217, 70, 239, 0.04);
+  --border-primary: #f0abfc;
+  --border-secondary: #fae8ff;
+  --border-accent: #e879f9;
+  --text-primary: #701a75;
+  --text-secondary: #86198f;
+  --text-muted: #a21caf;
+  --text-faint: #c026d3;
+  --accent-primary: #d946ef;
+  --accent-hover: #c026d3;
+  --accent-light: rgba(217, 70, 239, 0.12);
+  --bar-1: #d946ef; --bar-2: #a855f7; --bar-3: #ec4899;
+  --bar-4: #f97316; --bar-5: #06b6d4; --bar-6: #84cc16;
+  --danger: #e11d48; --success: #22c55e;
+  --font-primary: 'Nunito', -apple-system, sans-serif;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 20px;
+  --radius-xl: 24px;
+}
+
+[data-theme="fun"] body {
+  background: linear-gradient(135deg, #fdf4ff 0%, #fae8ff 50%, #f5d0fe 100%);
+}
+
+[data-theme="dark"] {
+  --bg-primary: #0f0f0f;
+  --bg-secondary: #1a1a1a;
+  --bg-card: #242424;
+  --bg-hover: rgba(255,255,255,0.04);
+  --border-primary: #333333;
+  --border-secondary: #2a2a2a;
+  --border-accent: #444444;
+  --text-primary: #f0f0f0;
+  --text-secondary: #b0b0b0;
+  --text-muted: #808080;
+  --text-faint: #606060;
+  --accent-primary: #6366f1;
+  --accent-hover: #818cf8;
+  --accent-light: rgba(99, 102, 241, 0.15);
+  --bar-1: #6366f1; --bar-2: #22d3ee; --bar-3: #a78bfa;
+  --bar-4: #fb923c; --bar-5: #34d399; --bar-6: #f472b6;
+  --danger: #ef4444; --danger-hover: #dc2626; --success: #22c55e;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md: 0 8px 16px rgba(0,0,0,0.4);
+  --shadow-lg: 0 16px 32px rgba(0,0,0,0.5);
+}
+
+[data-theme="dark"] body {
+  background: linear-gradient(180deg, #0a0a0a 0%, #0f0f0f 100%);
+}
+
+[data-theme="traditional"] {
+  --bg-primary: #f8f9fa;
+  --bg-secondary: #e9ecef;
+  --bg-card: #ffffff;
+  --bg-hover: rgba(0,0,0,0.03);
+  --border-primary: #ced4da;
+  --border-secondary: #dee2e6;
+  --border-accent: #adb5bd;
+  --text-primary: #212529;
+  --text-secondary: #495057;
+  --text-muted: #6c757d;
+  --text-faint: #adb5bd;
+  --accent-primary: #0d6efd;
+  --accent-hover: #0b5ed7;
+  --accent-light: rgba(13, 110, 253, 0.1);
+  --bar-1: #0d6efd; --bar-2: #198754; --bar-3: #6f42c1;
+  --bar-4: #fd7e14; --bar-5: #20c997; --bar-6: #d63384;
+  --danger: #dc3545; --danger-hover: #bb2d3b; --success: #198754;
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 4px;
+  --radius-xl: 8px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+[data-theme="traditional"] body {
+  background: var(--bg-primary);
+}
+
+* {
+  font-family: var(--font-primary);
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--bg-primary);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  color: var(--text-primary);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-accent); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* Layout */
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+  width: var(--sidebar-width);
+  min-width: var(--sidebar-width);
+  background: var(--bg-card);
+  border-right: 1px solid var(--border-primary);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 100;
+  transition: transform var(--transition-slow);
+  overflow-y: auto;
+}
+
+.sidebar.collapsed {
+  transform: translateX(-100%);
+}
+
+.sidebar-header {
+  padding: 20px 16px 12px;
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--text-primary);
+}
+
+.sidebar-brand-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-hover));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 18px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.sidebar-brand-text {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.sidebar-brand-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* Search */
+.sidebar-search {
+  padding: 12px 16px;
+}
+
+.sidebar-search input {
+  width: 100%;
+  padding: 8px 12px 8px 32px;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: var(--font-primary);
+  transition: all var(--transition-normal);
+  outline: none;
+}
+
+.sidebar-search input:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--accent-light);
+  background: var(--bg-card);
+}
+
+.sidebar-search input::placeholder {
+  color: var(--text-faint);
+}
+
+.search-wrapper {
+  position: relative;
+}
+
+.search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-faint);
+}
+
+/* Nav */
+.sidebar-nav {
+  padding: 8px 0;
+  flex: 1;
+}
+
+.nav-section {
+  padding: 4px 0;
+}
+
+.nav-section-title {
+  padding: 6px 16px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+  border-left: 3px solid transparent;
+  user-select: none;
+}
+
+.nav-item:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.nav-item.active {
+  background: var(--accent-light);
+  color: var(--accent-primary);
+  border-left-color: var(--accent-primary);
+  font-weight: 600;
+}
+
+.nav-item.sub {
+  padding-left: 36px;
+  font-size: 12px;
+}
+
+.nav-item.sub.active {
+  border-left-color: transparent;
+}
+
+.nav-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.nav-toggle-arrow {
+  transition: transform var(--transition-fast);
+  color: var(--text-faint);
+}
+
+.nav-toggle-arrow.open {
+  transform: rotate(90deg);
+}
+
+.nav-badge {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: var(--radius-full);
+  background: var(--accent-light);
+  color: var(--accent-primary);
+  font-weight: 600;
+}
+
+.nav-badge.planned {
+  background: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+}
+
+/* Main content */
+.main-area {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  transition: margin-left var(--transition-slow);
+}
+
+.main-area.expanded {
+  margin-left: 0;
+}
+
+/* Header */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-primary);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  gap: 16px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hamburger {
+  display: none;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.hamburger:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.header-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-hover));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.header-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.header-subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.theme-select {
+  padding: 6px 28px 6px 10px;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: var(--font-primary);
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2378716c' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  transition: all var(--transition-fast);
+  outline: none;
+}
+
+.theme-select:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+.back-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+  font-family: var(--font-primary);
+  white-space: nowrap;
+}
+
+.back-link:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: var(--border-accent);
+}
+
+/* Content */
+.content-area {
+  flex: 1;
+  padding: 32px;
+  max-width: 960px;
+  width: 100%;
+  margin: 0 auto;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Prose */
+.prose h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 8px;
+  line-height: 1.3;
+}
+
+.prose h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 40px 0 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-primary);
+  line-height: 1.3;
+}
+
+.prose h2:first-child {
+  margin-top: 0;
+}
+
+.prose h3 {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 28px 0 10px;
+}
+
+.prose h4 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 20px 0 8px;
+}
+
+.prose p {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  margin: 0 0 14px;
+}
+
+.prose strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.prose ul, .prose ol {
+  margin: 0 0 16px;
+  padding-left: 24px;
+}
+
+.prose li {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.prose a {
+  color: var(--accent-primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.prose a:hover {
+  text-decoration: underline;
+}
+
+/* Page intro */
+.page-intro {
+  font-size: 15px;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+  line-height: 1.7;
+}
+
+/* Tables */
+.doc-table-wrapper {
+  overflow-x: auto;
+  margin: 0 0 20px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-primary);
+}
+
+.doc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.doc-table th {
+  background: var(--bg-secondary);
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-primary);
+  white-space: nowrap;
+}
+
+.doc-table td {
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--border-secondary);
+  color: var(--text-secondary);
+  vertical-align: top;
+}
+
+.doc-table tr:nth-child(even) td {
+  background: var(--bg-hover);
+}
+
+.doc-table tr:last-child td {
+  border-bottom: none;
+}
+
+.doc-table code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  background: var(--bg-secondary);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  color: var(--accent-primary);
+}
+
+/* Code blocks */
+.code-block {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin: 0 0 16px;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .code-block {
+  background: #1a1a1a;
+  border-color: #2a2a2a;
+}
+
+.inline-code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  background: var(--bg-secondary);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  color: var(--accent-primary);
+  border: 1px solid var(--border-secondary);
+}
+
+/* Cards */
+.doc-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin: 0 0 16px;
+  box-shadow: var(--shadow-sm);
+}
+
+.doc-card h4 {
+  margin-top: 0;
+}
+
+/* Callout */
+.callout {
+  background: var(--accent-light);
+  border: 1px solid var(--border-primary);
+  border-left: 4px solid var(--accent-primary);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.callout strong {
+  color: var(--text-primary);
+}
+
+.callout.warning {
+  border-left-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.08);
+}
+
+/* Grid */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin: 0 0 20px;
+}
+
+.feature-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  transition: all var(--transition-normal);
+}
+
+.feature-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.feature-card h4 {
+  margin: 0 0 6px;
+  font-size: 14px;
+}
+
+.feature-card p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* Data flow diagram */
+.flow-diagram {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  margin: 20px 0;
+  padding: 24px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-primary);
+}
+
+.flow-node {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.flow-node.hub {
+  background: var(--accent-primary);
+  color: white;
+  border-color: var(--accent-hover);
+  font-weight: 700;
+  padding: 14px 24px;
+  font-size: 15px;
+}
+
+.flow-arrow {
+  color: var(--text-faint);
+  font-size: 20px;
+}
+
+/* Status badges */
+.status-badge {
+  display: inline-block;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+.status-badge.complete {
+  background: rgba(22, 163, 74, 0.12);
+  color: #16a34a;
+}
+
+.status-badge.planned {
+  background: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+}
+
+/* Colour swatch */
+.swatch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+  margin: 0 0 20px;
+}
+
+.swatch {
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.swatch-color {
+  height: 40px;
+}
+
+.swatch-info {
+  padding: 8px 10px;
+  background: var(--bg-card);
+  font-size: 11px;
+}
+
+.swatch-info .name {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.swatch-info .hex {
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+/* Footer */
+.doc-footer {
+  padding: 20px 32px;
+  border-top: 1px solid var(--border-primary);
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--bg-card);
+}
+
+/* Sidebar overlay (mobile) */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 90;
+}
+
+.sidebar-overlay.visible {
+  display: block;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+  }
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  .main-area {
+    margin-left: 0;
+  }
+  .hamburger {
+    display: flex;
+  }
+  .content-area {
+    padding: 20px 16px;
+  }
+  .app-header {
+    padding: 10px 16px;
+  }
+  .back-link span {
+    display: none;
+  }
+  .header-title {
+    font-size: 16px;
+  }
+}
+  </style>
+
+  <!-- React -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+const { useState, useEffect, useCallback, useMemo } = React;
+
+/* ============================================
+   ICONS (inline SVG)
+   ============================================ */
+const icons = {
+  book: (s=18) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>,
+  search: (s=14) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
+  chevron: (s=14) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>,
+  arrow: (s=14) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>,
+  menu: (s=20) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>,
+  x: (s=18) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+  grid: (s=16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>,
+  layers: (s=16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>,
+  link: (s=16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>,
+  palette: (s=16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>,
+  rocket: (s=16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>,
+};
+
+/* ============================================
+   APP DATA (embedded content)
+   ============================================ */
+
+const appPages = {
+  'main-dashboard': {
+    title: 'Main Dashboard',
+    status: 'complete',
+    purpose: 'Navigation hub for the entire CoffeeCup suite. Displays a grid of application tiles for quick access to all project management tools.',
+    quickStart: [
+      'Open Main/index.html in your browser',
+      'Click any tile to launch that application',
+      'Use the theme selector in the header to change appearance across all apps',
+    ],
+    features: [
+      'Application grid with icon, name, description, and launch button for each tool',
+      'Suite-wide theme selector (Blueprint, Fun, Dark, Traditional)',
+      'Theme persistence across all applications via localStorage',
+      'Responsive layout that adapts to different screen sizes',
+    ],
+    integration: 'The Main Dashboard is the starting point. It links to all other CoffeeCup applications but does not exchange data with them.',
+    storageKey: 'N/A (navigation only)',
+  },
+  'gantt-chart': {
+    title: 'Gantt Chart',
+    status: 'complete',
+    purpose: 'Sophisticated project scheduling tool for planning activities, managing dependencies (FS, SS, FF, SF), and visualising timelines. Includes a full Critical Path Method (CPM) implementation with forward/backward pass, float calculation, and visual highlighting. Supports both chart and table print modes.',
+    quickStart: [
+      'Set the project start date in the header toolbar',
+      'Add activities with name and duration (0 = milestone)',
+      'Create dependencies by clicking the Dependencies button on any activity',
+      'View the auto-calculated critical path highlighted on the timeline',
+      'Export to JSON or print as chart/table view',
+    ],
+    features: [
+      'Four dependency types: Finish-to-Start, Start-to-Start, Finish-to-Finish, Start-to-Finish',
+      'Critical Path Method (CPM) with forward/backward pass and slack calculation',
+      'Drag-and-drop activity reordering',
+      'Lag and lead time support on dependencies',
+      'Multiple predecessor support per activity',
+      'SVG dependency arrows with toggle visibility',
+      'Adjustable time scale (Days, Weeks, Months) and zoom slider',
+      'Print modes: Chart view and Table view (ES, EF, LS, LF, Slack)',
+      'JSON import/export with legacy data migration',
+    ],
+    integration: 'PMPlan pulls schedule summary, milestones, and critical path data. EVM Dashboard pulls schedule performance for SPI calculation.',
+    storageKey: 'gantt-project',
+    sections: [
+      {
+        title: 'Critical Path Analysis — Deep Dive',
+        content: 'The Gantt Chart includes a complete Critical Path Method (CPM) implementation based on the standard PMBOK scheduling algorithm. The critical path is the longest sequence of dependent activities that determines the minimum project duration. Any delay to a critical activity delays the entire project.',
+        subsections: [
+          {
+            title: 'Algorithm',
+            content: 'CPM uses a two-pass approach over the activity network:',
+            items: [
+              'Forward Pass — Calculates the Early Start (ES) and Early Finish (EF) for each activity. Activities with no predecessors start at day 0. For activities with dependencies, ES equals the maximum constraint from all predecessors, accounting for dependency type and lag.',
+              'Backward Pass — Calculates the Late Start (LS) and Late Finish (LF) by working backwards from the project end date. LF is initialised to the total project duration, then constrained by successor relationships.',
+              'Float (Slack) — The difference between Late Start and Early Start (LS − ES). Represents how much an activity can slip without delaying the project.',
+              'Critical Activities — Activities with float approximately equal to zero (within 0.001 tolerance to avoid floating-point errors) form the critical path.',
+            ],
+          },
+          {
+            title: 'Dependency Types',
+            content: 'All four PMBOK dependency relationships are fully supported in both the forward and backward pass, with lag (delay) and lead (negative lag) values:',
+            items: [
+              'Finish-to-Start (FS) — Successor starts after predecessor finishes. The most common relationship.',
+              'Start-to-Start (SS) — Successor starts when predecessor starts. Useful for parallel activities.',
+              'Finish-to-Finish (FF) — Successor finishes when predecessor finishes. Links completion dates.',
+              'Start-to-Finish (SF) — Successor finishes when predecessor starts. Rarely used but fully supported.',
+            ],
+          },
+          {
+            title: 'Visualisation',
+            content: 'When the "Show Critical Path" toggle is enabled:',
+            items: [
+              'Critical activity bars are highlighted with a pulsing red glow animation (2.5-second cycle)',
+              'Dependency arrows between critical activities are rendered in red with thicker strokes',
+              'Hovering over any activity bar shows its float value in the tooltip',
+              'The Table print mode displays ES, EF, LS, LF, and Slack columns for every activity',
+            ],
+          },
+          {
+            title: 'Edge Case Handling',
+            content: 'The implementation includes several safeguards:',
+            items: [
+              'Circular dependency prevention — DFS-based cycle detection blocks users from creating loops in the dependency network',
+              'Negative constraint protection — Start times are clamped to zero minimum to prevent impossible schedules',
+              'Deleted reference handling — Orphaned predecessor references are gracefully skipped during calculation',
+              'Milestone support — Zero-duration activities are treated correctly in CPM calculations and rendered as diamonds',
+              'Topological sort — Activities are processed in dependency order using post-order traversal, ensuring predecessors are always calculated before their successors',
+            ],
+          },
+          {
+            title: 'Integration with Other Apps',
+            content: 'The critical path data is persisted to localStorage and consumed by other CoffeeCup applications:',
+            items: [
+              'EVM Dashboard reads the critical path length to calculate schedule % complete and SPI',
+              'PMPlan pulls the critical path duration, milestone data, and schedule summary',
+              'The stored data includes: critical activity IDs, total critical path length (days), and float values per activity',
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  'kanban-board': {
+    title: 'Kanban Board',
+    status: 'complete',
+    purpose: 'Visual task management tool for tracking work items through workflow stages. Uses drag-and-drop cards across customisable columns with built-in analytics for workload balancing and velocity tracking.',
+    quickStart: [
+      'Default columns are provided: To Do, In Progress, Done',
+      'Click "+ Add Card" in any column to create a task card',
+      'Drag cards between columns as work progresses',
+      'Switch to the Analysis tab for KPIs and charts',
+    ],
+    features: [
+      'Customisable columns with WIP (work-in-progress) limits',
+      'Card fields: Title, Description, Assignee, Priority, Due Date',
+      'Drag-and-drop cards between columns',
+      'Analysis tab with completion rate, cycle time, and workload metrics',
+      'Bar and pie charts for visual analytics',
+      'Settings panel for column configuration and import/export',
+    ],
+    integration: 'PMPlan pulls task progress statistics and completion rates for dashboard KPIs.',
+    storageKey: 'kanban-project',
+  },
+  'risk-register': {
+    title: 'Risk Register',
+    status: 'complete',
+    purpose: 'Quantitative risk analysis tool combining traditional risk management with probabilistic Monte Carlo simulation (10,000 iterations). Calculates Expected Monetary Value (EMV) for each risk and provides pre/post-action assessment to measure mitigation effectiveness.',
+    quickStart: [
+      'Click "Add Risk" and fill in name, type (Threat/Opportunity), likelihood, and cost/time impacts (Min/Likely/Max)',
+      'View the EMV Tornado chart to identify key risk drivers',
+      'Navigate to Monte Carlo tab for probabilistic analysis',
+      'Use the P-value slider to explore confidence levels (P10, P50, P80, P90)',
+      'Add post-action values to quantify mitigation effectiveness',
+    ],
+    features: [
+      'Monte Carlo simulation with 10,000 iterations and triangular distributions',
+      'EMV Tornado chart for sensitivity analysis (threats and opportunities)',
+      'Pre-action and post-action assessment (inherent vs residual risk)',
+      'Histogram and CDF (S-curve) visualisations',
+      'Interactive P-value slider with preset buttons',
+      'PERT formula for expected value calculation',
+      'Cost and time impact views',
+      'Risk colouring: red for threats, green for opportunities',
+    ],
+    integration: 'PMPlan pulls top risks and EMV exposure. Cost Tracker pulls EMV data for evidence-based contingency reserves.',
+    storageKey: 'risk-register',
+  },
+  'hierarchy-editor': {
+    title: 'Hierarchy Editor',
+    status: 'complete',
+    purpose: 'Visualise organisational structures (org charts) and Work Breakdown Structures (WBS) with two display modes: Tree View (indented list with expand/collapse) and Organogram (visual boxes connected by lines).',
+    quickStart: [
+      'Choose mode: Tree View or Organogram',
+      'Add a root node (e.g. "CEO" or "Project")',
+      'Add child nodes under the root for sub-items',
+      'Switch between modes to see different visualisations',
+    ],
+    features: [
+      'Tree View mode with expand/collapse and indentation',
+      'Organogram mode with auto-arranged visual boxes and connecting lines',
+      'Node colour coding for departments or phases',
+      'Zoom and pan navigation in Organogram mode',
+      'JSON import/export for backup',
+      'WBS decomposition support',
+    ],
+    integration: 'PMPlan pulls org chart structure for Team & Organisation section and WBS for scope decomposition.',
+    storageKey: 'hierarchy-data',
+  },
+  'delphi-tool': {
+    title: 'Delphi Tool',
+    status: 'complete',
+    purpose: 'Systematic expert consensus gathering using the Delphi method. Facilitates anonymous rounds of questionnaires to identify risks, estimate durations, or forecast outcomes, reducing bias from groupthink and dominant personalities.',
+    quickStart: [
+      'Create a study with name and objective',
+      'Add expert panel members',
+      'Design Round 1 questionnaire with open-ended, numeric, or rating questions',
+      'Collect responses and summarise (median, range, outliers)',
+      'Create subsequent rounds showing summaries until consensus is reached',
+    ],
+    features: [
+      'Multi-round study management with convergence tracking',
+      'Anonymous questionnaire submission',
+      'Results aggregation: median, range, interquartile range',
+      'Multiple question types: open-ended, numeric, rating scales',
+      'Convergence indicators (response range narrowing across rounds)',
+      'Expert panel management',
+    ],
+    integration: 'PMPlan pulls consensus estimates for risk identification and schedule forecasting. Risk Register can import identified risks from Delphi studies.',
+    storageKey: 'delphi-studies',
+  },
+  'raci-matrix': {
+    title: 'RACI Matrix',
+    status: 'complete',
+    purpose: 'Responsibility Assignment Matrix builder supporting three frameworks: RACI (Responsible, Accountable, Consulted, Informed), RASCI (adds Supportive), and DACI (Driver, Approver, Contributor, Informed). Includes role grouping by department.',
+    quickStart: [
+      'Choose framework: RACI, RASCI, or DACI',
+      'Add roles as columns (e.g. Project Manager, Developer)',
+      'Add tasks as rows (e.g. Requirements, Development, Testing)',
+      'Click each cell to assign responsibility type (R, A, C, I)',
+    ],
+    features: [
+      'Three framework options: RACI, RASCI, DACI',
+      'Role grouping by department or team',
+      'Visual colour coding: R=Blue, A=Red, C=Green, I=Grey',
+      'Validation: one Accountable per task, at least one Responsible',
+      'Role and task management with add/edit/delete',
+      'Export for backup and sharing',
+    ],
+    integration: 'PMPlan pulls key roles for Team & Organisation, Consulted/Informed parties for Communications Plan, and accountability mapping for Stakeholder Register.',
+    storageKey: 'raci-project',
+  },
+  'cost-tracker': {
+    title: 'Cost Tracker',
+    status: 'complete',
+    purpose: 'Comprehensive budget management application combining traditional cost control with Earned Value Management (EVM) metrics. Features PMBOK-aligned cost hierarchy, interactive Chart.js visualisations (S-curve, burn-down, donut, contingency gauge), reserve management, and Risk Register integration for evidence-based contingency.',
+    quickStart: [
+      'Set project metadata (name, dates, currency) in Settings',
+      'Add budget categories (Labour, Materials, etc.) or use defaults',
+      'Add line items within categories (description, quantity, unit, rate)',
+      'Record actual spend and earned value as work progresses',
+      'View the Dashboard tab for charts and EVM metrics (CPI, SPI, EAC)',
+    ],
+    features: [
+      'PMBOK cost hierarchy: Cost Baseline, Contingency Reserve, Management Reserve',
+      'Seven default budget categories with custom category support',
+      'Line item management with quantity, unit (Hours/Days/Units/Lump Sum), and rate',
+      'EVM metrics: PV, EV, AC, CV, SV, CPI, SPI, EAC, ETC, TCPI',
+      'Four Chart.js visualisations: S-curve, Burn-down, Category Donut, Contingency Gauge',
+      'Risk Register integration for EMV-based contingency reserves',
+      'Contingency utilisation tracking with audit log',
+      'Time-phased budgeting and baseline management',
+    ],
+    integration: 'PMPlan pulls budget summary, EVM metrics, and contingency status. Reads Risk Register EMV data for evidence-based contingency. EVM Dashboard pulls cost data for Earned Value calculations.',
+    storageKey: 'cost-project',
+  },
+  'stakeholder-map': {
+    title: 'Stakeholder Map',
+    status: 'complete',
+    purpose: 'Visual power/interest quadrant grid for mapping stakeholders and determining engagement strategies. Features drag-and-drop positioning with auto-classified engagement recommendations based on quadrant placement.',
+    quickStart: [
+      'Click "+ Add Stakeholder" and enter name, role, organisation',
+      'Drag the stakeholder card to the appropriate quadrant on the grid',
+      'Review the auto-suggested engagement strategy',
+      'Set current and desired engagement levels (Unaware to Leading)',
+    ],
+    features: [
+      'Power/Interest quadrant grid with four strategies: Manage Closely, Keep Satisfied, Keep Informed, Monitor',
+      'Drag-and-drop card positioning with auto-calculated power/interest levels',
+      'Engagement tracking: Current vs Desired (Unaware, Resistant, Neutral, Supportive, Leading)',
+      'Stakeholder attributes: name, role, organisation, email, notes',
+      'Table view alternative to visual grid',
+      'Auto-generated strategy recommendations per quadrant',
+    ],
+    integration: 'PMPlan pulls stakeholder register with power/interest classification and engagement strategy recommendations.',
+    storageKey: 'stakeholder-project',
+  },
+  'pmplan': {
+    title: 'PMPlan',
+    status: 'complete',
+    purpose: 'Central integration hub that pulls data from all other CoffeeCup applications to build comprehensive project management plans aligned with the PMBOK 10 Knowledge Areas. Features three-tier section architecture, template presets, and formal governance workflows.',
+    quickStart: [
+      'Set project metadata in Settings (name, sponsor, manager, methodology)',
+      'Enable sections using Tier 1 (core), Tier 2 (extended), or Tier 3 (specialist) options',
+      'Fill in manual entry sections (Project Overview, Scope Statement)',
+      'Click "Pull Latest" banners to import data from Gantt, Risk Register, Cost Tracker, etc.',
+      'Export to JSON or print to PDF for formal documentation',
+    ],
+    features: [
+      'Three-tier section architecture: 10 Core, 10 Extended, 9 Specialist sections',
+      'Template presets: General, IT/Software, Construction, Consulting',
+      'Live data pull from all CoffeeCup apps via localStorage',
+      'Visual pull status indicators: green (fresh), amber (stale), red (no data)',
+      'Rich text editor for manual entry sections',
+      'JSON export and PDF print with table of contents',
+      'Governance workflow: Draft, In Review, Approved, Baselined',
+      'Baseline management for performance measurement',
+    ],
+    integration: 'PMPlan is the central hub. It reads from Gantt (schedule), Risk Register (risks), RACI (roles), Hierarchy (org chart), Kanban (progress), Delphi (estimates), Cost Tracker (budget), and Stakeholder Map (register). It never writes back to source apps.',
+    storageKey: 'pmplan-project',
+  },
+  'change-issue-register': {
+    title: 'Change & Issue Register',
+    status: 'complete',
+    purpose: 'Combined change request and issue log with dual-register support, dashboard analytics, and Chart.js visualisations. Configurable ID prefixes, categories, and status workflows for project governance.',
+    quickStart: [
+      'Switch between Register and Dashboard tabs for data entry vs analytics',
+      'Add change requests (CR) or issues (IS) with full detail fields',
+      'Filter by type, status, priority, or free-text search across all fields',
+      'View dashboard charts: status distribution, category breakdown, trends, and priority split',
+    ],
+    features: [
+      'Dual register: Changes (CR prefix) and Issues (IS prefix) with separate workflows',
+      'Dashboard tab with four Chart.js visualisations: status doughnut, category bar, trend line, priority doughnut',
+      'KPI cards: Total Open, Changes Pending, Issues Open, Approval Rate, Average Days, Overdue count',
+      'Sortable columns and expandable row detail view',
+      'Impact assessment: cost, schedule, scope, and quality dimensions',
+      'Auto-generated sequential IDs with configurable prefixes',
+      'Settings panel for project name, ID prefixes, and custom categories',
+      'JSON export for data backup',
+    ],
+    integration: 'PMPlan pulls recent change requests and open issues for Change Management and Issue Log sections.',
+    storageKey: 'changelog-project',
+  },
+  'evm-dashboard': {
+    title: 'EVM Dashboard',
+    status: 'complete',
+    purpose: 'Earned Value Management dashboard that pulls live data from Gantt Chart and Cost Tracker to calculate full EVM metrics. Features dual CPI/SPI gauges and an S-curve chart for performance tracking.',
+    quickStart: [
+      'Data is automatically pulled from Gantt Chart and Cost Tracker on load',
+      'Review CPI and SPI gauges for instant project health assessment',
+      'Analyse the S-curve showing PV, EV, and AC trends over time',
+      'Click Refresh to pull latest data from source apps',
+    ],
+    features: [
+      'Full EVM metric suite: BAC, PV, EV, AC, CV, SV, CPI, SPI, EAC, ETC, VAC, TCPI',
+      'Dual circular gauges for CPI and SPI with colour-coded thresholds (green/yellow/red)',
+      'S-curve line chart: Planned Value, Earned Value, and Actual Cost over project periods',
+      'Detailed metrics table with formula explanations for each calculation',
+      'Live data pull from Gantt Chart (schedule) and Cost Tracker (costs)',
+      'Status banner with traffic-light health indicator',
+      'Percentage complete and percentage spent tracking',
+    ],
+    integration: 'Pulls from Gantt Chart (schedule performance, Planned Value) and Cost Tracker (Actual Cost, Earned Value). Feeds EVM metrics into PMPlan.',
+    storageKey: 'evm-project',
+  },
+  'quality-register': {
+    title: 'Quality Register',
+    status: 'complete',
+    purpose: 'Four-module quality management tool covering criteria definition, inspection checklists, defect tracking, and formal acceptance sign-off. Supports structured quality governance across the project lifecycle.',
+    quickStart: [
+      'Define quality criteria with category, method, and tolerance values',
+      'Create inspection checklists and toggle items as complete',
+      'Log defects with severity (Minor/Major/Critical) and track through Open, In Progress, Closed',
+      'Record formal acceptance sign-off with role, notes, and approval status',
+    ],
+    features: [
+      'Four dedicated modules: Criteria, Checklists, Defects, and Approvals',
+      'Quality criteria with category (Inspection, Performance, Compliance, Functional), method, and tolerance',
+      'Interactive checklist with toggle completion for inspection items',
+      'Defect tracking with severity badges and status-grouped columns (Kanban-style)',
+      'Formal acceptance sign-off with role selection (Client, Project Manager, Sponsor, QA Lead)',
+      'Date tracking: logged and resolved dates for defects, sign-off dates for approvals',
+      'Last modified timestamp for audit trail',
+    ],
+    integration: 'PMPlan pulls quality management summary: criteria, defect counts, and acceptance rates.',
+    storageKey: 'quality-project',
+  },
+  'analysis-module': {
+    title: 'Integrated Analysis',
+    status: 'complete',
+    purpose: 'Quantitative cost & schedule risk analysis with Monte Carlo simulation, S-curves, tornado charts, and Joint Confidence Levels.',
+    quickStart: [
+      'Ensure Gantt Chart, Cost Tracker, and Risk Register have data populated',
+      'Open Analysis/index.html — data is automatically pulled from source apps on load',
+      'Review the Schedule S-curve (CDF) with P50 and P80 confidence levels',
+      'Review the Cost S-curve with P50 and P80 confidence levels',
+      'Analyse the Tornado sensitivity charts to identify key risk drivers',
+      'Examine the Joint Confidence Level scatter plot for combined cost-schedule risk',
+      'Optionally override 3-point estimates (PERT, Triangular, Uniform) and define correlation groups',
+      'Toggle pre vs post-mitigation comparison to measure risk response effectiveness',
+    ],
+    features: [
+      'Monte Carlo simulation (10K+ iterations) for probabilistic cost and schedule analysis',
+      'Schedule S-curve (CDF) with P50/P80 confidence level markers',
+      'Cost S-curve (CDF) with P50/P80 confidence level markers',
+      'Tornado sensitivity charts for identifying top risk drivers',
+      'Joint Confidence Level scatter plot combining cost and schedule uncertainty',
+      '3-point estimate overrides with PERT, Triangular, and Uniform distribution options',
+      'Correlation groups for modelling dependencies between risk variables',
+      'Pre vs post-mitigation comparison to quantify risk response effectiveness',
+      'Web Worker for large simulations to keep the UI responsive',
+      'Reads from Gantt Chart, Cost Tracker, and Risk Register for integrated analysis',
+    ],
+    integration: 'Reads from gantt-project (schedule data), cost-project (budget data), and risk-register (risk data). PMPlan reads lastRun from analysis-project for quantitative risk analysis summary.',
+    storageKey: 'analysis-project',
+  },
+  'estimator': {
+    title: 'Estimator',
+    status: 'complete',
+    purpose: 'Bottom-up material quantity estimation from room/zone dimensions with coverage rates, wastage factors, pack rounding, and priced bills of quantities.',
+    quickStart: [
+      'Create a new project and select your region (UK metric or USA imperial)',
+      'Add rooms/zones with length, width, and height dimensions',
+      'Choose from 20 built-in construction templates (e.g. Painting, Flooring, Tiling)',
+      'Review calculated quantities with wastage factors and pack rounding',
+      'Generate a priced bill of quantities using the rate library',
+      'Export the shopping list as CSV for procurement',
+    ],
+    features: [
+      '20 construction templates (UK + USA) covering common trades',
+      'Dimension-based calculation engine with area, perimeter, and volume support',
+      'Coverage rates with configurable wastage factors per material',
+      'Pack rounding and unit pricing for accurate procurement quantities',
+      'Region support (UK metric / USA imperial) with unit conversion',
+      'Summary with Chart.js visualisations (cost breakdown, material split)',
+      'Shopping list with CSV export for procurement teams',
+      'Rate library with built-in defaults and custom rate overrides',
+    ],
+    integration: 'PMPlan pulls material estimates and cost summaries for the Procurement section. Cost Tracker can reference Estimator outputs for budget line items.',
+    storageKey: 'estimator-project, estimator-rates',
+  },
+};
+
+
+/* ============================================
+   SECTION COMPONENTS
+   ============================================ */
+
+/* --- Overview Section --- */
+const OverviewSection = () => (
+  <div className="prose">
+    <h1>CoffeeCup Project Management Suite</h1>
+    <p className="page-intro">
+      CoffeeCup is a comprehensive, browser-based project management suite designed for professional project managers, team leads, and anyone managing complex projects. It runs entirely in your browser with no installation, no server, and no subscription. All data stays on your computer in localStorage.
+    </p>
+
+    <h2>Philosophy</h2>
+    <div className="feature-grid">
+      <div className="feature-card">
+        <h4>Privacy First</h4>
+        <p>Your project data never leaves your computer. No cloud sync, no telemetry, no tracking. You own and control your data completely.</p>
+      </div>
+      <div className="feature-card">
+        <h4>Modular Excellence</h4>
+        <p>Each application does one thing exceptionally well. Use what you need, ignore what you don't. Apps work independently but integrate seamlessly.</p>
+      </div>
+      <div className="feature-card">
+        <h4>Visual Consistency</h4>
+        <p>Every application shares a unified design system with four themes. The entire suite adapts to your aesthetic preference.</p>
+      </div>
+    </div>
+
+    <h2>Application Catalogue</h2>
+    <h3>Completed Applications</h3>
+    <div className="doc-table-wrapper">
+      <table className="doc-table">
+        <thead><tr><th>Application</th><th>Purpose</th><th>Complexity</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Main Dashboard</strong></td><td>Central navigation hub for all applications</td><td>Simple</td></tr>
+          <tr><td><strong>Gantt Chart</strong></td><td>Project scheduling with dependencies and critical path analysis</td><td>High</td></tr>
+          <tr><td><strong>Kanban Board</strong></td><td>Visual task management with drag-and-drop and analytics</td><td>Medium</td></tr>
+          <tr><td><strong>Risk Register</strong></td><td>Monte Carlo simulation (10,000 iterations), EMV tornado charts</td><td>High</td></tr>
+          <tr><td><strong>Hierarchy Editor</strong></td><td>Org charts and WBS in Tree View and Organogram modes</td><td>Medium</td></tr>
+          <tr><td><strong>Delphi Tool</strong></td><td>Expert consensus via anonymous Delphi method rounds</td><td>Medium</td></tr>
+          <tr><td><strong>RACI Matrix</strong></td><td>Responsibility assignment with RACI, RASCI, DACI frameworks</td><td>Medium</td></tr>
+          <tr><td><strong>Cost Tracker</strong></td><td>PMBOK budget management with EVM and Chart.js visualisations</td><td>High</td></tr>
+          <tr><td><strong>Stakeholder Map</strong></td><td>Power/interest quadrant grid with engagement strategies</td><td>Medium</td></tr>
+          <tr><td><strong>PMPlan</strong></td><td>Central hub pulling data into PMBOK 10 Knowledge Areas</td><td>Medium</td></tr>
+          <tr><td><strong>Change & Issue Register</strong></td><td>Dual register with dashboard analytics and Chart.js visualisations</td><td>Medium</td></tr>
+          <tr><td><strong>EVM Dashboard</strong></td><td>CPI/SPI gauges, S-curve chart from Gantt + Cost Tracker data</td><td>Medium</td></tr>
+          <tr><td><strong>Quality Register</strong></td><td>Quality criteria, checklists, defect tracking, and acceptance sign-off</td><td>Medium</td></tr>
+          <tr><td><strong>Integrated Analysis</strong></td><td>Quantitative cost & schedule risk analysis with Monte Carlo, S-curves, tornado charts, and JCL</td><td>High</td></tr>
+          <tr><td><strong>Estimator</strong></td><td>Bottom-up material quantity estimation with coverage rates, wastage, pack rounding, and priced BOQ</td><td>Medium</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Integration Model</h2>
+    <p>CoffeeCup uses a <strong>hub-and-spoke architecture</strong> with PMPlan at the centre. All apps store data independently in localStorage. PMPlan reads (never writes) from other apps on demand via "Pull Latest" banners.</p>
+    <div className="flow-diagram">
+      <div className="flow-node">Gantt Chart</div>
+      <div className="flow-arrow">&rarr;</div>
+      <div className="flow-node">Risk Register</div>
+      <div className="flow-arrow">&rarr;</div>
+      <div className="flow-node hub">PMPlan</div>
+      <div className="flow-arrow">&larr;</div>
+      <div className="flow-node">RACI Matrix</div>
+      <div className="flow-arrow">&larr;</div>
+      <div className="flow-node">Cost Tracker</div>
+    </div>
+    <p style={{textAlign:'center', fontSize: 12, color: 'var(--text-muted)'}}>Plus: Kanban Board, Hierarchy Editor, Delphi Tool, Stakeholder Map, Change & Issue Register, EVM Dashboard, Quality Register, Integrated Analysis, and Estimator</p>
+
+    <h2>Getting Started</h2>
+    <h3>Which App Should I Use?</h3>
+    <div className="doc-table-wrapper">
+      <table className="doc-table">
+        <thead><tr><th>If You Need To...</th><th>Start With</th></tr></thead>
+        <tbody>
+          <tr><td>See all available tools</td><td><strong>Main Dashboard</strong></td></tr>
+          <tr><td>Schedule tasks with dependencies</td><td><strong>Gantt Chart</strong></td></tr>
+          <tr><td>Manage day-to-day tasks visually</td><td><strong>Kanban Board</strong></td></tr>
+          <tr><td>Analyse project risks quantitatively</td><td><strong>Risk Register</strong></td></tr>
+          <tr><td>Build an org chart or WBS</td><td><strong>Hierarchy Editor</strong></td></tr>
+          <tr><td>Gather expert opinions systematically</td><td><strong>Delphi Tool</strong></td></tr>
+          <tr><td>Clarify who does what</td><td><strong>RACI Matrix</strong></td></tr>
+          <tr><td>Track budget and costs</td><td><strong>Cost Tracker</strong></td></tr>
+          <tr><td>Map stakeholder influence</td><td><strong>Stakeholder Map</strong></td></tr>
+          <tr><td>Build a formal PM plan</td><td><strong>PMPlan</strong> (after populating other apps)</td></tr>
+          <tr><td>Manage change requests and issues</td><td><strong>Change & Issue Register</strong></td></tr>
+          <tr><td>Track earned value performance</td><td><strong>EVM Dashboard</strong> (after Gantt + Cost Tracker)</td></tr>
+          <tr><td>Define quality criteria and track defects</td><td><strong>Quality Register</strong></td></tr>
+          <tr><td>Run quantitative risk analysis (Monte Carlo, JCL)</td><td><strong>Integrated Analysis</strong> (after Gantt + Cost Tracker + Risk Register)</td></tr>
+          <tr><td>Calculate material quantities from dimensions</td><td><strong>Estimator</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Typical Workflows</h2>
+    <h3>Starting a New Project</h3>
+    <ol>
+      <li><strong>Gantt Chart</strong> &mdash; Define activities, dependencies, and timeline</li>
+      <li><strong>Estimator</strong> &mdash; Calculate material quantities and procurement costs</li>
+      <li><strong>Cost Tracker</strong> &mdash; Set up budget and cost baseline</li>
+      <li><strong>Risk Register</strong> &mdash; Identify and quantify risks</li>
+      <li><strong>Quality Register</strong> &mdash; Define quality criteria and checklists</li>
+      <li><strong>RACI Matrix</strong> &mdash; Assign responsibilities</li>
+      <li><strong>PMPlan</strong> &mdash; Pull everything together into a formal plan</li>
+    </ol>
+    <h3>Agile Team Management</h3>
+    <ol>
+      <li><strong>Kanban Board</strong> &mdash; Manage sprint tasks</li>
+      <li><strong>Hierarchy Editor</strong> &mdash; Define team structure</li>
+      <li><strong>PMPlan</strong> &mdash; Create lightweight project documentation</li>
+    </ol>
+    <h3>Risk-Heavy Projects</h3>
+    <ol>
+      <li><strong>Delphi Tool</strong> &mdash; Gather expert risk inputs</li>
+      <li><strong>Risk Register</strong> &mdash; Run Monte Carlo simulations</li>
+      <li><strong>Gantt Chart</strong> &mdash; Build schedule with contingency</li>
+      <li><strong>Cost Tracker</strong> &mdash; Budget with risk reserves</li>
+      <li><strong>Integrated Analysis</strong> &mdash; Run Monte Carlo for joint cost-schedule confidence levels</li>
+      <li><strong>PMPlan</strong> &mdash; Integrate risk-adjusted plan</li>
+    </ol>
+    <h3>Construction / Material Procurement</h3>
+    <ol>
+      <li><strong>Gantt Chart</strong> &mdash; Define construction phases and schedule</li>
+      <li><strong>Estimator</strong> &mdash; Calculate material quantities from room/zone dimensions</li>
+      <li><strong>Cost Tracker</strong> &mdash; Import estimates into budget line items</li>
+      <li><strong>Risk Register</strong> &mdash; Add supply chain and material price risks</li>
+      <li><strong>PMPlan</strong> &mdash; Pull procurement plan and cost summaries</li>
+    </ol>
+    <h3>Project Monitoring &amp; Control</h3>
+    <ol>
+      <li><strong>EVM Dashboard</strong> &mdash; Monitor CPI/SPI performance against baseline</li>
+      <li><strong>Integrated Analysis</strong> &mdash; Re-run Monte Carlo to update probabilistic forecasts</li>
+      <li><strong>Change & Issue Register</strong> &mdash; Log and track change requests and issues</li>
+      <li><strong>Quality Register</strong> &mdash; Inspect deliverables and track defects</li>
+      <li><strong>Kanban Board</strong> &mdash; Track day-to-day task progress</li>
+    </ol>
+
+    <h2>Common Conventions</h2>
+    <h3>Themes</h3>
+    <div className="doc-table-wrapper">
+      <table className="doc-table">
+        <thead><tr><th>Theme</th><th>Visual Style</th><th>Best For</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Blueprint</strong> (default)</td><td>Warm cream background, brown accents, grid pattern</td><td>Corporate presentations, formal documentation</td></tr>
+          <tr><td><strong>Fun & Vibrant</strong></td><td>Purple-pink gradient, rounded corners, playful</td><td>Creative teams, personal projects</td></tr>
+          <tr><td><strong>Dark Mode</strong></td><td>Near-black background, indigo accents</td><td>Reducing eye strain, late-night work</td></tr>
+          <tr><td><strong>Traditional</strong></td><td>Light grey background, blue accents, minimal</td><td>Conservative organisations, enterprise</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Data Persistence</h3>
+    <p>All project data is stored in your browser's <code className="inline-code">localStorage</code> using app-specific keys. Data is browser-specific and does not sync across devices. Export regularly for backup.</p>
+
+    <h3>Keyboard Shortcuts</h3>
+    <div className="doc-table-wrapper">
+      <table className="doc-table">
+        <thead><tr><th>Shortcut</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr><td><code className="inline-code">Ctrl/Cmd + S</code></td><td>Save (triggers localStorage update)</td></tr>
+          <tr><td><code className="inline-code">Ctrl/Cmd + P</code></td><td>Print (where supported)</td></tr>
+          <tr><td><code className="inline-code">Esc</code></td><td>Close modal or settings panel</td></tr>
+          <tr><td><code className="inline-code">Enter</code></td><td>Submit form or create item</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>System Requirements</h2>
+    <ul>
+      <li>Chrome 90+, Edge 90+, Firefox 88+, Safari 14+ (Chrome recommended)</li>
+      <li>JavaScript and localStorage must be enabled</li>
+      <li>4GB RAM minimum, 1280x720 screen resolution (1920x1080 recommended)</li>
+      <li>Internet connection required on first load for CDN resources</li>
+    </ul>
+
+    <h2>Privacy & Security</h2>
+    <p>CoffeeCup is a <strong>zero-server architecture</strong>. There are no cloud uploads, no telemetry, no analytics, no external API calls (except CDN for React/Tailwind), and no user accounts. Your project data never leaves your machine.</p>
+    <div className="callout">
+      <strong>Recommended:</strong> Encrypt sensitive exports using file encryption tools. Lock your computer when away. Use browser profiles to separate work and personal projects.
+    </div>
+
+    <h2>Troubleshooting</h2>
+    <h3>"My data disappeared!"</h3>
+    <p>Most likely you cleared browser data, switched browsers, or used Private/Incognito mode. Check for recent JSON exports and verify you are using the same browser and profile.</p>
+    <h3>"Theme does not persist across apps"</h3>
+    <p>Open each app once and select your theme. Modern versions sync theme across apps automatically.</p>
+    <h3>"App is slow with large datasets"</h3>
+    <p>Archive completed items, break large projects into phases, use filtering to reduce rendered items, or upgrade your browser.</p>
+  </div>
+);
+
+/* --- App Page Section --- */
+const AppPage = ({ appId }) => {
+  const app = appPages[appId];
+  if (!app) return <div className="prose"><p>Page not found.</p></div>;
+  return (
+    <div className="prose">
+      <div style={{display:'flex', alignItems:'center', gap: 10, marginBottom: 4}}>
+        <h1 style={{margin:0}}>{app.title}</h1>
+        <span className={`status-badge ${app.status === 'planned' ? 'planned' : 'complete'}`}>
+          {app.status === 'planned' ? 'Planned' : 'Complete'}
+        </span>
+      </div>
+
+      <h2>Purpose</h2>
+      <p>{app.purpose}</p>
+
+      <h2>Quick Start</h2>
+      <ol>
+        {app.quickStart.map((step, i) => <li key={i}>{step}</li>)}
+      </ol>
+
+      <h2>Key Features</h2>
+      <ul>
+        {app.features.map((f, i) => <li key={i}>{f}</li>)}
+      </ul>
+
+      <h2>Integration</h2>
+      <p>{app.integration}</p>
+
+      <h2>localStorage Key</h2>
+      <p><code className="inline-code">{app.storageKey}</code></p>
+
+      {app.sections && app.sections.map((section, si) => (
+        <div key={si} style={{marginTop: 32}}>
+          <h2>{section.title}</h2>
+          <p>{section.content}</p>
+          {section.subsections && section.subsections.map((sub, ssi) => (
+            <div key={ssi}>
+              <h3>{sub.title}</h3>
+              <p>{sub.content}</p>
+              {sub.items && (
+                <ul>
+                  {sub.items.map((item, ii) => <li key={ii}>{item}</li>)}
+                </ul>
+              )}
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+};
+
+/* --- Integration Guide Section --- */
+const IntegrationSection = () => (
+  <div className="prose">
+    <h1>Integration Guide</h1>
+    <p className="page-intro">
+      CoffeeCup uses a hub-and-spoke integration architecture where PMPlan acts as the central hub, pulling data from all other applications. This guide explains how data flows between apps, the technical implementation using localStorage, and best practices for keeping project data synchronised.
+    </p>
+
+    <h2>Architecture Principles</h2>
+    <div className="feature-grid">
+      <div className="feature-card">
+        <h4>One-Way Data Flow</h4>
+        <p>Apps write their own data. PMPlan reads from other apps but never modifies their data.</p>
+      </div>
+      <div className="feature-card">
+        <h4>Pull-Based Updates</h4>
+        <p>PMPlan displays "Pull Latest" banners. Click to refresh with current data from source apps.</p>
+      </div>
+      <div className="feature-card">
+        <h4>Data Independence</h4>
+        <p>Each app manages its own localStorage key. Apps work independently without shared state.</p>
+      </div>
+      <div className="feature-card">
+        <h4>No Shared State</h4>
+        <p>Unlike enterprise PM tools, CoffeeCup apps store data independently for simplicity and resilience.</p>
+      </div>
+    </div>
+
+    <h2>Data Flow Diagram</h2>
+    <div className="flow-diagram" style={{flexDirection:'column', gap:16}}>
+      <div style={{display:'flex',gap:12,flexWrap:'wrap',justifyContent:'center'}}>
+        <div className="flow-node">Gantt Chart</div>
+        <div className="flow-node">Risk Register</div>
+        <div className="flow-node">RACI Matrix</div>
+        <div className="flow-node">Cost Tracker</div>
+      </div>
+      <div className="flow-arrow" style={{fontSize:24}}>&darr;</div>
+      <div className="flow-node hub">PMPlan (Central Hub)</div>
+      <div className="flow-arrow" style={{fontSize:24}}>&uarr;</div>
+      <div style={{display:'flex',gap:12,flexWrap:'wrap',justifyContent:'center'}}>
+        <div className="flow-node">Hierarchy Editor</div>
+        <div className="flow-node">Kanban Board</div>
+        <div className="flow-node">Delphi Tool</div>
+        <div className="flow-node">Stakeholder Map</div>
+        <div className="flow-node">Integrated Analysis</div>
+        <div className="flow-node">Estimator</div>
+      </div>
+    </div>
+
+    <h2>localStorage Keys Reference</h2>
+    <div className="doc-table-wrapper">
+      <table className="doc-table">
+        <thead><tr><th>Application</th><th>localStorage Key</th><th>Data Structure</th></tr></thead>
+        <tbody>
+          <tr><td>Gantt Chart</td><td><code>gantt-project</code></td><td>startDate, activities[], theme</td></tr>
+          <tr><td>Kanban Board</td><td><code>kanban-project</code></td><td>columns[], cards[], theme</td></tr>
+          <tr><td>Risk Register</td><td><code>risk-register</code></td><td>risks[], simulations[], theme</td></tr>
+          <tr><td>Hierarchy Editor</td><td><code>hierarchy-data</code></td><td>nodes[], edges[], mode, theme</td></tr>
+          <tr><td>Delphi Tool</td><td><code>delphi-studies</code></td><td>studies[], rounds[], responses[]</td></tr>
+          <tr><td>RACI Matrix</td><td><code>raci-project</code></td><td>roles[], tasks[], assignments[]</td></tr>
+          <tr><td>PMPlan</td><td><code>pmplan-project</code></td><td>sections[], metadata, versions[]</td></tr>
+          <tr><td>Cost Tracker</td><td><code>cost-project</code></td><td>budgetLines[], categories[], actuals[]</td></tr>
+          <tr><td>Stakeholder Map</td><td><code>stakeholder-project</code></td><td>stakeholders[], quadrants[]</td></tr>
+          <tr><td>Change & Issue Register</td><td><code>changelog-project</code></td><td>changes[], issues[], statuses[]</td></tr>
+          <tr><td>Integrated Analysis</td><td><code>analysis-project</code></td><td>lastRun, scheduleResults, costResults, jclResults</td></tr>
+          <tr><td>Estimator</td><td><code>estimator-project</code>, <code>estimator-rates</code></td><td>rooms[], materials[], quantities[], rates[], shoppingList[]</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>What PMPlan Pulls from Each App</h2>
+    <div className="doc-table-wrapper">
+      <table className="doc-table">
+        <thead><tr><th>Source App</th><th>PMPlan Sections Populated</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Gantt Chart</strong></td><td>Schedule Summary, Schedule Baseline, Milestones</td></tr>
+          <tr><td><strong>Kanban Board</strong></td><td>Dashboard stats (task progress, completion rates)</td></tr>
+          <tr><td><strong>Risk Register</strong></td><td>Risk Summary, Top Risks, Mitigation Actions</td></tr>
+          <tr><td><strong>Hierarchy Editor</strong></td><td>Team & Organisation, WBS, Reporting Structure</td></tr>
+          <tr><td><strong>Delphi Tool</strong></td><td>Risk identification notes, Schedule estimates</td></tr>
+          <tr><td><strong>RACI Matrix</strong></td><td>Team & Organisation, Communications Plan</td></tr>
+          <tr><td><strong>Cost Tracker</strong></td><td>Budget Summary, Cost Baseline, EVM metrics</td></tr>
+          <tr><td><strong>Stakeholder Map</strong></td><td>Stakeholder Register, Engagement strategies</td></tr>
+          <tr><td><strong>Change & Issue Register</strong></td><td>Change Management, Issue Log</td></tr>
+          <tr><td><strong>EVM Dashboard</strong></td><td>Earned Value metrics (CPI, SPI, EAC)</td></tr>
+          <tr><td><strong>Quality Register</strong></td><td>Quality Management, Acceptance criteria</td></tr>
+          <tr><td><strong>Integrated Analysis</strong></td><td>Quantitative Risk Analysis, Joint Confidence Levels</td></tr>
+          <tr><td><strong>Estimator</strong></td><td>Procurement Plan, Material Quantities, Cost Summaries</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Typical Integration Flow</h2>
+    <div className="doc-card">
+      <ol>
+        <li><strong>User works in Gantt Chart</strong> &mdash; adds activities, sets dependencies</li>
+        <li><strong>Gantt saves</strong> to <code className="inline-code">localStorage['gantt-project']</code></li>
+        <li><strong>User opens PMPlan</strong> &mdash; navigates to Schedule Summary</li>
+        <li><strong>PMPlan detects stale data</strong> &mdash; displays "Pull Latest" banner</li>
+        <li><strong>User clicks "Pull Latest"</strong> &mdash; PMPlan reads Gantt data, extracts milestones and critical path</li>
+        <li><strong>User exports PMPlan</strong> &mdash; exported plan includes latest schedule data</li>
+      </ol>
+    </div>
+
+    <h2>Multi-Source Integration</h2>
+    <p>Some PMPlan sections pull from multiple apps:</p>
+    <h4>Team & Organisation Section</h4>
+    <ul>
+      <li><code className="inline-code">hierarchy-data</code> &rarr; Org chart structure</li>
+      <li><code className="inline-code">raci-project</code> &rarr; Role definitions</li>
+      <li>Merged into unified team view</li>
+    </ul>
+    <h4>Risk Summary Section</h4>
+    <ul>
+      <li><code className="inline-code">risk-register</code> &rarr; Quantitative risks and EMV</li>
+      <li><code className="inline-code">delphi-studies</code> &rarr; Expert-identified risks</li>
+      <li><code className="inline-code">analysis-project</code> &rarr; Monte Carlo results and Joint Confidence Levels</li>
+      <li>Combined into comprehensive risk summary</li>
+    </ul>
+    <h4>Integrated Analysis (Multi-Source Consumer)</h4>
+    <ul>
+      <li><code className="inline-code">gantt-project</code> &rarr; Schedule activities, durations, and dependencies</li>
+      <li><code className="inline-code">cost-project</code> &rarr; Budget line items and cost baseline</li>
+      <li><code className="inline-code">risk-register</code> &rarr; Risk impacts and distributions</li>
+      <li>Combined into probabilistic cost-schedule forecasts with Joint Confidence Levels</li>
+    </ul>
+
+    <h2>Synchronisation Best Practices</h2>
+    <ul>
+      <li><strong>Before exporting PMPlan:</strong> Always click "Pull Latest" for all integrated sections</li>
+      <li><strong>After major changes:</strong> Refresh PMPlan to see the impact of updates in source apps</li>
+      <li><strong>During stakeholder reviews:</strong> Pull latest data immediately before presenting</li>
+      <li><strong>Weekly exports:</strong> Export each app's data to JSON for backup</li>
+      <li><strong>Naming convention:</strong> <code className="inline-code">gantt-project-2026-02-12.json</code></li>
+    </ul>
+
+    <h2>Troubleshooting Integration Issues</h2>
+    <h3>"PMPlan shows no data from Gantt"</h3>
+    <p>Verify Gantt data is saved (open Gantt, check activities exist), ensure you are using the same browser, and check DevTools &rarr; Application &rarr; LocalStorage for the <code className="inline-code">gantt-project</code> key.</p>
+    <h3>"Pull Latest does not update data"</h3>
+    <p>Verify the source app has new data, try a hard refresh (Ctrl+F5), and check the browser console for JavaScript errors.</p>
+    <h3>"Data from two apps conflicts"</h3>
+    <p>PMPlan prioritises by section type: Hierarchy Editor for org charts, RACI Matrix for role definitions. Maintain consistent role names across apps to avoid confusion.</p>
+    <h3>"localStorage quota exceeded"</h3>
+    <p>Export and clear old data, use separate browser profiles for different projects, or reduce data granularity by archiving detailed simulation results.</p>
+  </div>
+);
+
+/* --- Design System Section --- */
+const DesignSystemSection = () => (
+  <div className="prose">
+    <h1>Design System</h1>
+    <p className="page-intro">
+      The CoffeeCup design system ensures visual consistency across all applications through a unified set of CSS variables, component patterns, and four distinct theme variants. This guide covers the complete design language.
+    </p>
+
+    <h2>Technology Stack</h2>
+    <div className="doc-table-wrapper">
+      <table className="doc-table">
+        <thead><tr><th>Technology</th><th>Version</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td>React</td><td>18</td><td>Component-based UI</td></tr>
+          <tr><td>ReactDOM</td><td>18</td><td>Browser rendering</td></tr>
+          <tr><td>Babel Standalone</td><td>Latest</td><td>In-browser JSX compilation</td></tr>
+          <tr><td>Tailwind CSS</td><td>Latest</td><td>Utility-first CSS framework</td></tr>
+          <tr><td>DM Sans</td><td>400-700</td><td>Primary UI font</td></tr>
+          <tr><td>JetBrains Mono</td><td>400-500</td><td>Code and monospace data</td></tr>
+          <tr><td>Nunito</td><td>400-700</td><td>Fun theme primary font</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Theme System</h2>
+    <p>All apps include a theme dropdown in the header. Theme selection persists in localStorage and applies immediately without page reload. Each theme uses <code className="inline-code">data-theme</code> attribute on the <code className="inline-code">html</code> element.</p>
+
+    <h3>Blueprint (Default)</h3>
+    <p>Professional, refined, architectural elegance. Best for corporate presentations and formal documentation.</p>
+    <div className="swatch-grid">
+      <div className="swatch"><div className="swatch-color" style={{background:'#fafaf9'}}></div><div className="swatch-info"><div className="name">bg-primary</div><div className="hex">#fafaf9</div></div></div>
+      <div className="swatch"><div className="swatch-color" style={{background:'#b8956a'}}></div><div className="swatch-info"><div className="name">accent-primary</div><div className="hex">#b8956a</div></div></div>
+      <div className="swatch"><div className="swatch-color" style={{background:'#292524'}}></div><div className="swatch-info"><div className="name">text-primary</div><div className="hex">#292524</div></div></div>
+      <div className="swatch"><div className="swatch-color" style={{background:'#e7e5e4'}}></div><div className="swatch-info"><div className="name">border-primary</div><div className="hex">#e7e5e4</div></div></div>
+    </div>
+    <p><strong>Special effect:</strong> Subtle grid pattern background (24px spacing).</p>
+
+    <h3>Fun & Vibrant</h3>
+    <p>Playful, energetic, gradient-rich. Best for creative teams and personal projects. Uses Nunito font and large border radius (20-24px).</p>
+    <div className="swatch-grid">
+      <div className="swatch"><div className="swatch-color" style={{background:'#fef7ff'}}></div><div className="swatch-info"><div className="name">bg-primary</div><div className="hex">#fef7ff</div></div></div>
+      <div className="swatch"><div className="swatch-color" style={{background:'#d946ef'}}></div><div className="swatch-info"><div className="name">accent-primary</div><div className="hex">#d946ef</div></div></div>
+      <div className="swatch"><div className="swatch-color" style={{background:'#701a75'}}></div><div className="swatch-info"><div className="name">text-primary</div><div className="hex">#701a75</div></div></div>
+      <div className="swatch"><div className="swatch-color" style={{background:'#f0abfc'}}></div><div className="swatch-info"><div className="name">border-primary</div><div className="hex">#f0abfc</div></div></div>
+    </div>
+    <p><strong>Special effects:</strong> 135-degree gradient background, bounce animations on buttons.</p>
+
+    <h3>Dark Mode</h3>
+    <p>High contrast, reduced eye strain, modern minimalism. Best for night work and developer-focused environments.</p>
+    <div className="swatch-grid">
+      <div className="swatch"><div className="swatch-color" style={{background:'#0f0f0f'}}></div><div className="swatch-info"><div className="name">bg-primary</div><div className="hex">#0f0f0f</div></div></div>
+      <div className="swatch"><div className="swatch-color" style={{background:'#6366f1'}}></div><div className="swatch-info"><div className="name">accent-primary</div><div className="hex">#6366f1</div></div></div>
+      <div className="swatch"><div className="swatch-color" style={{background:'#f0f0f0'}}></div><div className="swatch-info"><div className="name">text-primary</div><div className="hex">#f0f0f0</div></div></div>
+      <div className="swatch"><div className="swatch-color" style={{background:'#333333'}}></div><div className="swatch-info"><div className="name">border-primary</div><div className="hex">#333333</div></div></div>
+    </div>
+    <p><strong>Special effects:</strong> Enhanced deep shadows, subtle glow on focus states.</p>
+
+    <h3>Traditional / Classic</h3>
+    <p>Bootstrap-inspired, minimal styling, corporate-safe. Best for conservative organisations and enterprise environments. Minimal border radius (4px).</p>
+    <div className="swatch-grid">
+      <div className="swatch"><div className="swatch-color" style={{background:'#f8f9fa'}}></div><div className="swatch-info"><div className="name">bg-primary</div><div className="hex">#f8f9fa</div></div></div>
+      <div className="swatch"><div className="swatch-color" style={{background:'#0d6efd'}}></div><div className="swatch-info"><div className="name">accent-primary</div><div className="hex">#0d6efd</div></div></div>
+      <div className="swatch"><div className="swatch-color" style={{background:'#212529'}}></div><div className="swatch-info"><div className="name">text-primary</div><div className="hex">#212529</div></div></div>
+      <div className="swatch"><div className="swatch-color" style={{background:'#ced4da'}}></div><div className="swatch-info"><div className="name">border-primary</div><div className="hex">#ced4da</div></div></div>
+    </div>
+    <p><strong>Special effects:</strong> Minimal shadows, no animations.</p>
+
+    <h2>CSS Variables Reference</h2>
+    <p>Every CoffeeCup application must define these CSS variables for each theme:</p>
+    <h3>Backgrounds</h3>
+    <div className="code-block">{`--bg-primary       /* Main page background */
+--bg-secondary     /* Alternate sections, sidebars */
+--bg-card          /* Cards, panels, modals */
+--bg-hover         /* Hover overlay (rgba) */
+--bg-weekend       /* Gantt/calendar weekend columns (optional) */`}</div>
+    <h3>Borders</h3>
+    <div className="code-block">{`--border-primary   /* Standard borders */
+--border-secondary /* Subtle dividers */
+--border-accent    /* Emphasis borders, focus rings */`}</div>
+    <h3>Text</h3>
+    <div className="code-block">{`--text-primary     /* Body text, headings */
+--text-secondary   /* Subtext, labels */
+--text-muted       /* Disabled, placeholders */
+--text-faint       /* Very subtle text */`}</div>
+    <h3>Accents</h3>
+    <div className="code-block">{`--accent-primary   /* Buttons, links, highlights */
+--accent-hover     /* Accent hover state */
+--accent-light     /* Accent backgrounds (rgba) */`}</div>
+    <h3>Activity/Status Bars</h3>
+    <div className="code-block">{`--bar-1 through --bar-6  /* Six-colour palette for visual distinction */`}</div>
+    <h3>Status, Typography, Radius, Shadows, Transitions</h3>
+    <div className="code-block">{`--danger, --danger-hover, --success
+--font-primary, --font-mono
+--radius-sm (2-4px), --radius-md (6-8px), --radius-lg (10-20px), --radius-full (9999px)
+--shadow-sm, --shadow-md, --shadow-lg, --shadow-xl
+--transition-fast (0.15s), --transition-normal (0.2s), --transition-slow (0.3s)`}</div>
+
+    <h2>Component Patterns</h2>
+    <h3>Cards</h3>
+    <p>Containers for grouped content. Use <code className="inline-code">bg-card</code> background, <code className="inline-code">border-primary</code> border, <code className="inline-code">radius-lg</code> rounding, and <code className="inline-code">shadow-md</code>. Cards lift on hover with enhanced shadow.</p>
+    <div className="code-block">{`.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}`}</div>
+
+    <h3>Buttons</h3>
+    <div className="doc-table-wrapper">
+      <table className="doc-table">
+        <thead><tr><th>Style</th><th>Usage</th><th>Visual</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Primary</strong></td><td>Save, Create, Submit</td><td>Solid accent background, white text</td></tr>
+          <tr><td><strong>Secondary</strong></td><td>Cancel, Close</td><td>Card background with border</td></tr>
+          <tr><td><strong>Accent</strong></td><td>Special actions, CTAs</td><td>Gradient accent background</td></tr>
+          <tr><td><strong>Danger</strong></td><td>Delete, Remove</td><td>Red background, white text</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Variants: <code className="inline-code">.btn-sm</code> (compact padding) and <code className="inline-code">.btn-icon</code> (36px square).</p>
+
+    <h3>Inputs</h3>
+    <p>Use <code className="inline-code">.input-refined</code> class. Focus state shows accent-coloured border with 3px ring. Placeholder text uses <code className="inline-code">text-muted</code> colour.</p>
+
+    <h3>Modals</h3>
+    <p>Fixed overlay with backdrop blur, centred content card with slide-up animation. Max width 600px, max height 80vh with scroll.</p>
+
+    <h3>Settings Panel</h3>
+    <p>Right-side drawer (420px width) that slides in from the right. Contains sections with uppercase headers, toggle switches, and reorder buttons.</p>
+
+    <h3>Header Pattern</h3>
+    <p>Flexbox layout with gradient icon (40x40), title + subtitle, spacer, theme selector, and settings button.</p>
+
+    <h3>Empty States</h3>
+    <p>Centred layout with 64px icon in rounded secondary background, heading, description, and optional CTA button.</p>
+
+    <h2>Icon System</h2>
+    <p>CoffeeCup uses <strong>inline SVG icons</strong> (no icon fonts). All icons use <code className="inline-code">stroke="currentColor"</code> to inherit text colour, stroke width 2, and sizes between 14-28px. This avoids external dependencies and flash of unstyled content.</p>
+
+    <h2>Animation & Feedback</h2>
+    <ul>
+      <li><strong>Mount animations:</strong> 0.3s cubic-bezier fade-in with translateY</li>
+      <li><strong>Hover effects:</strong> Cards lift with translateY(-2px) and shadow enhancement</li>
+      <li><strong>Focus states:</strong> 3px ring in accent colour with enhanced border</li>
+      <li><strong>Fun theme:</strong> Bounce animations using cubic-bezier(0.68, -0.55, 0.265, 1.55)</li>
+      <li><strong>Loading:</strong> Spinner with 3px border, accent-coloured top, 0.8s linear rotation</li>
+    </ul>
+
+    <h2>Creating New Applications</h2>
+    <div className="callout">
+      <strong>Checklist for new apps:</strong>
+      <ol style={{marginBottom:0}}>
+        <li>Copy CSS variable block from an existing application (all 4 themes)</li>
+        <li>Implement theme selector in header toolbar</li>
+        <li>Use standard component patterns (cards, buttons, inputs)</li>
+        <li>Include Google Fonts: DM Sans, JetBrains Mono, Nunito</li>
+        <li>Persist theme selection in localStorage</li>
+        <li>Test all 4 themes for visual consistency</li>
+        <li>Verify accessibility (colour contrast, keyboard navigation)</li>
+        <li>Use inline SVG icons with currentColor</li>
+      </ol>
+    </div>
+  </div>
+);
+
+/* --- Getting Started Section --- */
+const GettingStartedSection = () => (
+  <div className="prose">
+    <h1>Getting Started</h1>
+    <p className="page-intro">
+      This guide walks you through your first experience with CoffeeCup, from opening the suite to building a complete project management plan.
+    </p>
+
+    <h2>Step 1: Open the Main Dashboard</h2>
+    <p>Open <code className="inline-code">Main/index.html</code> in your browser. You will see a grid of application tiles. This is your starting point for accessing all CoffeeCup tools.</p>
+
+    <h2>Step 2: Choose Your Theme</h2>
+    <p>Use the theme selector in the top-right corner to choose your preferred visual style. Your selection persists across all applications.</p>
+
+    <h2>Step 3: Populate Your Project Data</h2>
+    <p>Work through the applications in a logical order based on your project needs:</p>
+    <ol>
+      <li><strong>Gantt Chart</strong> &mdash; Define your schedule (activities, dependencies, milestones)</li>
+      <li><strong>Risk Register</strong> &mdash; Identify and quantify risks with Monte Carlo simulation</li>
+      <li><strong>RACI Matrix</strong> &mdash; Clarify roles and responsibilities</li>
+      <li><strong>Cost Tracker</strong> &mdash; Set up your budget with categories and line items</li>
+      <li><strong>Hierarchy Editor</strong> &mdash; Build your org chart or WBS</li>
+      <li><strong>Stakeholder Map</strong> &mdash; Map stakeholder power and interest</li>
+    </ol>
+
+    <h2>Step 4: Build Your PM Plan</h2>
+    <p>Open <strong>PMPlan</strong> and click "Pull Latest" on each integrated section. PMPlan reads data from your other apps and assembles a comprehensive project management plan.</p>
+
+    <h2>Step 5: Export and Share</h2>
+    <p>Export your plan as JSON for backup, or print to PDF for stakeholder distribution. Each individual app also supports JSON export for data portability.</p>
+
+    <h2>Tips for Success</h2>
+    <ul>
+      <li><strong>Export regularly</strong> &mdash; localStorage can be cleared by browser updates or cache clearing</li>
+      <li><strong>Use one browser consistently</strong> &mdash; data does not sync across browsers</li>
+      <li><strong>Start simple</strong> &mdash; you do not need every app. Use only what your project requires</li>
+      <li><strong>Pull before presenting</strong> &mdash; always refresh PMPlan data before stakeholder reviews</li>
+    </ul>
+
+    <h2>Browser Support</h2>
+    <div className="doc-table-wrapper">
+      <table className="doc-table">
+        <thead><tr><th>Browser</th><th>Minimum Version</th><th>Recommended</th></tr></thead>
+        <tbody>
+          <tr><td>Chrome</td><td>90+</td><td>Yes (primary target)</td></tr>
+          <tr><td>Edge</td><td>90+</td><td>Yes</td></tr>
+          <tr><td>Firefox</td><td>88+</td><td>Yes</td></tr>
+          <tr><td>Safari</td><td>14+</td><td>Yes</td></tr>
+          <tr><td>Mobile Chrome/Safari</td><td>Latest</td><td>Functional, desktop recommended</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Need Help?</h2>
+    <p>Browse the sidebar to find detailed documentation for each application. The <strong>Integration Guide</strong> explains how data flows between apps, and the <strong>Design System</strong> covers visual customisation.</p>
+  </div>
+);
+
+
+/* ============================================
+   SIDEBAR COMPONENT
+   ============================================ */
+const Sidebar = ({ activePage, setActivePage, isOpen, setIsOpen, searchQuery, setSearchQuery }) => {
+  const [appsExpanded, setAppsExpanded] = useState(true);
+
+  const navItems = useMemo(() => {
+    const completed = [
+      { id: 'main-dashboard', label: 'Main Dashboard' },
+      { id: 'pmplan', label: 'PMPlan' },
+      { id: 'gantt-chart', label: 'Gantt Chart' },
+      { id: 'kanban-board', label: 'Kanban Board' },
+      { id: 'risk-register', label: 'Risk Register' },
+      { id: 'hierarchy-editor', label: 'Hierarchy Editor' },
+      { id: 'delphi-tool', label: 'Delphi Tool' },
+      { id: 'raci-matrix', label: 'RACI Matrix' },
+      { id: 'cost-tracker', label: 'Cost Tracker' },
+      { id: 'stakeholder-map', label: 'Stakeholder Map' },
+      { id: 'change-issue-register', label: 'Change & Issue Register' },
+      { id: 'evm-dashboard', label: 'EVM Dashboard' },
+      { id: 'quality-register', label: 'Quality Register' },
+      { id: 'analysis-module', label: 'Integrated Analysis' },
+      { id: 'estimator', label: 'Estimator' },
+    ];
+    const planned = [
+    ];
+    return { completed, planned };
+  }, []);
+
+  const filteredCompleted = useMemo(() => {
+    if (!searchQuery) return navItems.completed;
+    const q = searchQuery.toLowerCase();
+    return navItems.completed.filter(i => i.label.toLowerCase().includes(q));
+  }, [searchQuery, navItems]);
+
+  const filteredPlanned = useMemo(() => {
+    if (!searchQuery) return navItems.planned;
+    const q = searchQuery.toLowerCase();
+    return navItems.planned.filter(i => i.label.toLowerCase().includes(q));
+  }, [searchQuery, navItems]);
+
+  const mainNavMatches = useMemo(() => {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    const sections = ['overview', 'integration', 'design system', 'getting started'];
+    return sections.some(s => s.includes(q));
+  }, [searchQuery]);
+
+  const handleNav = (page) => {
+    setActivePage(page);
+    if (window.innerWidth <= 768) setIsOpen(false);
+  };
+
+  return (
+    <>
+      <div className={`sidebar-overlay ${isOpen ? 'visible' : ''}`} onClick={() => setIsOpen(false)} />
+      <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
+        <div className="sidebar-header">
+          <a href="../Main/index.html" className="sidebar-brand">
+            <div className="sidebar-brand-icon">CC</div>
+            <div>
+              <div className="sidebar-brand-text">CoffeeCup</div>
+              <div className="sidebar-brand-sub">Documentation</div>
+            </div>
+          </a>
+        </div>
+
+        <div className="sidebar-search">
+          <div className="search-wrapper">
+            <span className="search-icon">{icons.search(14)}</span>
+            <input
+              type="text"
+              placeholder="Search documentation..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <nav className="sidebar-nav">
+          {(!searchQuery || 'overview'.includes(searchQuery.toLowerCase())) && (
+            <div className={`nav-item ${activePage === 'overview' ? 'active' : ''}`}
+              onClick={() => handleNav('overview')}>
+              {icons.grid(15)}
+              <span>Overview</span>
+            </div>
+          )}
+
+          {(filteredCompleted.length > 0 || filteredPlanned.length > 0) && (
+            <div className="nav-section">
+              <div className="nav-item" onClick={() => setAppsExpanded(!appsExpanded)}>
+                <div className="nav-toggle">
+                  <span style={{display:'flex',alignItems:'center',gap:8}}>
+                    {icons.layers(15)}
+                    <span>Applications</span>
+                    <span className="nav-badge">{navItems.completed.length + navItems.planned.length}</span>
+                  </span>
+                  <span className={`nav-toggle-arrow ${appsExpanded ? 'open' : ''}`}>{icons.chevron(12)}</span>
+                </div>
+              </div>
+              {appsExpanded && (
+                <>
+                  {filteredCompleted.map(item => (
+                    <div key={item.id}
+                      className={`nav-item sub ${activePage === `app-${item.id}` ? 'active' : ''}`}
+                      onClick={() => handleNav(`app-${item.id}`)}>
+                      <span>{item.label}</span>
+                    </div>
+                  ))}
+                  {filteredPlanned.length > 0 && (
+                    <>
+                      {filteredPlanned.map(item => (
+                        <div key={item.id}
+                          className={`nav-item sub ${activePage === `app-${item.id}` ? 'active' : ''}`}
+                          onClick={() => handleNav(`app-${item.id}`)}>
+                          <span>{item.label}</span>
+                          <span className="nav-badge planned">Planned</span>
+                        </div>
+                      ))}
+                    </>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
+          {(!searchQuery || 'integration guide'.includes(searchQuery.toLowerCase())) && (
+            <div className={`nav-item ${activePage === 'integration' ? 'active' : ''}`}
+              onClick={() => handleNav('integration')}>
+              {icons.link(15)}
+              <span>Integration Guide</span>
+            </div>
+          )}
+
+          {(!searchQuery || 'design system'.includes(searchQuery.toLowerCase())) && (
+            <div className={`nav-item ${activePage === 'design-system' ? 'active' : ''}`}
+              onClick={() => handleNav('design-system')}>
+              {icons.palette(15)}
+              <span>Design System</span>
+            </div>
+          )}
+
+          {(!searchQuery || 'getting started'.includes(searchQuery.toLowerCase())) && (
+            <div className={`nav-item ${activePage === 'getting-started' ? 'active' : ''}`}
+              onClick={() => handleNav('getting-started')}>
+              {icons.rocket(15)}
+              <span>Getting Started</span>
+            </div>
+          )}
+        </nav>
+
+        <div style={{padding:'12px 16px', borderTop:'1px solid var(--border-primary)', fontSize:11, color:'var(--text-faint)'}}>
+          v1.0 &middot; February 2026
+        </div>
+      </aside>
+    </>
+  );
+};
+
+
+/* ============================================
+   MAIN APP
+   ============================================ */
+const App = () => {
+  const [theme, setTheme] = useState('blueprint');
+  const [activePage, setActivePage] = useState('overview');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Load theme — prefer shared suite key, fall back to docs-specific key
+  useEffect(() => {
+    const saved = localStorage.getItem('coffeecup-theme') || localStorage.getItem('coffeecup-docs-theme') || 'blueprint';
+    setTheme(saved);
+    document.documentElement.setAttribute('data-theme', saved);
+  }, []);
+
+  const changeTheme = useCallback((newTheme) => {
+    setTheme(newTheme);
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('coffeecup-docs-theme', newTheme);
+    localStorage.setItem('coffeecup-theme', newTheme);
+  }, []);
+
+  // Scroll to top on page change
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [activePage]);
+
+  // Render active page
+  const renderPage = () => {
+    if (activePage === 'overview') return <OverviewSection />;
+    if (activePage === 'integration') return <IntegrationSection />;
+    if (activePage === 'design-system') return <DesignSystemSection />;
+    if (activePage === 'getting-started') return <GettingStartedSection />;
+    if (activePage.startsWith('app-')) {
+      const appId = activePage.replace('app-', '');
+      return <AppPage appId={appId} />;
+    }
+    return <OverviewSection />;
+  };
+
+  // Page title for header
+  const getPageTitle = () => {
+    if (activePage === 'overview') return { title: 'Overview', subtitle: 'Suite introduction and navigation' };
+    if (activePage === 'integration') return { title: 'Integration Guide', subtitle: 'Data flow between applications' };
+    if (activePage === 'design-system') return { title: 'Design System', subtitle: 'Themes, variables, and component patterns' };
+    if (activePage === 'getting-started') return { title: 'Getting Started', subtitle: 'Your first steps with CoffeeCup' };
+    if (activePage.startsWith('app-')) {
+      const appId = activePage.replace('app-', '');
+      const app = appPages[appId];
+      return app ? { title: app.title, subtitle: 'Application documentation' } : { title: 'Not Found', subtitle: '' };
+    }
+    return { title: 'Documentation', subtitle: '' };
+  };
+
+  const { title, subtitle } = getPageTitle();
+
+  return (
+    <div className="app-layout">
+      <Sidebar
+        activePage={activePage}
+        setActivePage={setActivePage}
+        isOpen={sidebarOpen}
+        setIsOpen={setSidebarOpen}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+      />
+
+      <main className={`main-area ${sidebarOpen ? '' : ''}`}>
+        <header className="app-header">
+          <div className="header-left">
+            <button className="hamburger" onClick={() => setSidebarOpen(!sidebarOpen)}>
+              {sidebarOpen ? icons.x(20) : icons.menu(20)}
+            </button>
+            <div className="header-icon">
+              {icons.book(18)}
+            </div>
+            <div>
+              <h1 className="header-title">{title}</h1>
+              <p className="header-subtitle">{subtitle}</p>
+            </div>
+          </div>
+          <div className="header-right">
+            <select
+              className="theme-select"
+              value={theme}
+              onChange={(e) => changeTheme(e.target.value)}
+            >
+              <option value="blueprint">Blueprint</option>
+              <option value="fun">Fun & Vibrant</option>
+              <option value="dark">Dark Mode</option>
+              <option value="traditional">Traditional</option>
+            </select>
+            <a href="../Main/index.html" className="back-link">
+              {icons.arrow(14)}
+              <span>Dashboard</span>
+            </a>
+          </div>
+        </header>
+
+        <div className="content-area" key={activePage}>
+          {renderPage()}
+        </div>
+
+        <footer className="doc-footer">
+          CoffeeCup Project Management Suite &middot; Browser-based, privacy-first, no installation required &middot; Built with React 18 and Tailwind CSS
+        </footer>
+      </main>
+    </div>
+  );
+};
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+  </script>
+</body>
+</html>

@@ -1,0 +1,475 @@
+{
+  "id": "8a032a7f-bf29-4897-8fba-99f726347cf5",
+  "name": "test1",
+  "description": "test",
+  "problemStatement": "test",
+  "createdAt": "2026-01-30T15:02:33.893Z",
+  "status": "active",
+  "config": {
+    "probabilityScale": {
+      "min": 0,
+      "max": 100,
+      "type": "percentage",
+      "labels": null
+    },
+    "costImpact": {
+      "enabled": true,
+      "unit": "£",
+      "unitLabel": "GBP"
+    },
+    "timeImpact": {
+      "enabled": true,
+      "unit": "days",
+      "unitLabel": "Days"
+    },
+    "plannedRounds": 3,
+    "consensusThreshold": 0.7
+  },
+  "experts": [
+    {
+      "code": "E001",
+      "name": "Mark"
+    },
+    {
+      "code": "E002",
+      "name": "Colette"
+    },
+    {
+      "code": "E003",
+      "name": "Cyan"
+    }
+  ],
+  "risks": [
+    {
+      "id": "RISK001",
+      "name": "Risk 1",
+      "description": "",
+      "type": "threat"
+    }
+  ],
+  "rounds": [
+    {
+      "number": 1,
+      "status": "complete",
+      "startedAt": "2026-01-30T15:19:51.479Z",
+      "risks": [
+        {
+          "id": "RISK001",
+          "name": "Risk 1",
+          "description": "",
+          "type": "threat"
+        }
+      ],
+      "responses": [
+        {
+          "studyId": "8a032a7f-bf29-4897-8fba-99f726347cf5",
+          "roundNumber": 1,
+          "expertCode": "E001",
+          "timestamp": "2026-01-30T15:21:27.252Z",
+          "responses": [
+            {
+              "riskId": "RISK001",
+              "probability": 100,
+              "comment": "",
+              "costMin": 100,
+              "costLikely": 200,
+              "costMax": 300,
+              "timeMin": 9,
+              "timeLikely": 20,
+              "timeMax": 30
+            }
+          ],
+          "suggestedRisks": []
+        },
+        {
+          "studyId": "8a032a7f-bf29-4897-8fba-99f726347cf5",
+          "roundNumber": 1,
+          "expertCode": "E002",
+          "timestamp": "2026-01-30T15:25:05.817Z",
+          "responses": [
+            {
+              "riskId": "RISK001",
+              "probability": 45,
+              "comment": "",
+              "costMin": 2000,
+              "costLikely": 6000,
+              "costMax": 9000,
+              "timeMin": 20,
+              "timeLikely": 30,
+              "timeMax": 50
+            }
+          ],
+          "suggestedRisks": []
+        }
+      ],
+      "summary": {
+        "generatedAt": "2026-01-30T15:25:23.224Z",
+        "statistics": {
+          "RISK001": {
+            "probability": {
+              "mean": 72.5,
+              "median": 72.5,
+              "stdDev": 27.5,
+              "q1": 45,
+              "q3": 100,
+              "iqr": 55,
+              "min": 45,
+              "max": 100,
+              "count": 2
+            },
+            "responseCount": 2,
+            "costMin": {
+              "mean": 1050,
+              "median": 1050,
+              "stdDev": 950,
+              "q1": 100,
+              "q3": 2000,
+              "iqr": 1900,
+              "min": 100,
+              "max": 2000,
+              "count": 2
+            },
+            "costLikely": {
+              "mean": 3100,
+              "median": 3100,
+              "stdDev": 2900,
+              "q1": 200,
+              "q3": 6000,
+              "iqr": 5800,
+              "min": 200,
+              "max": 6000,
+              "count": 2
+            },
+            "costMax": {
+              "mean": 4650,
+              "median": 4650,
+              "stdDev": 4350,
+              "q1": 300,
+              "q3": 9000,
+              "iqr": 8700,
+              "min": 300,
+              "max": 9000,
+              "count": 2
+            },
+            "timeMin": {
+              "mean": 14.5,
+              "median": 14.5,
+              "stdDev": 5.5,
+              "q1": 9,
+              "q3": 20,
+              "iqr": 11,
+              "min": 9,
+              "max": 20,
+              "count": 2
+            },
+            "timeLikely": {
+              "mean": 25,
+              "median": 25,
+              "stdDev": 5,
+              "q1": 20,
+              "q3": 30,
+              "iqr": 10,
+              "min": 20,
+              "max": 30,
+              "count": 2
+            },
+            "timeMax": {
+              "mean": 40,
+              "median": 40,
+              "stdDev": 10,
+              "q1": 30,
+              "q3": 50,
+              "iqr": 20,
+              "min": 30,
+              "max": 50,
+              "count": 2
+            }
+          }
+        }
+      },
+      "completedAt": "2026-01-30T15:25:23.225Z"
+    },
+    {
+      "number": 2,
+      "status": "complete",
+      "startedAt": "2026-01-30T15:25:25.563Z",
+      "risks": [
+        {
+          "id": "RISK001",
+          "name": "Risk 1",
+          "description": "",
+          "type": "threat"
+        }
+      ],
+      "responses": [
+        {
+          "studyId": "8a032a7f-bf29-4897-8fba-99f726347cf5",
+          "roundNumber": 2,
+          "expertCode": "E001",
+          "timestamp": "2026-01-30T15:26:49.911Z",
+          "responses": [
+            {
+              "riskId": "RISK001",
+              "probability": 60,
+              "comment": "",
+              "costMin": 2000,
+              "costLikely": 3000,
+              "costMax": 4000,
+              "timeMin": 15,
+              "timeLikely": 20,
+              "timeMax": 25
+            }
+          ],
+          "suggestedRisks": []
+        },
+        {
+          "studyId": "8a032a7f-bf29-4897-8fba-99f726347cf5",
+          "roundNumber": 2,
+          "expertCode": "E002",
+          "timestamp": "2026-01-30T15:27:30.386Z",
+          "responses": [
+            {
+              "riskId": "RISK001",
+              "probability": 40,
+              "comment": "",
+              "costMin": 1000,
+              "costLikely": 1500,
+              "costMax": 3000,
+              "timeMin": 10,
+              "timeLikely": 15,
+              "timeMax": 20
+            }
+          ],
+          "suggestedRisks": []
+        }
+      ],
+      "summary": {
+        "generatedAt": "2026-01-30T15:27:49.239Z",
+        "statistics": {
+          "RISK001": {
+            "probability": {
+              "mean": 50,
+              "median": 50,
+              "stdDev": 10,
+              "q1": 40,
+              "q3": 60,
+              "iqr": 20,
+              "min": 40,
+              "max": 60,
+              "count": 2
+            },
+            "responseCount": 2,
+            "costMin": {
+              "mean": 1500,
+              "median": 1500,
+              "stdDev": 500,
+              "q1": 1000,
+              "q3": 2000,
+              "iqr": 1000,
+              "min": 1000,
+              "max": 2000,
+              "count": 2
+            },
+            "costLikely": {
+              "mean": 2250,
+              "median": 2250,
+              "stdDev": 750,
+              "q1": 1500,
+              "q3": 3000,
+              "iqr": 1500,
+              "min": 1500,
+              "max": 3000,
+              "count": 2
+            },
+            "costMax": {
+              "mean": 3500,
+              "median": 3500,
+              "stdDev": 500,
+              "q1": 3000,
+              "q3": 4000,
+              "iqr": 1000,
+              "min": 3000,
+              "max": 4000,
+              "count": 2
+            },
+            "timeMin": {
+              "mean": 12.5,
+              "median": 12.5,
+              "stdDev": 2.5,
+              "q1": 10,
+              "q3": 15,
+              "iqr": 5,
+              "min": 10,
+              "max": 15,
+              "count": 2
+            },
+            "timeLikely": {
+              "mean": 17.5,
+              "median": 17.5,
+              "stdDev": 2.5,
+              "q1": 15,
+              "q3": 20,
+              "iqr": 5,
+              "min": 15,
+              "max": 20,
+              "count": 2
+            },
+            "timeMax": {
+              "mean": 22.5,
+              "median": 22.5,
+              "stdDev": 2.5,
+              "q1": 20,
+              "q3": 25,
+              "iqr": 5,
+              "min": 20,
+              "max": 25,
+              "count": 2
+            }
+          }
+        }
+      },
+      "completedAt": "2026-01-30T15:27:49.240Z"
+    },
+    {
+      "number": 3,
+      "status": "complete",
+      "startedAt": "2026-01-30T15:27:50.934Z",
+      "risks": [
+        {
+          "id": "RISK001",
+          "name": "Risk 1",
+          "description": "",
+          "type": "threat"
+        }
+      ],
+      "responses": [
+        {
+          "studyId": "8a032a7f-bf29-4897-8fba-99f726347cf5",
+          "roundNumber": 3,
+          "expertCode": "E001",
+          "timestamp": "2026-01-30T15:28:33.091Z",
+          "responses": [
+            {
+              "riskId": "RISK001",
+              "probability": 43,
+              "comment": "",
+              "costMin": 1000,
+              "costLikely": 2000,
+              "costMax": 3000,
+              "timeMin": 10,
+              "timeLikely": 20,
+              "timeMax": 30
+            }
+          ],
+          "suggestedRisks": []
+        },
+        {
+          "studyId": "8a032a7f-bf29-4897-8fba-99f726347cf5",
+          "roundNumber": 3,
+          "expertCode": "E002",
+          "timestamp": "2026-01-30T15:29:08.190Z",
+          "responses": [
+            {
+              "riskId": "RISK001",
+              "probability": 50,
+              "comment": "",
+              "costMin": 2000,
+              "costLikely": 3000,
+              "costMax": 4000,
+              "timeMin": 10,
+              "timeLikely": 20,
+              "timeMax": 30
+            }
+          ],
+          "suggestedRisks": []
+        }
+      ],
+      "summary": {
+        "generatedAt": "2026-01-30T15:29:19.900Z",
+        "statistics": {
+          "RISK001": {
+            "probability": {
+              "mean": 46.5,
+              "median": 46.5,
+              "stdDev": 3.5,
+              "q1": 43,
+              "q3": 50,
+              "iqr": 7,
+              "min": 43,
+              "max": 50,
+              "count": 2
+            },
+            "responseCount": 2,
+            "costMin": {
+              "mean": 1500,
+              "median": 1500,
+              "stdDev": 500,
+              "q1": 1000,
+              "q3": 2000,
+              "iqr": 1000,
+              "min": 1000,
+              "max": 2000,
+              "count": 2
+            },
+            "costLikely": {
+              "mean": 2500,
+              "median": 2500,
+              "stdDev": 500,
+              "q1": 2000,
+              "q3": 3000,
+              "iqr": 1000,
+              "min": 2000,
+              "max": 3000,
+              "count": 2
+            },
+            "costMax": {
+              "mean": 3500,
+              "median": 3500,
+              "stdDev": 500,
+              "q1": 3000,
+              "q3": 4000,
+              "iqr": 1000,
+              "min": 3000,
+              "max": 4000,
+              "count": 2
+            },
+            "timeMin": {
+              "mean": 10,
+              "median": 10,
+              "stdDev": 0,
+              "q1": 10,
+              "q3": 10,
+              "iqr": 0,
+              "min": 10,
+              "max": 10,
+              "count": 2
+            },
+            "timeLikely": {
+              "mean": 20,
+              "median": 20,
+              "stdDev": 0,
+              "q1": 20,
+              "q3": 20,
+              "iqr": 0,
+              "min": 20,
+              "max": 20,
+              "count": 2
+            },
+            "timeMax": {
+              "mean": 30,
+              "median": 30,
+              "stdDev": 0,
+              "q1": 30,
+              "q3": 30,
+              "iqr": 0,
+              "min": 30,
+              "max": 30,
+              "count": 2
+            }
+          }
+        }
+      },
+      "completedAt": "2026-01-30T15:29:19.900Z"
+    }
+  ]
+}

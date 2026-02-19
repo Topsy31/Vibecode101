@@ -1,0 +1,2674 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="blueprint">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CoffeeCup — Delphi Tool</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%2314b8a6'/%3E%3Cstop offset='100%25' stop-color='%230d9488'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='6' fill='url(%23g)'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='white' stroke-width='2'/%3E%3Cline x1='16' y1='20' x2='16' y2='16' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='12' r='0.5' fill='white' stroke='white' stroke-width='1'/%3E%3C/svg%3E">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- React -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+/* ============================================
+   DELPHI RISK ASSESSMENT - STYLES
+   ============================================ */
+
+/* ============================================
+   CSS CUSTOM PROPERTIES (THEME VARIABLES)
+   ============================================ */
+:root {
+  --bg-primary: #fafaf9;
+  --bg-secondary: #f5f5f4;
+  --bg-card: #ffffff;
+  --bg-hover: rgba(0,0,0,0.02);
+
+  --border-primary: #e7e5e4;
+  --border-secondary: #f5f5f4;
+  --border-accent: #d6d3d1;
+
+  --text-primary: #292524;
+  --text-secondary: #57534e;
+  --text-muted: #78716c;
+  --text-faint: #a8a29e;
+
+  --accent-primary: #b8956a;
+  --accent-hover: #a07d4f;
+  --accent-light: rgba(185, 149, 106, 0.12);
+
+  --danger: #dc7c7c;
+  --danger-hover: #c56565;
+  --danger-light: rgba(220, 124, 124, 0.12);
+  --success: #22c55e;
+  --success-light: rgba(34, 197, 94, 0.12);
+
+  --bar-1: #64748b;
+  --bar-2: #84a98c;
+  --bar-3: #c9a96e;
+  --bar-4: #c9a9a6;
+  --bar-5: #94a3b8;
+  --bar-6: #d4a574;
+
+  --font-primary: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.2s ease;
+  --transition-slow: 0.3s ease;
+}
+
+/* THEME: ARCHITECTURAL BLUEPRINT */
+[data-theme="blueprint"] {
+  --bg-primary: #fafaf9;
+  --bg-secondary: #f5f5f4;
+  --bg-card: #ffffff;
+  --bg-hover: rgba(0,0,0,0.02);
+  --border-primary: #e7e5e4;
+  --border-secondary: #f5f5f4;
+  --border-accent: #d6d3d1;
+  --text-primary: #292524;
+  --text-secondary: #57534e;
+  --text-muted: #78716c;
+  --text-faint: #a8a29e;
+  --accent-primary: #b8956a;
+  --accent-hover: #a07d4f;
+  --accent-light: rgba(185, 149, 106, 0.12);
+  --bar-1: #64748b;
+  --bar-2: #84a98c;
+  --bar-3: #c9a96e;
+  --bar-4: #c9a9a6;
+  --bar-5: #94a3b8;
+  --bar-6: #d4a574;
+  --font-primary: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --radius-lg: 12px;
+  --radius-md: 6px;
+}
+
+[data-theme="blueprint"] body {
+  background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+  background-image:
+    linear-gradient(rgba(0,0,0,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.015) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* THEME: FUN & VIBRANT */
+[data-theme="fun"] {
+  --bg-primary: #fef7ff;
+  --bg-secondary: #fae8ff;
+  --bg-card: #ffffff;
+  --bg-hover: rgba(217, 70, 239, 0.05);
+  --border-primary: #f0abfc;
+  --border-secondary: #fae8ff;
+  --border-accent: #e879f9;
+  --text-primary: #701a75;
+  --text-secondary: #86198f;
+  --text-muted: #a21caf;
+  --text-faint: #c026d3;
+  --accent-primary: #d946ef;
+  --accent-hover: #c026d3;
+  --accent-light: rgba(217, 70, 239, 0.15);
+  --danger: #f43f5e;
+  --danger-hover: #e11d48;
+  --danger-light: rgba(244, 63, 94, 0.15);
+  --success: #10b981;
+  --success-light: rgba(16, 185, 129, 0.15);
+  --bar-1: #f472b6;
+  --bar-2: #a78bfa;
+  --bar-3: #60a5fa;
+  --bar-4: #34d399;
+  --bar-5: #fbbf24;
+  --bar-6: #fb923c;
+  --font-primary: 'Nunito', 'Comic Neue', -apple-system, sans-serif;
+  --radius-lg: 20px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --shadow-md: 0 8px 16px -4px rgba(217, 70, 239, 0.15), 0 4px 8px -4px rgba(217, 70, 239, 0.1);
+  --shadow-lg: 0 12px 24px -4px rgba(217, 70, 239, 0.2);
+}
+
+[data-theme="fun"] body {
+  background: linear-gradient(135deg, #fdf4ff 0%, #fae8ff 50%, #f5d0fe 100%);
+}
+
+[data-theme="fun"] .card {
+  border: 2px solid var(--border-primary);
+  box-shadow: 0 8px 24px -8px rgba(217, 70, 239, 0.2);
+}
+
+[data-theme="fun"] .btn-accent {
+  background: linear-gradient(135deg, #f472b6 0%, #d946ef 50%, #a78bfa 100%);
+  border-radius: var(--radius-full);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+[data-theme="fun"] .btn-accent:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 20px rgba(217, 70, 239, 0.4);
+}
+
+[data-theme="fun"] .app-header-icon {
+  background: linear-gradient(135deg, #f472b6 0%, #d946ef 50%, #a78bfa 100%);
+  border-radius: var(--radius-full);
+}
+
+/* THEME: DARK MODE */
+[data-theme="dark"] {
+  --bg-primary: #0f0f0f;
+  --bg-secondary: #1a1a1a;
+  --bg-card: #242424;
+  --bg-hover: rgba(255,255,255,0.04);
+  --border-primary: #333333;
+  --border-secondary: #2a2a2a;
+  --border-accent: #444444;
+  --text-primary: #f0f0f0;
+  --text-secondary: #b0b0b0;
+  --text-muted: #808080;
+  --text-faint: #606060;
+  --accent-primary: #6366f1;
+  --accent-hover: #818cf8;
+  --accent-light: rgba(99, 102, 241, 0.15);
+  --danger: #ef4444;
+  --danger-hover: #f87171;
+  --danger-light: rgba(239, 68, 68, 0.15);
+  --success: #22c55e;
+  --success-light: rgba(34, 197, 94, 0.15);
+  --bar-1: #6366f1;
+  --bar-2: #22c55e;
+  --bar-3: #f59e0b;
+  --bar-4: #ec4899;
+  --bar-5: #06b6d4;
+  --bar-6: #8b5cf6;
+  --font-primary: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --radius-lg: 10px;
+  --radius-md: 6px;
+  --radius-sm: 4px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+}
+
+[data-theme="dark"] body {
+  background: linear-gradient(180deg, #0a0a0a 0%, #0f0f0f 100%);
+}
+
+[data-theme="dark"] .card {
+  border: 1px solid var(--border-primary);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+[data-theme="dark"] .input-refined,
+[data-theme="dark"] .textarea-refined {
+  background: #1a1a1a;
+  border-color: var(--border-primary);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .input-refined:focus,
+[data-theme="dark"] .textarea-refined:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+[data-theme="dark"] .select-refined {
+  background-color: #1a1a1a;
+  border-color: var(--border-primary);
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .btn-secondary {
+  background: #1a1a1a;
+  border-color: var(--border-primary);
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .btn-secondary:hover {
+  background: #2a2a2a;
+  border-color: var(--border-accent);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .btn-accent {
+  background: linear-gradient(180deg, #6366f1 0%, #4f46e5 100%);
+}
+
+[data-theme="dark"] .btn-accent:hover {
+  background: linear-gradient(180deg, #818cf8 0%, #6366f1 100%);
+}
+
+[data-theme="dark"] .app-header-icon {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+}
+
+/* THEME: TRADITIONAL */
+[data-theme="traditional"] {
+  --bg-primary: #f8f9fa;
+  --bg-secondary: #e9ecef;
+  --bg-card: #ffffff;
+  --bg-hover: rgba(0,0,0,0.03);
+  --border-primary: #ced4da;
+  --border-secondary: #dee2e6;
+  --border-accent: #adb5bd;
+  --text-primary: #212529;
+  --text-secondary: #495057;
+  --text-muted: #6c757d;
+  --text-faint: #adb5bd;
+  --accent-primary: #0d6efd;
+  --accent-hover: #0b5ed7;
+  --accent-light: rgba(13, 110, 253, 0.1);
+  --danger: #dc3545;
+  --danger-hover: #bb2d3b;
+  --danger-light: rgba(220, 53, 69, 0.1);
+  --success: #198754;
+  --success-light: rgba(25, 135, 84, 0.1);
+  --bar-1: #0d6efd;
+  --bar-2: #198754;
+  --bar-3: #ffc107;
+  --bar-4: #dc3545;
+  --bar-5: #6f42c1;
+  --bar-6: #fd7e14;
+  --font-primary: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --font-mono: 'Consolas', 'Courier New', monospace;
+  --radius-lg: 4px;
+  --radius-md: 4px;
+  --radius-sm: 2px;
+  --shadow-md: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+[data-theme="traditional"] body {
+  background: var(--bg-primary);
+}
+
+[data-theme="traditional"] .card {
+  border: 1px solid var(--border-primary);
+  box-shadow: var(--shadow-md);
+}
+
+[data-theme="traditional"] .btn-accent {
+  background: var(--accent-primary);
+  border-radius: var(--radius-md);
+}
+
+[data-theme="traditional"] .btn-accent:hover {
+  background: var(--accent-hover);
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+* {
+  font-family: var(--font-primary);
+  box-sizing: border-box;
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+body {
+  background: var(--bg-primary);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  color: var(--text-primary);
+}
+
+/* ============================================
+   CUSTOM SCROLLBAR
+   ============================================ */
+.custom-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scroll::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: 3px;
+}
+
+.custom-scroll::-webkit-scrollbar-thumb {
+  background: var(--border-accent);
+  border-radius: 3px;
+}
+
+.custom-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--text-faint);
+}
+
+/* ============================================
+   INPUT STYLES
+   ============================================ */
+.input-refined {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-size: 14px;
+  color: var(--text-primary);
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-sm);
+  width: 100%;
+}
+
+.input-refined:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--accent-light), var(--shadow-sm);
+}
+
+.input-refined::placeholder {
+  color: var(--text-faint);
+}
+
+.input-refined.input-sm {
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+.textarea-refined {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-size: 14px;
+  color: var(--text-primary);
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-sm);
+  resize: vertical;
+  min-height: 80px;
+  width: 100%;
+}
+
+.textarea-refined:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--accent-light), var(--shadow-sm);
+}
+
+.textarea-refined::placeholder {
+  color: var(--text-faint);
+}
+
+/* Select */
+.select-refined {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  padding: 10px 32px 10px 14px;
+  font-size: 14px;
+  color: var(--text-primary);
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2378716c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+}
+
+.select-refined:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--accent-light), var(--shadow-sm);
+}
+
+/* ============================================
+   BUTTON STYLES
+   ============================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  border: none;
+  text-decoration: none;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+.btn-icon {
+  padding: 8px;
+  width: 36px;
+  height: 36px;
+}
+
+.btn-icon.btn-sm {
+  width: 28px;
+  height: 28px;
+  padding: 4px;
+}
+
+.btn-primary {
+  background: var(--text-secondary);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--text-primary);
+}
+
+.btn-secondary {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  color: var(--text-secondary);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--bg-hover);
+  border-color: var(--border-accent);
+  color: var(--text-primary);
+}
+
+.btn-accent {
+  background: linear-gradient(180deg, var(--accent-primary) 0%, var(--accent-hover) 100%);
+  color: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn-accent:hover:not(:disabled) {
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  transform: translateY(-1px);
+}
+
+.btn-danger {
+  background: linear-gradient(180deg, var(--danger) 0%, var(--danger-hover) 100%);
+  color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.btn-success {
+  background: linear-gradient(180deg, var(--success) 0%, #16a34a 100%);
+  color: white;
+}
+
+.btn-success:hover:not(:disabled) {
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* ============================================
+   CARD STYLES
+   ============================================ */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-secondary);
+}
+
+.card-body {
+  padding: 20px;
+}
+
+/* ============================================
+   APP HEADER
+   ============================================ */
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 24px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.app-header-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-hover) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.app-header-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.app-header-subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* ============================================
+   TABS
+   ============================================ */
+.tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+}
+
+.tab {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.tab:hover {
+  color: var(--text-secondary);
+  background: var(--bg-hover);
+}
+
+.tab.active {
+  color: var(--text-primary);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ============================================
+   BADGE
+   ============================================ */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.badge-primary {
+  background: var(--accent-light);
+  color: var(--accent-primary);
+}
+
+.badge-success {
+  background: var(--success-light);
+  color: var(--success);
+}
+
+.badge-danger {
+  background: var(--danger-light);
+  color: var(--danger);
+}
+
+.badge-muted {
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+}
+
+/* ============================================
+   PROGRESS BAR
+   ============================================ */
+.progress-bar {
+  height: 8px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-primary), var(--accent-hover));
+  border-radius: var(--radius-full);
+  transition: width var(--transition-slow);
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.empty-state-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.empty-state-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.empty-state-description {
+  font-size: 14px;
+  color: var(--text-muted);
+  max-width: 320px;
+}
+
+/* ============================================
+   SLIDER
+   ============================================ */
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--bg-secondary);
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  transition: transform var(--transition-fast);
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* ============================================
+   MODAL / DRAWER
+   ============================================ */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  animation: fadeIn 0.2s ease;
+}
+
+.modal {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: hidden;
+  animation: slideUp 0.3s ease;
+}
+
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 100;
+  animation: fadeIn 0.2s ease;
+}
+
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 420px;
+  max-width: 100vw;
+  background: var(--bg-card);
+  box-shadow: var(--shadow-lg);
+  z-index: 101;
+  animation: slideInRight 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+/* ============================================
+   TOOLTIP
+   ============================================ */
+.tooltip {
+  position: relative;
+}
+
+.tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 10px;
+  background: var(--text-primary);
+  color: var(--bg-card);
+  font-size: 12px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all var(--transition-fast);
+  margin-bottom: 6px;
+  z-index: 10;
+}
+
+.tooltip:hover::after {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ============================================
+   STATISTICS DISPLAY
+   ============================================ */
+.stat-card {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+}
+
+.stat-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 4px;
+}
+
+/* ============================================
+   ANIMATION
+   ============================================ */
+.fade-in {
+  animation: fadeIn 0.3s ease;
+}
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+const { useState, useEffect, useCallback, useMemo } = React;
+
+// ============================================
+// UTILITY FUNCTIONS
+// ============================================
+const generateId = () => crypto.randomUUID();
+
+const formatDate = (date) => {
+  return new Date(date).toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  });
+};
+
+// Statistics calculations
+const calculateStats = (values) => {
+  if (!values || values.length === 0) return null;
+
+  const sorted = [...values].sort((a, b) => a - b);
+  const n = sorted.length;
+
+  const sum = sorted.reduce((a, b) => a + b, 0);
+  const mean = sum / n;
+
+  const median = n % 2 === 0
+    ? (sorted[n/2 - 1] + sorted[n/2]) / 2
+    : sorted[Math.floor(n/2)];
+
+  const variance = sorted.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / n;
+  const stdDev = Math.sqrt(variance);
+
+  const q1 = sorted[Math.floor(n * 0.25)];
+  const q3 = sorted[Math.floor(n * 0.75)];
+  const iqr = q3 - q1;
+
+  const min = sorted[0];
+  const max = sorted[n - 1];
+
+  return { mean, median, stdDev, q1, q3, iqr, min, max, count: n };
+};
+
+// Base64 encoding/decoding
+const encodeResponse = (data) => {
+  return btoa(encodeURIComponent(JSON.stringify(data)));
+};
+
+const decodeResponse = (encoded) => {
+  try {
+    return JSON.parse(decodeURIComponent(atob(encoded)));
+  } catch (e) {
+    return null;
+  }
+};
+
+// ============================================
+// ICONS
+// ============================================
+const Icons = {
+  Users: () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+      <circle cx="9" cy="7" r="4"/>
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    </svg>
+  ),
+  FileText: () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+      <polyline points="14 2 14 8 20 8"/>
+      <line x1="16" y1="13" x2="8" y2="13"/>
+      <line x1="16" y1="17" x2="8" y2="17"/>
+      <polyline points="10 9 9 9 8 9"/>
+    </svg>
+  ),
+  BarChart: () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="20" x2="12" y2="10"/>
+      <line x1="18" y1="20" x2="18" y2="4"/>
+      <line x1="6" y1="20" x2="6" y2="16"/>
+    </svg>
+  ),
+  Download: () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="7 10 12 15 17 10"/>
+      <line x1="12" y1="15" x2="12" y2="3"/>
+    </svg>
+  ),
+  Upload: () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="17 8 12 3 7 8"/>
+      <line x1="12" y1="3" x2="12" y2="15"/>
+    </svg>
+  ),
+  Plus: () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19"/>
+      <line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+  ),
+  Trash: () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="3 6 5 6 21 6"/>
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+    </svg>
+  ),
+  Edit: () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+    </svg>
+  ),
+  Settings: () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+  ),
+  X: () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18"/>
+      <line x1="6" y1="6" x2="18" y2="18"/>
+    </svg>
+  ),
+  Check: () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>
+  ),
+  Copy: () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+    </svg>
+  ),
+  Send: () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="22" y1="2" x2="11" y2="13"/>
+      <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+    </svg>
+  ),
+  AlertTriangle: () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+      <line x1="12" y1="9" x2="12" y2="13"/>
+      <line x1="12" y1="17" x2="12.01" y2="17"/>
+    </svg>
+  ),
+  ChevronRight: () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="9 18 15 12 9 6"/>
+    </svg>
+  ),
+  Refresh: () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="23 4 23 10 17 10"/>
+      <polyline points="1 20 1 14 7 14"/>
+      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+    </svg>
+  ),
+  Target: () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <circle cx="12" cy="12" r="6"/>
+      <circle cx="12" cy="12" r="2"/>
+    </svg>
+  )
+};
+
+// ============================================
+// DEFAULT DATA
+// ============================================
+const DEFAULT_STUDY = {
+  id: '',
+  name: '',
+  description: '',
+  problemStatement: '',
+  createdAt: '',
+  status: 'setup', // setup, active, completed
+  config: {
+    probabilityScale: { min: 0, max: 100, type: 'percentage', labels: null },
+    // Cost and time use triangular distribution (min, likely, max)
+    costImpact: { enabled: true, unit: '£', unitLabel: 'GBP' },
+    timeImpact: { enabled: true, unit: 'days', unitLabel: 'Days' },
+    plannedRounds: 3,
+    consensusThreshold: 0.7
+  },
+  experts: [],
+  risks: [],
+  rounds: []
+};
+
+const COST_UNITS = [
+  { value: '£', label: 'GBP (£)' },
+  { value: '$', label: 'USD ($)' },
+  { value: '€', label: 'EUR (€)' },
+  { value: 'k£', label: 'Thousands GBP (k£)' },
+  { value: 'k$', label: 'Thousands USD (k$)' },
+  { value: 'M£', label: 'Millions GBP (M£)' },
+  { value: 'M$', label: 'Millions USD (M$)' }
+];
+
+const TIME_UNITS = [
+  { value: 'hours', label: 'Hours' },
+  { value: 'days', label: 'Days' },
+  { value: 'weeks', label: 'Weeks' },
+  { value: 'months', label: 'Months' }
+];
+
+// ============================================
+// STORAGE
+// ============================================
+const STORAGE_KEY = 'delphi-studies';
+
+const loadStudies = () => {
+  try {
+    const data = localStorage.getItem(STORAGE_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch (e) {
+    console.error('Failed to load studies:', e);
+    return [];
+  }
+};
+
+const saveStudies = (studies) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(studies));
+  } catch (e) {
+    console.error('Failed to save studies:', e);
+  }
+};
+
+// ============================================
+// THEME SELECTOR COMPONENT
+// ============================================
+function ThemeSelector({ theme, setTheme }) {
+  return (
+    <select
+      className="select-refined"
+      value={theme}
+      onChange={(e) => setTheme(e.target.value)}
+      style={{ width: 'auto' }}
+    >
+      <option value="blueprint">Architectural Blueprint</option>
+      <option value="fun">Fun & Vibrant</option>
+      <option value="dark">Dark Mode</option>
+      <option value="traditional">Traditional</option>
+    </select>
+  );
+}
+
+// ============================================
+// STUDY SETUP COMPONENT
+// ============================================
+function StudySetup({ study, onUpdate, onStartStudy }) {
+  const [localStudy, setLocalStudy] = useState(study);
+  const [newExpert, setNewExpert] = useState('');
+  const [newRisk, setNewRisk] = useState({ name: '', description: '' });
+
+  useEffect(() => {
+    setLocalStudy(study);
+  }, [study]);
+
+  const updateField = (field, value) => {
+    const updated = { ...localStudy, [field]: value };
+    setLocalStudy(updated);
+    onUpdate(updated);
+  };
+
+  const updateConfig = (field, value) => {
+    const updated = {
+      ...localStudy,
+      config: { ...localStudy.config, [field]: value }
+    };
+    setLocalStudy(updated);
+    onUpdate(updated);
+  };
+
+  const addExpert = () => {
+    if (!newExpert.trim()) return;
+    const expert = {
+      code: `E${String(localStudy.experts.length + 1).padStart(3, '0')}`,
+      name: newExpert.trim()
+    };
+    const updated = {
+      ...localStudy,
+      experts: [...localStudy.experts, expert]
+    };
+    setLocalStudy(updated);
+    onUpdate(updated);
+    setNewExpert('');
+  };
+
+  const removeExpert = (code) => {
+    const updated = {
+      ...localStudy,
+      experts: localStudy.experts.filter(e => e.code !== code)
+    };
+    setLocalStudy(updated);
+    onUpdate(updated);
+  };
+
+  const addRisk = () => {
+    if (!newRisk.name.trim()) return;
+    const risk = {
+      id: `RISK${String(localStudy.risks.length + 1).padStart(3, '0')}`,
+      name: newRisk.name.trim(),
+      description: newRisk.description.trim(),
+      type: 'threat'
+    };
+    const updated = {
+      ...localStudy,
+      risks: [...localStudy.risks, risk]
+    };
+    setLocalStudy(updated);
+    onUpdate(updated);
+    setNewRisk({ name: '', description: '' });
+  };
+
+  const removeRisk = (id) => {
+    const updated = {
+      ...localStudy,
+      risks: localStudy.risks.filter(r => r.id !== id)
+    };
+    setLocalStudy(updated);
+    onUpdate(updated);
+  };
+
+  const canStart = localStudy.name && localStudy.problemStatement &&
+                   localStudy.experts.length > 0 && localStudy.risks.length > 0;
+
+  return (
+    <div className="space-y-6">
+      {/* Study Details */}
+      <div className="card">
+        <div className="card-header">
+          <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>Study Details</h3>
+        </div>
+        <div className="card-body space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
+              Study Name *
+            </label>
+            <input
+              type="text"
+              className="input-refined"
+              placeholder="e.g., Project Alpha Risk Assessment"
+              value={localStudy.name}
+              onChange={(e) => updateField('name', e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
+              Description
+            </label>
+            <textarea
+              className="textarea-refined"
+              placeholder="Brief description of the study purpose..."
+              value={localStudy.description}
+              onChange={(e) => updateField('description', e.target.value)}
+              rows={2}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
+              Problem Statement *
+            </label>
+            <textarea
+              className="textarea-refined"
+              placeholder="What risks could impact this project/initiative? What are we trying to identify?"
+              value={localStudy.problemStatement}
+              onChange={(e) => updateField('problemStatement', e.target.value)}
+              rows={3}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Configuration */}
+      <div className="card">
+        <div className="card-header">
+          <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>Configuration</h3>
+        </div>
+        <div className="card-body space-y-4">
+          {/* Probability */}
+          <div>
+            <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
+              Probability Scale
+            </label>
+            <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>
+              Experts will estimate likelihood as a percentage (0-100%)
+            </p>
+          </div>
+
+          {/* Cost Impact */}
+          <div className="p-4 rounded-lg" style={{ background: 'var(--bg-secondary)' }}>
+            <div className="flex items-center justify-between mb-3">
+              <label className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
+                Cost Impact (Triangular Distribution)
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={localStudy.config.costImpact?.enabled !== false}
+                  onChange={(e) => updateConfig('costImpact', { ...localStudy.config.costImpact, enabled: e.target.checked })}
+                  className="w-4 h-4"
+                />
+                <span className="text-sm" style={{ color: 'var(--text-muted)' }}>Enabled</span>
+              </label>
+            </div>
+            <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>
+              Experts will provide min, likely, and max cost estimates for each risk.
+            </p>
+            <div>
+              <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-muted)' }}>
+                Currency Unit
+              </label>
+              <select
+                className="select-refined w-full"
+                value={localStudy.config.costImpact?.unit || '£'}
+                onChange={(e) => {
+                  const selected = COST_UNITS.find(u => u.value === e.target.value);
+                  updateConfig('costImpact', { ...localStudy.config.costImpact, unit: e.target.value, unitLabel: selected?.label || e.target.value });
+                }}
+              >
+                {COST_UNITS.map(u => <option key={u.value} value={u.value}>{u.label}</option>)}
+              </select>
+            </div>
+          </div>
+
+          {/* Time Impact */}
+          <div className="p-4 rounded-lg" style={{ background: 'var(--bg-secondary)' }}>
+            <div className="flex items-center justify-between mb-3">
+              <label className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
+                Time Impact (Triangular Distribution)
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={localStudy.config.timeImpact?.enabled !== false}
+                  onChange={(e) => updateConfig('timeImpact', { ...localStudy.config.timeImpact, enabled: e.target.checked })}
+                  className="w-4 h-4"
+                />
+                <span className="text-sm" style={{ color: 'var(--text-muted)' }}>Enabled</span>
+              </label>
+            </div>
+            <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>
+              Experts will provide min, likely, and max time delay estimates for each risk.
+            </p>
+            <div>
+              <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-muted)' }}>
+                Time Unit
+              </label>
+              <select
+                className="select-refined w-full"
+                value={localStudy.config.timeImpact?.unit || 'days'}
+                onChange={(e) => {
+                  const selected = TIME_UNITS.find(u => u.value === e.target.value);
+                  updateConfig('timeImpact', { ...localStudy.config.timeImpact, unit: e.target.value, unitLabel: selected?.label || e.target.value });
+                }}
+              >
+                {TIME_UNITS.map(u => <option key={u.value} value={u.value}>{u.label}</option>)}
+              </select>
+            </div>
+          </div>
+
+          {/* Rounds and Consensus */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
+                Planned Rounds
+              </label>
+              <input
+                type="number"
+                className="input-refined"
+                min="2"
+                max="10"
+                value={localStudy.config.plannedRounds}
+                onChange={(e) => updateConfig('plannedRounds', parseInt(e.target.value) || 3)}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
+                Consensus Threshold
+              </label>
+              <select
+                className="select-refined w-full"
+                value={localStudy.config.consensusThreshold}
+                onChange={(e) => updateConfig('consensusThreshold', parseFloat(e.target.value))}
+              >
+                <option value="0.6">60% agreement</option>
+                <option value="0.7">70% agreement</option>
+                <option value="0.8">80% agreement</option>
+                <option value="0.9">90% agreement</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Experts */}
+      <div className="card">
+        <div className="card-header flex items-center justify-between">
+          <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+            Expert Panel ({localStudy.experts.length})
+          </h3>
+        </div>
+        <div className="card-body space-y-4">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              className="input-refined flex-1"
+              placeholder="Expert name (for your reference only)"
+              value={newExpert}
+              onChange={(e) => setNewExpert(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && addExpert()}
+            />
+            <button className="btn btn-accent" onClick={addExpert}>
+              <Icons.Plus /> Add
+            </button>
+          </div>
+
+          {localStudy.experts.length === 0 ? (
+            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+              No experts added yet. Add at least one expert to begin the study.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {localStudy.experts.map((expert) => (
+                <div
+                  key={expert.code}
+                  className="flex items-center justify-between p-3 rounded-lg"
+                  style={{ background: 'var(--bg-secondary)' }}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="badge badge-primary font-mono">{expert.code}</span>
+                    <span style={{ color: 'var(--text-primary)' }}>{expert.name}</span>
+                  </div>
+                  <button
+                    className="btn btn-icon btn-sm btn-secondary"
+                    onClick={() => removeExpert(expert.code)}
+                  >
+                    <Icons.Trash />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Initial Risks */}
+      <div className="card">
+        <div className="card-header flex items-center justify-between">
+          <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+            Initial Risk Items ({localStudy.risks.length})
+          </h3>
+        </div>
+        <div className="card-body space-y-4">
+          <div className="space-y-2">
+            <input
+              type="text"
+              className="input-refined"
+              placeholder="Risk name"
+              value={newRisk.name}
+              onChange={(e) => setNewRisk({ ...newRisk, name: e.target.value })}
+            />
+            <textarea
+              className="textarea-refined"
+              placeholder="Risk description (optional)"
+              value={newRisk.description}
+              onChange={(e) => setNewRisk({ ...newRisk, description: e.target.value })}
+              rows={2}
+            />
+            <button className="btn btn-accent" onClick={addRisk}>
+              <Icons.Plus /> Add Risk
+            </button>
+          </div>
+
+          {localStudy.risks.length === 0 ? (
+            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+              No risks added yet. Add initial risks to seed the Delphi process, or let experts suggest them in Round 1.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {localStudy.risks.map((risk) => (
+                <div
+                  key={risk.id}
+                  className="p-3 rounded-lg"
+                  style={{ background: 'var(--bg-secondary)' }}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="badge badge-muted font-mono text-xs">{risk.id}</span>
+                        <span className="font-medium" style={{ color: 'var(--text-primary)' }}>{risk.name}</span>
+                      </div>
+                      {risk.description && (
+                        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{risk.description}</p>
+                      )}
+                    </div>
+                    <button
+                      className="btn btn-icon btn-sm btn-secondary ml-2"
+                      onClick={() => removeRisk(risk.id)}
+                    >
+                      <Icons.Trash />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Start Study */}
+      <div className="flex justify-end">
+        <button
+          className="btn btn-success"
+          disabled={!canStart}
+          onClick={() => onStartStudy(localStudy)}
+        >
+          <Icons.Send /> Start Study & Generate Round 1
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ============================================
+// ROUND MANAGEMENT COMPONENT
+// ============================================
+function RoundManagement({ study, onUpdate, onGenerateQuestionnaire }) {
+  const currentRound = study.rounds[study.rounds.length - 1];
+  const roundNumber = currentRound?.number || 0;
+
+  const startNewRound = () => {
+    const newRound = {
+      number: roundNumber + 1,
+      status: 'in-progress',
+      startedAt: new Date().toISOString(),
+      risks: study.risks.map(r => ({ ...r })),
+      responses: [],
+      summary: null
+    };
+
+    const updated = {
+      ...study,
+      status: 'active',
+      rounds: [...study.rounds, newRound]
+    };
+    onUpdate(updated);
+  };
+
+  const completeRound = () => {
+    if (!currentRound || currentRound.responses.length === 0) return;
+
+    const costEnabled = study.config.costImpact?.enabled !== false;
+    const timeEnabled = study.config.timeImpact?.enabled !== false;
+
+    // Calculate statistics for each risk
+    const summary = {
+      generatedAt: new Date().toISOString(),
+      statistics: {}
+    };
+
+    currentRound.risks.forEach(risk => {
+      const responses = currentRound.responses
+        .flatMap(r => r.responses)
+        .filter(resp => resp.riskId === risk.id);
+
+      const probValues = responses.map(r => r.probability).filter(v => v != null);
+
+      const riskStats = {
+        probability: calculateStats(probValues),
+        responseCount: responses.length
+      };
+
+      // Calculate cost statistics (triangular: min, likely, max)
+      if (costEnabled) {
+        const costMinValues = responses.map(r => r.costMin).filter(v => v != null && v > 0);
+        const costLikelyValues = responses.map(r => r.costLikely).filter(v => v != null && v > 0);
+        const costMaxValues = responses.map(r => r.costMax).filter(v => v != null && v > 0);
+
+        riskStats.costMin = calculateStats(costMinValues);
+        riskStats.costLikely = calculateStats(costLikelyValues);
+        riskStats.costMax = calculateStats(costMaxValues);
+      }
+
+      // Calculate time statistics (triangular: min, likely, max)
+      if (timeEnabled) {
+        const timeMinValues = responses.map(r => r.timeMin).filter(v => v != null && v > 0);
+        const timeLikelyValues = responses.map(r => r.timeLikely).filter(v => v != null && v > 0);
+        const timeMaxValues = responses.map(r => r.timeMax).filter(v => v != null && v > 0);
+
+        riskStats.timeMin = calculateStats(timeMinValues);
+        riskStats.timeLikely = calculateStats(timeLikelyValues);
+        riskStats.timeMax = calculateStats(timeMaxValues);
+      }
+
+      summary.statistics[risk.id] = riskStats;
+    });
+
+    const updatedRounds = study.rounds.map((r, i) =>
+      i === study.rounds.length - 1
+        ? { ...r, status: 'complete', completedAt: new Date().toISOString(), summary }
+        : r
+    );
+
+    onUpdate({ ...study, rounds: updatedRounds });
+  };
+
+  const responseCount = currentRound?.responses?.length || 0;
+  const expertCount = study.experts.length;
+  const responseRate = expertCount > 0 ? Math.round((responseCount / expertCount) * 100) : 0;
+
+  return (
+    <div className="space-y-6">
+      {/* Round Overview */}
+      <div className="card">
+        <div className="card-header flex items-center justify-between">
+          <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+            Round {roundNumber || 'Not Started'}
+          </h3>
+          {currentRound && (
+            <span className={`badge ${currentRound.status === 'complete' ? 'badge-success' : 'badge-primary'}`}>
+              {currentRound.status === 'complete' ? 'Complete' : 'In Progress'}
+            </span>
+          )}
+        </div>
+        <div className="card-body">
+          {!currentRound || currentRound.status === 'complete' ? (
+            <div className="text-center py-4">
+              <p className="mb-4" style={{ color: 'var(--text-muted)' }}>
+                {study.rounds.length === 0
+                  ? 'Ready to start Round 1 of the Delphi process.'
+                  : `Round ${roundNumber} is complete. Start the next round to continue refining consensus.`
+                }
+              </p>
+              <button className="btn btn-accent" onClick={startNewRound}>
+                <Icons.Plus /> Start Round {roundNumber + 1}
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="grid grid-cols-3 gap-4">
+                <div className="stat-card">
+                  <div className="stat-value">{responseCount}/{expertCount}</div>
+                  <div className="stat-label">Responses</div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-value">{responseRate}%</div>
+                  <div className="stat-label">Response Rate</div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-value">{currentRound.risks.length}</div>
+                  <div className="stat-label">Risk Items</div>
+                </div>
+              </div>
+
+              <div className="progress-bar">
+                <div className="progress-bar-fill" style={{ width: `${responseRate}%` }} />
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  className="btn btn-accent flex-1"
+                  onClick={() => onGenerateQuestionnaire(currentRound)}
+                >
+                  <Icons.Download /> Generate Questionnaire
+                </button>
+                <button
+                  className="btn btn-success flex-1"
+                  onClick={completeRound}
+                  disabled={responseCount === 0}
+                >
+                  <Icons.Check /> Complete Round
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Expert Responses */}
+      {currentRound && currentRound.status === 'in-progress' && (
+        <div className="card">
+          <div className="card-header">
+            <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>Expert Responses</h3>
+          </div>
+          <div className="card-body">
+            <div className="space-y-2">
+              {study.experts.map(expert => {
+                const hasResponded = currentRound.responses.some(r => r.expertCode === expert.code);
+                return (
+                  <div
+                    key={expert.code}
+                    className="flex items-center justify-between p-3 rounded-lg"
+                    style={{ background: 'var(--bg-secondary)' }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="badge badge-muted font-mono">{expert.code}</span>
+                      <span style={{ color: 'var(--text-primary)' }}>{expert.name}</span>
+                    </div>
+                    {hasResponded ? (
+                      <span className="badge badge-success">
+                        <Icons.Check /> Received
+                      </span>
+                    ) : (
+                      <span className="badge badge-muted">Pending</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Round History */}
+      {study.rounds.length > 0 && (
+        <div className="card">
+          <div className="card-header">
+            <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>Round History</h3>
+          </div>
+          <div className="card-body">
+            <div className="space-y-2">
+              {study.rounds.map(round => (
+                <div
+                  key={round.number}
+                  className="flex items-center justify-between p-3 rounded-lg"
+                  style={{ background: 'var(--bg-secondary)' }}
+                >
+                  <div>
+                    <span className="font-medium" style={{ color: 'var(--text-primary)' }}>
+                      Round {round.number}
+                    </span>
+                    <span className="text-sm ml-2" style={{ color: 'var(--text-muted)' }}>
+                      {round.responses.length} responses
+                    </span>
+                  </div>
+                  <span className={`badge ${round.status === 'complete' ? 'badge-success' : 'badge-primary'}`}>
+                    {round.status === 'complete' ? 'Complete' : 'In Progress'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================
+// RESPONSE INGESTION COMPONENT
+// ============================================
+function ResponseIngestion({ study, onUpdate }) {
+  const [responseCode, setResponseCode] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const currentRound = study.rounds[study.rounds.length - 1];
+
+  const ingestResponse = () => {
+    setError('');
+    setSuccess('');
+
+    if (!responseCode.trim()) {
+      setError('Please paste a response code');
+      return;
+    }
+
+    const decoded = decodeResponse(responseCode.trim());
+
+    if (!decoded) {
+      setError('Invalid response code. Please check and try again.');
+      return;
+    }
+
+    if (decoded.studyId !== study.id) {
+      setError('This response is for a different study.');
+      return;
+    }
+
+    if (decoded.roundNumber !== currentRound?.number) {
+      setError(`This response is for Round ${decoded.roundNumber}, but we're currently on Round ${currentRound?.number || 0}.`);
+      return;
+    }
+
+    // Check for duplicate
+    const existingResponse = currentRound.responses.find(r => r.expertCode === decoded.expertCode);
+    if (existingResponse) {
+      setError(`Response from ${decoded.expertCode} has already been recorded.`);
+      return;
+    }
+
+    // Add response
+    const updatedRounds = study.rounds.map((r, i) =>
+      i === study.rounds.length - 1
+        ? { ...r, responses: [...r.responses, decoded] }
+        : r
+    );
+
+    // Add any suggested risks
+    let updatedRisks = [...study.risks];
+    if (decoded.suggestedRisks && decoded.suggestedRisks.length > 0) {
+      decoded.suggestedRisks.forEach(suggested => {
+        const newRisk = {
+          id: `RISK${String(updatedRisks.length + 1).padStart(3, '0')}`,
+          name: suggested.name,
+          description: suggested.description || '',
+          type: 'threat',
+          suggestedBy: decoded.expertCode,
+          suggestedInRound: decoded.roundNumber
+        };
+        updatedRisks.push(newRisk);
+      });
+    }
+
+    onUpdate({
+      ...study,
+      rounds: updatedRounds,
+      risks: updatedRisks
+    });
+
+    setSuccess(`Response from ${decoded.expertCode} recorded successfully!`);
+    setResponseCode('');
+  };
+
+  if (!currentRound || currentRound.status !== 'in-progress') {
+    return (
+      <div className="card">
+        <div className="card-body">
+          <div className="empty-state">
+            <div className="empty-state-icon">
+              <Icons.Upload />
+            </div>
+            <div className="empty-state-title">No Active Round</div>
+            <div className="empty-state-description">
+              Start a new round to begin collecting expert responses.
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="card">
+      <div className="card-header">
+        <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+          Ingest Expert Response
+        </h3>
+      </div>
+      <div className="card-body space-y-4">
+        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+          Paste the response code that experts email back to you after completing the questionnaire.
+        </p>
+
+        <textarea
+          className="textarea-refined font-mono text-sm"
+          placeholder="Paste response code here..."
+          value={responseCode}
+          onChange={(e) => setResponseCode(e.target.value)}
+          rows={4}
+        />
+
+        {error && (
+          <div className="p-3 rounded-lg flex items-center gap-2" style={{ background: 'var(--danger-light)', color: 'var(--danger)' }}>
+            <Icons.AlertTriangle />
+            <span className="text-sm">{error}</span>
+          </div>
+        )}
+
+        {success && (
+          <div className="p-3 rounded-lg flex items-center gap-2" style={{ background: 'var(--success-light)', color: 'var(--success)' }}>
+            <Icons.Check />
+            <span className="text-sm">{success}</span>
+          </div>
+        )}
+
+        <button className="btn btn-accent" onClick={ingestResponse}>
+          <Icons.Upload /> Ingest Response
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ============================================
+// ANALYSIS COMPONENT
+// ============================================
+function Analysis({ study }) {
+  const completedRounds = study.rounds.filter(r => r.status === 'complete');
+
+  if (completedRounds.length === 0) {
+    return (
+      <div className="card">
+        <div className="card-body">
+          <div className="empty-state">
+            <div className="empty-state-icon">
+              <Icons.BarChart />
+            </div>
+            <div className="empty-state-title">No Data Yet</div>
+            <div className="empty-state-description">
+              Complete at least one round to see analysis and statistics.
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const latestRound = completedRounds[completedRounds.length - 1];
+  const stats = latestRound.summary?.statistics || {};
+
+  return (
+    <div className="space-y-6">
+      {/* Summary Stats */}
+      <div className="card">
+        <div className="card-header">
+          <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+            Round {latestRound.number} Summary
+          </h3>
+        </div>
+        <div className="card-body">
+          <div className="grid grid-cols-4 gap-4 mb-6">
+            <div className="stat-card">
+              <div className="stat-value">{latestRound.responses.length}</div>
+              <div className="stat-label">Responses</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-value">{study.risks.length}</div>
+              <div className="stat-label">Risks Assessed</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-value">{completedRounds.length}</div>
+              <div className="stat-label">Rounds Complete</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-value">{study.config.plannedRounds}</div>
+              <div className="stat-label">Planned Rounds</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Risk Analysis */}
+      <div className="card">
+        <div className="card-header">
+          <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+            Risk Analysis
+          </h3>
+        </div>
+        <div className="card-body">
+          <div className="space-y-4">
+            {study.risks.map(risk => {
+              const riskStats = stats[risk.id];
+              if (!riskStats || !riskStats.probability) return null;
+
+              const probStats = riskStats.probability;
+              const costUnit = study.config.costImpact?.unit || '£';
+              const timeUnit = study.config.timeImpact?.unit || 'days';
+              const costEnabled = study.config.costImpact?.enabled !== false;
+              const timeEnabled = study.config.timeImpact?.enabled !== false;
+
+              return (
+                <div
+                  key={risk.id}
+                  className="p-4 rounded-lg"
+                  style={{ background: 'var(--bg-secondary)' }}
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="badge badge-muted font-mono text-xs">{risk.id}</span>
+                        <span className="font-medium" style={{ color: 'var(--text-primary)' }}>{risk.name}</span>
+                      </div>
+                      {risk.description && (
+                        <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{risk.description}</p>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      <div className="text-lg font-bold font-mono" style={{ color: 'var(--accent-primary)' }}>
+                        {probStats.median.toFixed(0)}%
+                      </div>
+                      <div className="text-xs" style={{ color: 'var(--text-muted)' }}>Probability</div>
+                    </div>
+                  </div>
+
+                  {/* Probability */}
+                  <div className="mb-3">
+                    <div className="text-xs font-medium mb-1" style={{ color: 'var(--text-muted)' }}>
+                      PROBABILITY
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-lg font-mono font-bold" style={{ color: 'var(--text-primary)' }}>
+                        {probStats.median.toFixed(0)}%
+                      </span>
+                      <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                        median (IQR: {probStats.q1?.toFixed(0)}-{probStats.q3?.toFixed(0)}%)
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Cost Impact */}
+                  {costEnabled && riskStats.costLikely && (
+                    <div className="mb-3">
+                      <div className="text-xs font-medium mb-1" style={{ color: 'var(--text-muted)' }}>
+                        COST IMPACT ({costUnit})
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 text-center">
+                        <div className="p-2 rounded" style={{ background: 'var(--bg-card)' }}>
+                          <div className="text-xs" style={{ color: 'var(--text-muted)' }}>Min</div>
+                          <div className="font-mono font-bold" style={{ color: 'var(--text-primary)' }}>
+                            {riskStats.costMin?.median?.toFixed(0) || '-'}
+                          </div>
+                        </div>
+                        <div className="p-2 rounded" style={{ background: 'var(--bg-card)' }}>
+                          <div className="text-xs" style={{ color: 'var(--text-muted)' }}>Likely</div>
+                          <div className="font-mono font-bold" style={{ color: 'var(--accent-primary)' }}>
+                            {riskStats.costLikely?.median?.toFixed(0) || '-'}
+                          </div>
+                        </div>
+                        <div className="p-2 rounded" style={{ background: 'var(--bg-card)' }}>
+                          <div className="text-xs" style={{ color: 'var(--text-muted)' }}>Max</div>
+                          <div className="font-mono font-bold" style={{ color: 'var(--text-primary)' }}>
+                            {riskStats.costMax?.median?.toFixed(0) || '-'}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Time Impact */}
+                  {timeEnabled && riskStats.timeLikely && (
+                    <div>
+                      <div className="text-xs font-medium mb-1" style={{ color: 'var(--text-muted)' }}>
+                        TIME IMPACT ({timeUnit})
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 text-center">
+                        <div className="p-2 rounded" style={{ background: 'var(--bg-card)' }}>
+                          <div className="text-xs" style={{ color: 'var(--text-muted)' }}>Min</div>
+                          <div className="font-mono font-bold" style={{ color: 'var(--text-primary)' }}>
+                            {riskStats.timeMin?.median?.toFixed(0) || '-'}
+                          </div>
+                        </div>
+                        <div className="p-2 rounded" style={{ background: 'var(--bg-card)' }}>
+                          <div className="text-xs" style={{ color: 'var(--text-muted)' }}>Likely</div>
+                          <div className="font-mono font-bold" style={{ color: 'var(--accent-primary)' }}>
+                            {riskStats.timeLikely?.median?.toFixed(0) || '-'}
+                          </div>
+                        </div>
+                        <div className="p-2 rounded" style={{ background: 'var(--bg-card)' }}>
+                          <div className="text-xs" style={{ color: 'var(--text-muted)' }}>Max</div>
+                          <div className="font-mono font-bold" style={{ color: 'var(--text-primary)' }}>
+                            {riskStats.timeMax?.median?.toFixed(0) || '-'}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================
+// EXPORT COMPONENT
+// ============================================
+function ExportPanel({ study, onClose }) {
+  const [copied, setCopied] = useState(false);
+
+  const exportStudy = () => {
+    const data = JSON.stringify(study, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `delphi-${study.name.toLowerCase().replace(/\s+/g, '-')}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportToRiskRegister = () => {
+    const completedRounds = study.rounds.filter(r => r.status === 'complete');
+    if (completedRounds.length === 0) return;
+
+    const latestRound = completedRounds[completedRounds.length - 1];
+    const stats = latestRound.summary?.statistics || {};
+
+    const risks = study.risks.map((risk, index) => {
+      const riskStats = stats[risk.id];
+      const likelihood = riskStats?.probability?.median || 50;
+
+      // Get cost impact values (median of expert estimates)
+      const costMin = riskStats?.costMin?.median || 0;
+      const costLikely = riskStats?.costLikely?.median || 0;
+      const costMax = riskStats?.costMax?.median || 0;
+
+      // Get time impact values (median of expert estimates)
+      const timeMin = riskStats?.timeMin?.median || 0;
+      const timeLikely = riskStats?.timeLikely?.median || 0;
+      const timeMax = riskStats?.timeMax?.median || 0;
+
+      return {
+        id: `R${String(index + 1).padStart(3, '0')}`,
+        name: risk.name,
+        description: risk.description || '',
+        owner: '',
+        type: risk.type || 'threat',
+        included: true,
+        likelihood: Math.round(likelihood),
+        impactCost: {
+          min: Math.round(costMin),
+          likely: Math.round(costLikely),
+          max: Math.round(costMax)
+        },
+        impactTime: {
+          min: Math.round(timeMin),
+          likely: Math.round(timeLikely),
+          max: Math.round(timeMax)
+        },
+        actionName: '',
+        actionDescription: '',
+        postLikelihood: Math.round(likelihood),
+        postImpactCost: {
+          min: Math.round(costMin),
+          likely: Math.round(costLikely),
+          max: Math.round(costMax)
+        },
+        postImpactTime: {
+          min: Math.round(timeMin),
+          likely: Math.round(timeLikely),
+          max: Math.round(timeMax)
+        }
+      };
+    });
+
+    const data = JSON.stringify({ risks }, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'risk-register.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <>
+      <div className="drawer-overlay" onClick={onClose} />
+      <div className="drawer">
+        <div className="p-4 border-b flex items-center justify-between" style={{ borderColor: 'var(--border-primary)' }}>
+          <h2 className="font-semibold text-lg" style={{ color: 'var(--text-primary)' }}>Export</h2>
+          <button className="btn btn-icon btn-secondary" onClick={onClose}>
+            <Icons.X />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto custom-scroll p-4 space-y-4">
+          <div className="card">
+            <div className="card-body space-y-3">
+              <h3 className="font-medium" style={{ color: 'var(--text-primary)' }}>Study Data</h3>
+              <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                Export the complete study including all rounds and responses.
+              </p>
+              <button className="btn btn-secondary w-full" onClick={exportStudy}>
+                <Icons.Download /> Export Study JSON
+              </button>
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="card-body space-y-3">
+              <h3 className="font-medium" style={{ color: 'var(--text-primary)' }}>Risk Register Format</h3>
+              <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                Export risks in a format compatible with the CoffeeCup Risk Register.
+              </p>
+              <button
+                className="btn btn-accent w-full"
+                onClick={exportToRiskRegister}
+                disabled={study.rounds.filter(r => r.status === 'complete').length === 0}
+              >
+                <Icons.Download /> Export for Risk Register
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ============================================
+// QUESTIONNAIRE GENERATOR
+// ============================================
+function generateQuestionnaireHTML(study, round) {
+  const previousRound = study.rounds.find(r => r.number === round.number - 1);
+  const previousStats = previousRound?.summary?.statistics || {};
+
+  const costEnabled = study.config.costImpact?.enabled !== false;
+  const timeEnabled = study.config.timeImpact?.enabled !== false;
+  const costUnit = study.config.costImpact?.unit || '£';
+  const timeUnit = study.config.timeImpact?.unit || 'days';
+
+  // Build risks HTML
+  const risksHtml = round.risks.map((risk) => {
+    const prevStats = previousStats[risk.id];
+
+    let prevRoundHtml = '';
+    if (prevStats) {
+      let statsHtml = '<div class="stat"><div class="stat-value">' + (prevStats.probability?.median?.toFixed(0) || '-') + '%</div><div class="stat-label">Prob. Median</div></div>';
+      if (costEnabled && prevStats.costLikely) {
+        statsHtml += '<div class="stat"><div class="stat-value">' + costUnit + (prevStats.costLikely?.median?.toFixed(0) || '-') + '</div><div class="stat-label">Cost Likely</div></div>';
+      }
+      if (timeEnabled && prevStats.timeLikely) {
+        statsHtml += '<div class="stat"><div class="stat-value">' + (prevStats.timeLikely?.median?.toFixed(0) || '-') + '</div><div class="stat-label">Time Likely</div></div>';
+      }
+      prevRoundHtml = '<div class="previous-round"><strong>Previous Round Consensus:</strong><div class="stats">' + statsHtml + '</div></div>';
+    }
+
+    // Cost impact inputs
+    let costHtml = '';
+    if (costEnabled) {
+      costHtml = '<div class="form-group"><label>Cost Impact (' + costUnit + ') - Triangular Estimate</label>' +
+        '<div class="three-point-inputs">' +
+        '<div><label class="sub-label">Min</label><input type="number" id="cost-min-' + risk.id + '" min="0" step="any" placeholder="0"></div>' +
+        '<div><label class="sub-label">Likely</label><input type="number" id="cost-likely-' + risk.id + '" min="0" step="any" placeholder="0"></div>' +
+        '<div><label class="sub-label">Max</label><input type="number" id="cost-max-' + risk.id + '" min="0" step="any" placeholder="0"></div>' +
+        '</div></div>';
+    }
+
+    // Time impact inputs
+    let timeHtml = '';
+    if (timeEnabled) {
+      timeHtml = '<div class="form-group"><label>Time Impact (' + timeUnit + ') - Triangular Estimate</label>' +
+        '<div class="three-point-inputs">' +
+        '<div><label class="sub-label">Min</label><input type="number" id="time-min-' + risk.id + '" min="0" step="any" placeholder="0"></div>' +
+        '<div><label class="sub-label">Likely</label><input type="number" id="time-likely-' + risk.id + '" min="0" step="any" placeholder="0"></div>' +
+        '<div><label class="sub-label">Max</label><input type="number" id="time-max-' + risk.id + '" min="0" step="any" placeholder="0"></div>' +
+        '</div></div>';
+    }
+
+    return '<div class="risk-item" data-risk-id="' + risk.id + '">' +
+      '<div class="risk-name"><span class="badge">' + risk.id + '</span> ' + risk.name + '</div>' +
+      (risk.description ? '<div class="risk-desc">' + risk.description + '</div>' : '') +
+      prevRoundHtml +
+      '<div class="form-group"><label>Probability (0-100%)</label>' +
+      '<input type="range" id="prob-' + risk.id + '" min="0" max="100" value="50" oninput="document.getElementById(\'prob-val-' + risk.id + '\').textContent = this.value + \'%\'">' +
+      '<div class="range-value" id="prob-val-' + risk.id + '">50%</div></div>' +
+      costHtml +
+      timeHtml +
+      '<div class="form-group"><label>Comments / Rationale (optional)</label><textarea id="comment-' + risk.id + '" placeholder="Explain your reasoning..."></textarea></div>' +
+      '</div>';
+  }).join('');
+
+  const suggestRiskHtml = round.number === 1 ?
+    '<div class="suggest-risk"><h3>Suggest Additional Risks</h3><p class="text-muted" style="margin-bottom: 12px;">Identify any risks not listed above that should be considered.</p><div id="suggested-risks"></div><button class="btn btn-secondary" onclick="addSuggestedRisk()">+ Add Suggested Risk</button></div>' : '';
+
+  const expertOptions = study.experts.map(e => '<option value="' + e.code + '">' + e.code + '</option>').join('');
+  const descHtml = study.description ? '<p class="text-muted" style="margin-top: 12px;">' + study.description + '</p>' : '';
+
+  // Build the script content separately to avoid template literal issues
+  const scriptContent = 'const studyId = "' + study.id + '";\n' +
+    'const roundNumber = ' + round.number + ';\n' +
+    'const risks = ' + JSON.stringify(round.risks) + ';\n' +
+    'const costEnabled = ' + costEnabled + ';\n' +
+    'const timeEnabled = ' + timeEnabled + ';\n' +
+    'let suggestedRiskCount = 0;\n\n' +
+    'function updateExpert() {}\n\n' +
+    'function addSuggestedRisk() {\n' +
+    '  suggestedRiskCount++;\n' +
+    '  const container = document.getElementById("suggested-risks");\n' +
+    '  const div = document.createElement("div");\n' +
+    '  div.className = "risk-item";\n' +
+    '  div.innerHTML = \'<div class="form-group"><label>Risk Name</label><input type="text" id="suggested-name-\' + suggestedRiskCount + \'" placeholder="Name of the risk"></div><div class="form-group"><label>Description</label><textarea id="suggested-desc-\' + suggestedRiskCount + \'" placeholder="Describe the risk..."></textarea></div>\';\n' +
+    '  container.appendChild(div);\n' +
+    '}\n\n' +
+    'function getNumVal(id) { const el = document.getElementById(id); return el ? parseFloat(el.value) || 0 : 0; }\n\n' +
+    'function generateResponse() {\n' +
+    '  const expertCode = document.getElementById("expertCode").value;\n' +
+    '  if (!expertCode) { alert("Please select your expert code first."); return; }\n' +
+    '  const responses = risks.map(risk => {\n' +
+    '    const resp = {\n' +
+    '      riskId: risk.id,\n' +
+    '      probability: parseFloat(document.getElementById("prob-" + risk.id).value),\n' +
+    '      comment: document.getElementById("comment-" + risk.id).value || ""\n' +
+    '    };\n' +
+    '    if (costEnabled) {\n' +
+    '      resp.costMin = getNumVal("cost-min-" + risk.id);\n' +
+    '      resp.costLikely = getNumVal("cost-likely-" + risk.id);\n' +
+    '      resp.costMax = getNumVal("cost-max-" + risk.id);\n' +
+    '    }\n' +
+    '    if (timeEnabled) {\n' +
+    '      resp.timeMin = getNumVal("time-min-" + risk.id);\n' +
+    '      resp.timeLikely = getNumVal("time-likely-" + risk.id);\n' +
+    '      resp.timeMax = getNumVal("time-max-" + risk.id);\n' +
+    '    }\n' +
+    '    return resp;\n' +
+    '  });\n' +
+    '  const suggestedRisks = [];\n' +
+    '  for (let i = 1; i <= suggestedRiskCount; i++) {\n' +
+    '    const name = document.getElementById("suggested-name-" + i)?.value;\n' +
+    '    if (name) { suggestedRisks.push({ name: name, description: document.getElementById("suggested-desc-" + i)?.value || "" }); }\n' +
+    '  }\n' +
+    '  const responseData = { studyId: studyId, roundNumber: roundNumber, expertCode: expertCode, timestamp: new Date().toISOString(), responses: responses, suggestedRisks: suggestedRisks };\n' +
+    '  const encoded = btoa(encodeURIComponent(JSON.stringify(responseData)));\n' +
+    '  document.getElementById("response-code").value = encoded;\n' +
+    '  document.getElementById("response-output").classList.remove("hidden");\n' +
+    '}\n\n' +
+    'function copyCode() {\n' +
+    '  const textarea = document.getElementById("response-code");\n' +
+    '  textarea.select();\n' +
+    '  document.execCommand("copy");\n' +
+    '  alert("Response code copied to clipboard!");\n' +
+    '}';
+
+  return '<!DOCTYPE html>\n<html lang="en">\n<head>\n' +
+    '  <meta charset="UTF-8">\n' +
+    '  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
+    '  <title>' + study.name + ' - Round ' + round.number + ' Questionnaire</title>\n' +
+    '  <link rel="preconnect" href="https://fonts.googleapis.com">\n' +
+    '  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n' +
+    '  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">\n' +
+    '  <style>\n' +
+    '    * { font-family: "DM Sans", sans-serif; box-sizing: border-box; margin: 0; padding: 0; }\n' +
+    '    body { background: #f5f5f4; min-height: 100vh; padding: 24px; color: #292524; }\n' +
+    '    .container { max-width: 800px; margin: 0 auto; }\n' +
+    '    .card { background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 24px; overflow: hidden; }\n' +
+    '    .card-header { padding: 16px 20px; border-bottom: 1px solid #e7e5e4; }\n' +
+    '    .card-body { padding: 20px; }\n' +
+    '    h1 { font-size: 24px; font-weight: 700; color: #292524; }\n' +
+    '    h2 { font-size: 18px; font-weight: 600; color: #292524; margin-bottom: 8px; }\n' +
+    '    h3 { font-size: 14px; font-weight: 600; color: #57534e; margin-bottom: 12px; }\n' +
+    '    p { color: #57534e; line-height: 1.6; }\n' +
+    '    .text-muted { color: #78716c; font-size: 14px; }\n' +
+    '    .badge { display: inline-block; padding: 2px 8px; font-size: 11px; font-weight: 600; border-radius: 9999px; background: rgba(185,149,106,0.12); color: #b8956a; }\n' +
+    '    .risk-item { background: #f5f5f4; border-radius: 8px; padding: 16px; margin-bottom: 16px; }\n' +
+    '    .risk-name { font-weight: 600; margin-bottom: 4px; }\n' +
+    '    .risk-desc { font-size: 14px; color: #78716c; margin-bottom: 12px; }\n' +
+    '    .form-group { margin-bottom: 16px; }\n' +
+    '    label { display: block; font-size: 13px; font-weight: 500; color: #57534e; margin-bottom: 6px; }\n' +
+    '    input[type="range"] { width: 100%; height: 6px; border-radius: 9999px; background: #e7e5e4; -webkit-appearance: none; }\n' +
+    '    input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #b8956a; cursor: pointer; }\n' +
+    '    .range-labels { display: flex; justify-content: space-between; font-size: 11px; color: #78716c; margin-top: 4px; }\n' +
+    '    .range-value { text-align: center; font-size: 20px; font-weight: 700; color: #b8956a; font-family: monospace; margin: 8px 0; }\n' +
+    '    textarea { width: 100%; padding: 10px 14px; border: 1px solid #e7e5e4; border-radius: 6px; font-size: 14px; resize: vertical; min-height: 60px; }\n' +
+    '    textarea:focus { outline: none; border-color: #b8956a; box-shadow: 0 0 0 3px rgba(185,149,106,0.12); }\n' +
+    '    input[type="text"] { width: 100%; padding: 10px 14px; border: 1px solid #e7e5e4; border-radius: 6px; font-size: 14px; }\n' +
+    '    input[type="text"]:focus { outline: none; border-color: #b8956a; }\n' +
+    '    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 12px 20px; font-size: 14px; font-weight: 600; border-radius: 6px; cursor: pointer; border: none; transition: all 0.2s; }\n' +
+    '    .btn-primary { background: linear-gradient(180deg, #b8956a 0%, #a07d4f 100%); color: white; }\n' +
+    '    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }\n' +
+    '    .btn-secondary { background: white; border: 1px solid #e7e5e4; color: #57534e; }\n' +
+    '    .btn-secondary:hover { background: #f5f5f4; }\n' +
+    '    .response-code { background: #f5f5f4; border-radius: 8px; padding: 16px; margin-top: 16px; }\n' +
+    '    .response-code textarea { font-family: monospace; font-size: 12px; min-height: 100px; }\n' +
+    '    .previous-round { background: rgba(185,149,106,0.08); border-radius: 8px; padding: 12px; margin-bottom: 12px; font-size: 13px; }\n' +
+    '    .stats { display: flex; gap: 16px; margin-top: 8px; }\n' +
+    '    .stat { text-align: center; }\n' +
+    '    .stat-value { font-size: 16px; font-weight: 700; font-family: monospace; color: #b8956a; }\n' +
+    '    .stat-label { font-size: 10px; color: #78716c; text-transform: uppercase; }\n' +
+    '    .expert-select { margin-bottom: 24px; }\n' +
+    '    select { width: 100%; padding: 10px 14px; border: 1px solid #e7e5e4; border-radius: 6px; font-size: 14px; background: white; }\n' +
+    '    .hidden { display: none; }\n' +
+    '    .suggest-risk { border: 2px dashed #e7e5e4; border-radius: 8px; padding: 16px; margin-top: 16px; }\n' +
+    '    .three-point-inputs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }\n' +
+    '    .three-point-inputs input[type="number"] { width: 100%; padding: 10px 14px; border: 1px solid #e7e5e4; border-radius: 6px; font-size: 14px; }\n' +
+    '    .three-point-inputs input[type="number"]:focus { outline: none; border-color: #b8956a; box-shadow: 0 0 0 3px rgba(185,149,106,0.12); }\n' +
+    '    .sub-label { font-size: 11px; color: #78716c; margin-bottom: 4px; display: block; }\n' +
+    '  </style>\n</head>\n<body>\n' +
+    '  <div class="container">\n' +
+    '    <div class="card"><div class="card-header"><h1>' + study.name + '</h1><p class="text-muted">Round ' + round.number + ' of ' + study.config.plannedRounds + ' | Delphi Risk Assessment</p></div>\n' +
+    '    <div class="card-body"><h3>Problem Statement</h3><p>' + study.problemStatement + '</p>' + descHtml + '</div></div>\n' +
+    '    <div class="card"><div class="card-header"><h2>Your Identity</h2></div>\n' +
+    '    <div class="card-body expert-select"><label>Select your expert code:</label>\n' +
+    '    <select id="expertCode" onchange="updateExpert()"><option value="">-- Select --</option>' + expertOptions + '</select>\n' +
+    '    <p class="text-muted" style="margin-top: 8px;">Your identity is anonymous to other experts. Only the facilitator knows your code.</p></div></div>\n' +
+    '    <div class="card"><div class="card-header"><h2>Risk Assessment</h2><p class="text-muted">Rate each risk for probability and impact.</p></div>\n' +
+    '    <div class="card-body">' + risksHtml + suggestRiskHtml + '</div></div>\n' +
+    '    <div class="card"><div class="card-header"><h2>Submit Response</h2></div>\n' +
+    '    <div class="card-body"><button class="btn btn-primary" onclick="generateResponse()">Generate Response Code</button>\n' +
+    '    <div class="response-code hidden" id="response-output"><p style="margin-bottom: 8px;"><strong>Copy this code and email it to the facilitator:</strong></p>\n' +
+    '    <textarea id="response-code" readonly></textarea>\n' +
+    '    <button class="btn btn-secondary" style="margin-top: 8px;" onclick="copyCode()">Copy to Clipboard</button></div></div></div>\n' +
+    '  </div>\n' +
+    '  <scr' + 'ipt>' + scriptContent + '</scr' + 'ipt>\n' +
+    '</bo' + 'dy>\n</ht' + 'ml>';
+}
+
+// ============================================
+// MAIN APP COMPONENT
+// ============================================
+function App() {
+  const [theme, setTheme] = useState(() => localStorage.getItem('coffeecup-theme') || localStorage.getItem('delphi-theme') || 'blueprint');
+  const [studies, setStudies] = useState(() => loadStudies());
+  const [currentStudyId, setCurrentStudyId] = useState(null);
+  const [activeTab, setActiveTab] = useState('setup');
+  const [showExport, setShowExport] = useState(false);
+
+  // Apply theme and sync shared key
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('delphi-theme', theme);
+    localStorage.setItem('coffeecup-theme', theme);
+  }, [theme]);
+
+  // Save studies to localStorage
+  useEffect(() => {
+    saveStudies(studies);
+  }, [studies]);
+
+  const currentStudy = studies.find(s => s.id === currentStudyId);
+
+  const createNewStudy = () => {
+    const newStudy = {
+      ...DEFAULT_STUDY,
+      id: generateId(),
+      createdAt: new Date().toISOString()
+    };
+    setStudies([...studies, newStudy]);
+    setCurrentStudyId(newStudy.id);
+    setActiveTab('setup');
+  };
+
+  const updateStudy = (updated) => {
+    setStudies(studies.map(s => s.id === updated.id ? updated : s));
+  };
+
+  const deleteStudy = (id) => {
+    if (confirm('Are you sure you want to delete this study?')) {
+      setStudies(studies.filter(s => s.id !== id));
+      if (currentStudyId === id) {
+        setCurrentStudyId(null);
+      }
+    }
+  };
+
+  const startStudy = (study) => {
+    const round = {
+      number: 1,
+      status: 'in-progress',
+      startedAt: new Date().toISOString(),
+      risks: study.risks.map(r => ({ ...r })),
+      responses: [],
+      summary: null
+    };
+    const updated = {
+      ...study,
+      status: 'active',
+      rounds: [round]
+    };
+    updateStudy(updated);
+    setActiveTab('rounds');
+  };
+
+  const generateQuestionnaire = (round) => {
+    const html = generateQuestionnaireHTML(currentStudy, round);
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${currentStudy.name.toLowerCase().replace(/\s+/g, '-')}-round-${round.number}.html`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const importStudy = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (data.id && data.name) {
+          // It's a study file
+          const imported = { ...data, id: generateId() };
+          setStudies([...studies, imported]);
+          setCurrentStudyId(imported.id);
+        }
+      } catch (err) {
+        alert('Failed to import file. Please check the format.');
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+  };
+
+  // Study list view
+  if (!currentStudyId) {
+    return (
+      <div className="min-h-screen">
+        <header className="app-header">
+          <div className="app-header-icon">
+            <Icons.Target />
+          </div>
+          <div className="flex-1">
+            <div className="app-header-title">Delphi Risk Assessment</div>
+            <div className="app-header-subtitle">Systematic expert consensus gathering</div>
+          </div>
+          <ThemeSelector theme={theme} setTheme={setTheme} />
+        </header>
+
+        <main className="p-6">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
+                Studies
+              </h2>
+              <div className="flex gap-2">
+                <label className="btn btn-secondary cursor-pointer">
+                  <Icons.Upload /> Import
+                  <input type="file" accept=".json" onChange={importStudy} className="hidden" />
+                </label>
+                <button className="btn btn-accent" onClick={createNewStudy}>
+                  <Icons.Plus /> New Study
+                </button>
+              </div>
+            </div>
+
+            {studies.length === 0 ? (
+              <div className="card">
+                <div className="card-body">
+                  <div className="empty-state">
+                    <div className="empty-state-icon">
+                      <Icons.Target />
+                    </div>
+                    <div className="empty-state-title">No Studies Yet</div>
+                    <div className="empty-state-description">
+                      Create a new Delphi study to begin gathering expert consensus on risk identification.
+                    </div>
+                    <button className="btn btn-accent mt-4" onClick={createNewStudy}>
+                      <Icons.Plus /> Create First Study
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {studies.map(study => (
+                  <div
+                    key={study.id}
+                    className="card cursor-pointer hover:shadow-lg transition-shadow"
+                    onClick={() => setCurrentStudyId(study.id)}
+                  >
+                    <div className="card-body flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3">
+                          <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+                            {study.name || 'Untitled Study'}
+                          </h3>
+                          <span className={`badge ${
+                            study.status === 'completed' ? 'badge-success' :
+                            study.status === 'active' ? 'badge-primary' : 'badge-muted'
+                          }`}>
+                            {study.status === 'completed' ? 'Complete' :
+                             study.status === 'active' ? 'Active' : 'Setup'}
+                          </span>
+                        </div>
+                        <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
+                          {study.experts.length} experts · {study.risks.length} risks · {study.rounds.length} rounds
+                        </p>
+                        <p className="text-xs mt-1" style={{ color: 'var(--text-faint)' }}>
+                          Created {formatDate(study.createdAt)}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          className="btn btn-icon btn-sm btn-secondary"
+                          onClick={(e) => { e.stopPropagation(); deleteStudy(study.id); }}
+                        >
+                          <Icons.Trash />
+                        </button>
+                        <Icons.ChevronRight />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Study detail view
+  return (
+    <div className="min-h-screen">
+      <header className="app-header">
+        <button
+          className="btn btn-icon btn-secondary"
+          onClick={() => setCurrentStudyId(null)}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+        </button>
+        <div className="app-header-icon">
+          <Icons.Target />
+        </div>
+        <div className="flex-1">
+          <div className="app-header-title">{currentStudy?.name || 'Untitled Study'}</div>
+          <div className="app-header-subtitle">
+            {currentStudy?.status === 'setup' ? 'Setting up study' :
+             currentStudy?.status === 'active' ? `Round ${currentStudy.rounds.length} in progress` :
+             'Study complete'}
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <ThemeSelector theme={theme} setTheme={setTheme} />
+          <button className="btn btn-icon btn-secondary" onClick={() => setShowExport(true)}>
+            <Icons.Download />
+          </button>
+        </div>
+      </header>
+
+      {/* Tabs */}
+      <div className="p-4 border-b" style={{ borderColor: 'var(--border-primary)', background: 'var(--bg-card)' }}>
+        <div className="max-w-4xl mx-auto">
+          <div className="tabs">
+            <button
+              className={`tab ${activeTab === 'setup' ? 'active' : ''}`}
+              onClick={() => setActiveTab('setup')}
+            >
+              Setup
+            </button>
+            <button
+              className={`tab ${activeTab === 'rounds' ? 'active' : ''}`}
+              onClick={() => setActiveTab('rounds')}
+            >
+              Rounds
+            </button>
+            <button
+              className={`tab ${activeTab === 'ingest' ? 'active' : ''}`}
+              onClick={() => setActiveTab('ingest')}
+            >
+              Ingest
+            </button>
+            <button
+              className={`tab ${activeTab === 'analysis' ? 'active' : ''}`}
+              onClick={() => setActiveTab('analysis')}
+            >
+              Analysis
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <main className="p-6">
+        <div className="max-w-4xl mx-auto">
+          {activeTab === 'setup' && (
+            <StudySetup
+              study={currentStudy}
+              onUpdate={updateStudy}
+              onStartStudy={startStudy}
+            />
+          )}
+          {activeTab === 'rounds' && (
+            <RoundManagement
+              study={currentStudy}
+              onUpdate={updateStudy}
+              onGenerateQuestionnaire={generateQuestionnaire}
+            />
+          )}
+          {activeTab === 'ingest' && (
+            <ResponseIngestion
+              study={currentStudy}
+              onUpdate={updateStudy}
+            />
+          )}
+          {activeTab === 'analysis' && (
+            <Analysis study={currentStudy} />
+          )}
+        </div>
+      </main>
+
+      {showExport && (
+        <ExportPanel study={currentStudy} onClose={() => setShowExport(false)} />
+      )}
+    </div>
+  );
+}
+
+// Render
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+  </script>
+</body>
+</html>

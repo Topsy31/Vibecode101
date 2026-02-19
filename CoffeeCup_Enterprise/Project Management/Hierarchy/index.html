@@ -1,0 +1,2485 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="blueprint">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CoffeeCup — Hierarchy Editor</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%238b5cf6'/%3E%3Cstop offset='100%25' stop-color='%237c3aed'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='6' fill='url(%23g)'/%3E%3Crect x='12' y='6' width='8' height='6' rx='1' fill='none' stroke='white' stroke-width='2'/%3E%3Crect x='5' y='20' width='8' height='6' rx='1' fill='none' stroke='white' stroke-width='2'/%3E%3Crect x='19' y='20' width='8' height='6' rx='1' fill='none' stroke='white' stroke-width='2'/%3E%3Cpath d='M16 12v4M9 20v-4h14v4' fill='none' stroke='white' stroke-width='2'/%3E%3C/svg%3E">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+/* ============================================
+   FONTS
+   ============================================ */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Nunito:wght@400;600;700;800&display=swap');
+
+/* ============================================
+   CSS VARIABLES & THEMES
+   ============================================ */
+:root {
+  --font-primary: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', Monaco, monospace;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.2s ease;
+  --transition-slow: 0.3s ease;
+}
+
+/* Blueprint Theme (Default) */
+[data-theme="blueprint"] {
+  --bg-primary: #f8f6f3;
+  --bg-secondary: #f0ebe4;
+  --bg-card: #ffffff;
+  --bg-hover: rgba(139, 115, 85, 0.08);
+  --text-primary: #2d2a26;
+  --text-secondary: #5c564d;
+  --text-muted: #8b8578;
+  --text-faint: #b8b2a6;
+  --border-primary: #e5e0d8;
+  --border-secondary: #ebe7e0;
+  --border-accent: #8b7355;
+  --accent-primary: #8b7355;
+  --accent-hover: #6d5a43;
+  --accent-light: rgba(139, 115, 85, 0.12);
+  --danger: #dc7c7c;
+  --danger-light: rgba(220, 124, 124, 0.15);
+  --success: #22c55e;
+  --success-light: rgba(34, 197, 94, 0.15);
+  --warning: #f59e0b;
+  --warning-light: rgba(245, 158, 11, 0.15);
+  --node-1: #8b7355;
+  --node-2: #6b8e8e;
+  --node-3: #9b7b6b;
+  --node-4: #7b8b6b;
+  --node-5: #8b6b7b;
+  --node-6: #6b7b8b;
+}
+
+/* Fun Theme */
+[data-theme="fun"] {
+  --bg-primary: linear-gradient(135deg, #fdf2f8 0%, #faf5ff 50%, #f0f9ff 100%);
+  --bg-secondary: rgba(255, 255, 255, 0.7);
+  --bg-card: rgba(255, 255, 255, 0.9);
+  --bg-hover: rgba(236, 72, 153, 0.1);
+  --text-primary: #581c87;
+  --text-secondary: #7e22ce;
+  --text-muted: #a855f7;
+  --text-faint: #d8b4fe;
+  --border-primary: rgba(192, 132, 252, 0.3);
+  --border-secondary: rgba(236, 72, 153, 0.2);
+  --border-accent: #ec4899;
+  --accent-primary: #d946ef;
+  --accent-hover: #c026d3;
+  --accent-light: rgba(217, 70, 239, 0.15);
+  --danger: #f43f5e;
+  --danger-light: rgba(244, 63, 94, 0.15);
+  --success: #10b981;
+  --success-light: rgba(16, 185, 129, 0.15);
+  --warning: #f59e0b;
+  --warning-light: rgba(245, 158, 11, 0.15);
+  --font-primary: 'Nunito', 'Comic Neue', -apple-system, sans-serif;
+  --node-1: #ec4899;
+  --node-2: #8b5cf6;
+  --node-3: #06b6d4;
+  --node-4: #10b981;
+  --node-5: #f59e0b;
+  --node-6: #ef4444;
+}
+
+/* Dark Theme */
+[data-theme="dark"] {
+  --bg-primary: #0f0f0f;
+  --bg-secondary: #1a1a1a;
+  --bg-card: #242424;
+  --bg-hover: rgba(99, 102, 241, 0.15);
+  --text-primary: #f5f5f5;
+  --text-secondary: #a3a3a3;
+  --text-muted: #737373;
+  --text-faint: #525252;
+  --border-primary: #333333;
+  --border-secondary: #2a2a2a;
+  --border-accent: #6366f1;
+  --accent-primary: #818cf8;
+  --accent-hover: #6366f1;
+  --accent-light: rgba(129, 140, 248, 0.2);
+  --danger: #f87171;
+  --danger-light: rgba(248, 113, 113, 0.2);
+  --success: #4ade80;
+  --success-light: rgba(74, 222, 128, 0.2);
+  --warning: #fbbf24;
+  --warning-light: rgba(251, 191, 36, 0.2);
+  --node-1: #818cf8;
+  --node-2: #34d399;
+  --node-3: #fbbf24;
+  --node-4: #f87171;
+  --node-5: #a78bfa;
+  --node-6: #60a5fa;
+}
+
+/* Traditional Theme */
+[data-theme="traditional"] {
+  --bg-primary: #f8f9fa;
+  --bg-secondary: #e9ecef;
+  --bg-card: #ffffff;
+  --bg-hover: rgba(0, 123, 255, 0.08);
+  --text-primary: #212529;
+  --text-secondary: #495057;
+  --text-muted: #6c757d;
+  --text-faint: #adb5bd;
+  --border-primary: #dee2e6;
+  --border-secondary: #e9ecef;
+  --border-accent: #007bff;
+  --accent-primary: #007bff;
+  --accent-hover: #0056b3;
+  --accent-light: rgba(0, 123, 255, 0.1);
+  --danger: #dc3545;
+  --danger-light: rgba(220, 53, 69, 0.1);
+  --success: #28a745;
+  --success-light: rgba(40, 167, 69, 0.1);
+  --warning: #ffc107;
+  --warning-light: rgba(255, 193, 7, 0.1);
+  --font-primary: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --node-1: #007bff;
+  --node-2: #28a745;
+  --node-3: #ffc107;
+  --node-4: #dc3545;
+  --node-5: #17a2b8;
+  --node-6: #6c757d;
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-primary);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+[data-theme="fun"] body {
+  background: linear-gradient(135deg, #fdf2f8 0%, #faf5ff 50%, #f0f9ff 100%);
+  background-attachment: fixed;
+}
+
+/* ============================================
+   COMPONENTS
+   ============================================ */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-family: var(--font-primary);
+}
+
+.btn-primary {
+  background: var(--accent-primary);
+  color: white;
+  border-color: var(--accent-primary);
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.btn-secondary {
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  border-color: var(--border-primary);
+}
+
+.btn-secondary:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.btn-accent {
+  background: var(--accent-primary);
+  color: white;
+}
+
+.btn-accent:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: white;
+  border-color: var(--danger);
+}
+
+.btn-danger:hover {
+  opacity: 0.9;
+}
+
+.btn-sm {
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.btn-icon {
+  padding: 8px;
+  min-width: 32px;
+  justify-content: center;
+}
+
+.input-refined {
+  padding: 10px 14px;
+  font-size: 13px;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-family: var(--font-primary);
+  transition: all var(--transition-fast);
+  width: 100%;
+}
+
+.input-refined:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+.textarea-refined {
+  padding: 10px 14px;
+  font-size: 13px;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-family: var(--font-primary);
+  resize: vertical;
+  min-height: 60px;
+  width: 100%;
+}
+
+.textarea-refined:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+.select-refined {
+  padding: 8px 32px 8px 12px;
+  font-size: 13px;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-family: var(--font-primary);
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236c757d' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+
+.select-refined:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+/* ============================================
+   THEME SELECTOR
+   ============================================ */
+.theme-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-full);
+  font-size: 12px;
+}
+
+.theme-selector label {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.theme-selector svg {
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
+}
+
+/* ============================================
+   APP HEADER
+   ============================================ */
+.app-header-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--accent-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+[data-theme="fun"] .app-header-icon {
+  background: linear-gradient(135deg, #f472b6 0%, #d946ef 50%, #a78bfa 100%);
+  border-radius: var(--radius-full);
+}
+
+/* ============================================
+   VIEW TOGGLE
+   ============================================ */
+.view-toggle {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-secondary);
+  padding: 4px;
+  border-radius: var(--radius-md);
+}
+
+.view-toggle button {
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 500;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.view-toggle button:hover {
+  color: var(--text-primary);
+}
+
+.view-toggle button.active {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+[data-theme="fun"] .view-toggle {
+  border-radius: var(--radius-full);
+}
+
+[data-theme="fun"] .view-toggle button {
+  border-radius: var(--radius-full);
+}
+
+[data-theme="fun"] .view-toggle button.active {
+  background: linear-gradient(135deg, #f472b6 0%, #d946ef 50%, #a78bfa 100%);
+  color: white;
+}
+
+/* ============================================
+   TREE VIEW STYLES
+   ============================================ */
+.tree-container {
+  padding: 16px;
+}
+
+.tree-node {
+  position: relative;
+  user-select: none;
+}
+
+.tree-node-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  margin: 2px 0;
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.tree-node-content:hover {
+  border-color: var(--border-accent);
+  background: var(--bg-hover);
+}
+
+.tree-node-content.selected {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px var(--accent-light);
+}
+
+.tree-node-content.drag-over {
+  border-color: var(--success);
+  background: var(--success-light);
+}
+
+.tree-expand-toggle {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.tree-expand-toggle:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.tree-expand-toggle.placeholder {
+  visibility: hidden;
+}
+
+.tree-drag-handle {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-faint);
+  cursor: grab;
+  flex-shrink: 0;
+}
+
+.tree-drag-handle:hover {
+  color: var(--text-muted);
+}
+
+.tree-drag-handle:active {
+  cursor: grabbing;
+}
+
+.tree-node-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.tree-node-id {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--bg-secondary);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  margin-right: 8px;
+}
+
+.tree-node-name {
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tree-node-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  line-height: 1.4;
+  max-width: 100%;
+}
+
+.tree-assistant-badge {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 1px 4px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--accent-primary);
+  color: var(--accent-primary);
+  letter-spacing: 0.03em;
+}
+
+.tree-node-content.is-assistant {
+  border-style: dashed;
+}
+
+.tree-children {
+  margin-left: 24px;
+  padding-left: 16px;
+  border-left: 1px dashed var(--border-secondary);
+}
+
+/* ============================================
+   ORGANOGRAM STYLES
+   ============================================ */
+.org-container {
+  padding: 24px;
+  overflow: auto;
+  min-height: 400px;
+}
+
+.org-chart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.org-level {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  position: relative;
+}
+
+.org-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.org-node {
+  min-width: 160px;
+  max-width: 200px;
+  padding: 12px 16px;
+  background: var(--bg-card);
+  border: 2px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+.org-node:hover {
+  border-color: var(--accent-primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.org-node.selected {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+.org-node-id {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  background: var(--bg-secondary);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  display: inline-block;
+  margin-bottom: 4px;
+}
+
+.org-node-name {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.org-node-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  line-height: 1.3;
+}
+
+/* Node with assistants container */
+.org-node-with-assistants {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 12px;
+  position: relative;
+}
+
+/* Assistants container */
+.org-assistants {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 8px;
+}
+
+/* Assistant node styling */
+.org-assistant {
+  min-width: 120px;
+  max-width: 150px;
+  border-style: dashed !important;
+  position: relative;
+}
+
+/* Connector line from assistant to main node */
+.org-assistants-left .org-assistant::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -12px;
+  width: 12px;
+  height: 2px;
+  background: var(--border-primary);
+}
+
+.org-assistants-right .org-assistant::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -12px;
+  width: 12px;
+  height: 2px;
+  background: var(--border-primary);
+}
+
+.org-connector {
+  width: 2px;
+  height: 20px;
+  background: var(--border-primary);
+  margin: 0 auto;
+}
+
+.org-children {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  position: relative;
+  padding-top: 40px;
+}
+
+/* Vertical line from parent down to horizontal bar */
+.org-children::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 2px;
+  height: 40px;
+  background: var(--border-primary);
+  transform: translateX(-50%);
+}
+
+.org-child-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Vertical line from child up to horizontal bar level */
+.org-children.multiple > .org-child-wrapper::before {
+  content: '';
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  width: 2px;
+  height: 20px;
+  background: var(--border-primary);
+  transform: translateX(-50%);
+}
+
+/* Horizontal connector for first child - extends right */
+.org-children.multiple > .org-child-wrapper:first-child::after {
+  content: '';
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  right: -8px;
+  height: 2px;
+  background: var(--border-primary);
+}
+
+/* Horizontal connector for last child - extends left */
+.org-children.multiple > .org-child-wrapper:last-child::after {
+  content: '';
+  position: absolute;
+  top: -20px;
+  left: -8px;
+  right: 50%;
+  height: 2px;
+  background: var(--border-primary);
+}
+
+/* Horizontal connector for middle children - extends both ways */
+.org-children.multiple > .org-child-wrapper:not(:first-child):not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: -20px;
+  left: -8px;
+  right: -8px;
+  height: 2px;
+  background: var(--border-primary);
+}
+
+/* Single child - just vertical line, no horizontal bar needed */
+.org-children:not(.multiple) {
+  padding-top: 20px;
+}
+
+.org-children:not(.multiple)::before {
+  height: 20px;
+}
+
+/* ============================================
+   ZOOM CONTROLS
+   ============================================ */
+.zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--bg-secondary);
+  padding: 3px;
+  border-radius: var(--radius-md);
+}
+
+.zoom-controls button {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-size: 10px;
+  font-weight: 500;
+  padding: 0;
+}
+
+.zoom-controls button:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.zoom-controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.zoom-level {
+  min-width: 36px;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  padding: 0 2px;
+}
+
+/* Zoomable container */
+.zoom-container {
+  overflow: auto;
+  position: relative;
+  min-height: 400px;
+}
+
+.zoom-content {
+  transform-origin: top left;
+  transition: transform 0.2s ease;
+  display: inline-block;
+  min-width: 100%;
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+.no-print {
+  /* Elements with this class will be hidden when printing */
+}
+
+@media print {
+  @page {
+    size: landscape;
+    margin: 8mm;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body {
+    background: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  /* Hide header in print */
+  .mb-8.animate-fade-in {
+    display: none !important;
+  }
+
+  .min-h-screen {
+    min-height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .max-w-7xl {
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  .card {
+    box-shadow: none !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  .zoom-container {
+    overflow: visible !important;
+    height: auto !important;
+    min-height: auto !important;
+    width: 100% !important;
+    padding: 0 !important;
+  }
+
+  /* Print wrapper for scaling - JS will add scale */
+  .zoom-content.print-ready {
+    width: 100vw !important;
+    display: flex !important;
+    justify-content: center !important;
+    padding-top: 20px !important;
+  }
+
+  .org-container {
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  .org-chart {
+    margin: 0 auto !important;
+  }
+
+  .org-node {
+    border: 1px solid #666 !important;
+    box-shadow: none !important;
+  }
+
+  /* Only set white background if no custom color */
+  .org-node:not([style*="background"]) {
+    background: white !important;
+  }
+
+  .tree-container {
+    padding: 20px !important;
+  }
+
+  .tree-node-content {
+    border: 1px solid #999 !important;
+    box-shadow: none !important;
+  }
+
+  /* Only set white background if no custom color */
+  .tree-node-content:not([style*="background"]) {
+    background: white !important;
+  }
+
+  .tree-children {
+    border-left: 1px dashed #666 !important;
+  }
+
+  /* Force connector colors to print */
+  .org-children::before,
+  .org-children.multiple > .org-child-wrapper::before,
+  .org-children.multiple > .org-child-wrapper::after {
+    background: #666 !important;
+  }
+
+  /* Assistant connector lines for print */
+  .org-assistants-left .org-assistant::after,
+  .org-assistants-right .org-assistant::before {
+    background: #666 !important;
+  }
+
+  .org-assistant {
+    border-style: dashed !important;
+  }
+}
+
+/* ============================================
+   CONTEXT MENU
+   ============================================ */
+.context-menu {
+  position: fixed;
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  min-width: 180px;
+  padding: 4px;
+  z-index: 1000;
+  animation: fadeIn 0.1s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.context-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--text-primary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.context-menu-item:hover {
+  background: var(--bg-hover);
+}
+
+.context-menu-item.danger {
+  color: var(--danger);
+}
+
+.context-menu-item.danger:hover {
+  background: var(--danger-light);
+}
+
+.context-menu-item svg {
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
+}
+
+.context-menu-item.danger svg {
+  color: var(--danger);
+}
+
+.context-menu-divider {
+  height: 1px;
+  background: var(--border-secondary);
+  margin: 4px 0;
+}
+
+/* ============================================
+   MODAL
+   ============================================ */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.15s ease;
+}
+
+.modal {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 400px;
+  margin: 16px;
+  animation: slideUp 0.2s ease;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.modal-close {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.modal-close:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.modal-footer {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border-secondary);
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
+}
+
+.form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* ============================================
+   COLOR PICKER
+   ============================================ */
+.color-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.color-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--border-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  padding: 0;
+}
+
+.color-swatch:hover {
+  transform: scale(1.1);
+  border-color: var(--text-muted);
+}
+
+.color-swatch.selected {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px var(--accent-light);
+  transform: scale(1.1);
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+.empty-state {
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.empty-state-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  background: var(--bg-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+}
+
+.empty-state p {
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+.animate-fade-in {
+  animation: fadeIn 0.3s ease forwards;
+}
+
+/* ============================================
+   UTILITY
+   ============================================ */
+.hidden {
+  display: none;
+}
+
+.text-primary { color: var(--text-primary); }
+.text-muted { color: var(--text-muted); }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useCallback } = React;
+
+    // ============================================
+    // THEME CONFIGURATION
+    // ============================================
+    const THEMES = {
+      blueprint: { name: 'Architectural Blueprint', description: 'Professional and refined' },
+      fun: { name: 'Fun & Vibrant', description: 'Playful and energetic' },
+      dark: { name: 'Dark Mode', description: 'Eye-friendly dark UI' },
+      traditional: { name: 'Traditional', description: 'Classic Bootstrap style' }
+    };
+
+    // ============================================
+    // ICONS
+    // ============================================
+    const IconTree = () => (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 3v18"/>
+        <path d="M5 12h14"/>
+        <path d="M5 6h14"/>
+        <path d="M5 18h14"/>
+      </svg>
+    );
+
+    const IconOrgChart = () => (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="9" y="2" width="6" height="4" rx="1"/>
+        <rect x="2" y="18" width="6" height="4" rx="1"/>
+        <rect x="16" y="18" width="6" height="4" rx="1"/>
+        <path d="M12 6v6"/>
+        <path d="M5 18v-4h14v4"/>
+      </svg>
+    );
+
+    const IconTreeView = () => (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 12h-8"/>
+        <path d="M21 6h-8"/>
+        <path d="M21 18h-8"/>
+        <path d="M3 6h4v4H3z"/>
+        <path d="M3 14h4v4H3z"/>
+        <path d="M7 8v8"/>
+      </svg>
+    );
+
+    const IconPlus = () => (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"/>
+        <line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+    );
+
+    const IconChevronRight = () => (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+    );
+
+    const IconChevronDown = () => (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+    );
+
+    const IconGrip = () => (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="9" cy="5" r="1"/>
+        <circle cx="9" cy="12" r="1"/>
+        <circle cx="9" cy="19" r="1"/>
+        <circle cx="15" cy="5" r="1"/>
+        <circle cx="15" cy="12" r="1"/>
+        <circle cx="15" cy="19" r="1"/>
+      </svg>
+    );
+
+    const IconEdit = () => (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+      </svg>
+    );
+
+    const IconTrash = () => (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="3 6 5 6 21 6"/>
+        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+      </svg>
+    );
+
+    const IconX = () => (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    );
+
+    const IconDownload = () => (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+    );
+
+    const IconUpload = () => (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="17 8 12 3 7 8"/>
+        <line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+    );
+
+    const IconPalette = () => (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="13.5" cy="6.5" r="1.5"/>
+        <circle cx="17.5" cy="10.5" r="1.5"/>
+        <circle cx="8.5" cy="7.5" r="1.5"/>
+        <circle cx="6.5" cy="12.5" r="1.5"/>
+        <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.555C21.965 6.012 17.461 2 12 2z"/>
+      </svg>
+    );
+
+    const IconExpand = () => (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="15 3 21 3 21 9"/>
+        <polyline points="9 21 3 21 3 15"/>
+        <line x1="21" y1="3" x2="14" y2="10"/>
+        <line x1="3" y1="21" x2="10" y2="14"/>
+      </svg>
+    );
+
+    const IconCollapse = () => (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="4 14 10 14 10 20"/>
+        <polyline points="20 10 14 10 14 4"/>
+        <line x1="14" y1="10" x2="21" y2="3"/>
+        <line x1="3" y1="21" x2="10" y2="14"/>
+      </svg>
+    );
+
+    const IconUserPlus = () => (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="8.5" cy="7" r="4"/>
+        <line x1="20" y1="8" x2="20" y2="14"/>
+        <line x1="23" y1="11" x2="17" y2="11"/>
+      </svg>
+    );
+
+    const IconZoomIn = () => (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        <line x1="11" y1="8" x2="11" y2="14"/>
+        <line x1="8" y1="11" x2="14" y2="11"/>
+      </svg>
+    );
+
+    const IconZoomOut = () => (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        <line x1="8" y1="11" x2="14" y2="11"/>
+      </svg>
+    );
+
+    const IconFitScreen = () => (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M8 3H5a2 2 0 0 0-2 2v3"/>
+        <path d="M21 8V5a2 2 0 0 0-2-2h-3"/>
+        <path d="M3 16v3a2 2 0 0 0 2 2h3"/>
+        <path d="M16 21h3a2 2 0 0 0 2-2v-3"/>
+      </svg>
+    );
+
+    const IconPrinter = () => (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="6 9 6 2 18 2 18 9"/>
+        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+        <rect x="6" y="14" width="12" height="8"/>
+      </svg>
+    );
+
+    const IconMinus = () => (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+    );
+
+    // ============================================
+    // UTILITY FUNCTIONS
+    // ============================================
+
+    // Calculate contrasting text color based on background
+    const getContrastColor = (hexColor) => {
+      if (!hexColor) return null;
+      // Remove # if present
+      const hex = hexColor.replace('#', '');
+      // Parse RGB values
+      const r = parseInt(hex.substr(0, 2), 16);
+      const g = parseInt(hex.substr(2, 2), 16);
+      const b = parseInt(hex.substr(4, 2), 16);
+      // Calculate luminance (perceived brightness)
+      const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+      // Return dark text for light backgrounds, light text for dark backgrounds
+      return luminance > 0.6 ? '#1a1a1a' : '#ffffff';
+    };
+
+    const generateNodeId = (nodes) => {
+      const maxNum = nodes.reduce((max, n) => {
+        const match = n.id.match(/N(\d+)/);
+        return match ? Math.max(max, parseInt(match[1])) : max;
+      }, 0);
+      return `N${String(maxNum + 1).padStart(3, '0')}`;
+    };
+
+    const getChildren = (nodes, parentId) => {
+      return nodes
+        .filter(n => n.parentId === parentId && !n.isAssistant)
+        .sort((a, b) => a.order - b.order);
+    };
+
+    const getAssistants = (nodes, parentId) => {
+      return nodes
+        .filter(n => n.parentId === parentId && n.isAssistant)
+        .sort((a, b) => a.order - b.order);
+    };
+
+    const getDescendants = (nodes, nodeId) => {
+      const descendants = [];
+      const children = getChildren(nodes, nodeId);
+      const assistants = getAssistants(nodes, nodeId);
+      for (const child of [...children, ...assistants]) {
+        descendants.push(child.id);
+        descendants.push(...getDescendants(nodes, child.id));
+      }
+      return descendants;
+    };
+
+    const hasChildren = (nodes, nodeId) => {
+      return nodes.some(n => n.parentId === nodeId);
+    };
+
+    // ============================================
+    // CONTEXT MENU COMPONENT
+    // ============================================
+    const ContextMenu = ({ x, y, node, onClose, onAddChild, onAddSibling, onAddAssistant, onEdit, onDelete, onToggleCollapse, hasChildren }) => {
+      const menuRef = useRef(null);
+
+      useEffect(() => {
+        const handleClickOutside = (e) => {
+          if (menuRef.current && !menuRef.current.contains(e.target)) {
+            onClose();
+          }
+        };
+        const handleEscape = (e) => {
+          if (e.key === 'Escape') onClose();
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('keydown', handleEscape);
+        return () => {
+          document.removeEventListener('mousedown', handleClickOutside);
+          document.removeEventListener('keydown', handleEscape);
+        };
+      }, [onClose]);
+
+      // Adjust position to stay within viewport
+      const adjustedX = Math.min(x, window.innerWidth - 200);
+      const adjustedY = Math.min(y, window.innerHeight - 300);
+
+      return (
+        <div
+          ref={menuRef}
+          className="context-menu"
+          style={{ left: adjustedX, top: adjustedY }}
+        >
+          <div className="context-menu-item" onClick={() => { onAddChild(); onClose(); }}>
+            <IconPlus />
+            Add Child
+          </div>
+          <div className="context-menu-item" onClick={() => { onAddAssistant(); onClose(); }}>
+            <IconUserPlus />
+            Add Assistant
+          </div>
+          {node.parentId !== null && (
+            <div className="context-menu-item" onClick={() => { onAddSibling(); onClose(); }}>
+              <IconUserPlus />
+              Add Sibling
+            </div>
+          )}
+          {hasChildren && (
+            <div className="context-menu-item" onClick={() => { onToggleCollapse(); onClose(); }}>
+              {node.collapsed ? <IconExpand /> : <IconCollapse />}
+              {node.collapsed ? 'Expand' : 'Collapse'}
+            </div>
+          )}
+          <div className="context-menu-divider"></div>
+          <div className="context-menu-item" onClick={() => { onEdit(); onClose(); }}>
+            <IconEdit />
+            Edit
+          </div>
+          <div className="context-menu-divider"></div>
+          <div className="context-menu-item danger" onClick={() => { onDelete(); onClose(); }}>
+            <IconTrash />
+            Delete
+          </div>
+        </div>
+      );
+    };
+
+    // ============================================
+    // NODE EDIT MODAL
+    // ============================================
+    const NODE_COLORS = [
+      { value: '', label: 'Default', color: 'var(--bg-card)' },
+      // Light colors
+      { value: '#e3f2fd', label: 'Light Blue', color: '#e3f2fd' },
+      { value: '#e8f5e9', label: 'Light Green', color: '#e8f5e9' },
+      { value: '#fff3e0', label: 'Light Orange', color: '#fff3e0' },
+      { value: '#fce4ec', label: 'Light Pink', color: '#fce4ec' },
+      { value: '#f3e5f5', label: 'Light Purple', color: '#f3e5f5' },
+      { value: '#fffde7', label: 'Light Yellow', color: '#fffde7' },
+      { value: '#eceff1', label: 'Light Grey', color: '#eceff1' },
+      // Medium colors
+      { value: '#90caf9', label: 'Blue', color: '#90caf9' },
+      { value: '#a5d6a7', label: 'Green', color: '#a5d6a7' },
+      { value: '#ffcc80', label: 'Orange', color: '#ffcc80' },
+      { value: '#f48fb1', label: 'Pink', color: '#f48fb1' },
+      { value: '#ce93d8', label: 'Purple', color: '#ce93d8' },
+      { value: '#fff59d', label: 'Yellow', color: '#fff59d' },
+      // Dark colors
+      { value: '#1565c0', label: 'Dark Blue', color: '#1565c0' },
+      { value: '#2e7d32', label: 'Dark Green', color: '#2e7d32' },
+      { value: '#e65100', label: 'Dark Orange', color: '#e65100' },
+      { value: '#ad1457', label: 'Dark Pink', color: '#ad1457' },
+      { value: '#6a1b9a', label: 'Dark Purple', color: '#6a1b9a' },
+      { value: '#455a64', label: 'Dark Grey', color: '#455a64' },
+    ];
+
+    const NodeEditModal = ({ node, onSave, onClose, isNew }) => {
+      const [formData, setFormData] = useState({
+        id: node?.id || '',
+        name: node?.name || '',
+        description: node?.description || '',
+        color: node?.color || '',
+        isAssistant: node?.isAssistant || false
+      });
+
+      const handleSave = () => {
+        if (!formData.name.trim()) {
+          alert('Name is required');
+          return;
+        }
+        onSave(formData);
+      };
+
+      return (
+        <div className="modal-overlay" onClick={onClose}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">{isNew ? 'Add Node' : 'Edit Node'}</h3>
+              <button className="modal-close" onClick={onClose}>
+                <IconX />
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="form-group">
+                <label className="form-label">ID</label>
+                <input
+                  type="text"
+                  className="input-refined"
+                  value={formData.id}
+                  onChange={(e) => setFormData({ ...formData, id: e.target.value })}
+                  placeholder="Auto-generated if empty"
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Name *</label>
+                <input
+                  type="text"
+                  className="input-refined"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="Node name"
+                  autoFocus
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Description</label>
+                <textarea
+                  className="textarea-refined"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Optional description..."
+                  rows="3"
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Color</label>
+                <div className="color-picker">
+                  {NODE_COLORS.map(({ value, label, color }) => (
+                    <button
+                      key={value || 'default'}
+                      type="button"
+                      className={`color-swatch ${formData.color === value ? 'selected' : ''}`}
+                      style={{ backgroundColor: color }}
+                      onClick={() => setFormData({ ...formData, color: value })}
+                      title={label}
+                    />
+                  ))}
+                </div>
+              </div>
+              <div className="form-group">
+                <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={formData.isAssistant}
+                    onChange={(e) => setFormData({ ...formData, isAssistant: e.target.checked })}
+                    style={{ width: '16px', height: '16px' }}
+                  />
+                  <span style={{ textTransform: 'none', fontSize: '13px' }}>Assistant/Staff Position</span>
+                </label>
+                <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                  Assistants appear beside the parent node rather than below it
+                </p>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
+              <button className="btn btn-accent" onClick={handleSave}>
+                {isNew ? 'Add' : 'Save'}
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // ============================================
+    // TREE NODE COMPONENT
+    // ============================================
+    const TreeNode = ({ node, nodes, level, selectedId, onSelect, onContextMenu, onDragStart, onDragOver, onDrop, dragOverId }) => {
+      const children = getChildren(nodes, node.id);
+      const assistants = getAssistants(nodes, node.id);
+      const hasChildNodes = children.length > 0 || assistants.length > 0;
+
+      const handleContextMenu = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onContextMenu(e, node);
+      };
+
+      const handleDragStart = (e) => {
+        e.dataTransfer.setData('text/plain', node.id);
+        e.dataTransfer.effectAllowed = 'move';
+        onDragStart(node.id);
+      };
+
+      const handleDragOver = (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        onDragOver(node.id);
+      };
+
+      const handleDrop = (e) => {
+        e.preventDefault();
+        const draggedId = e.dataTransfer.getData('text/plain');
+        if (draggedId !== node.id) {
+          onDrop(draggedId, node.id);
+        }
+      };
+
+      const textColor = getContrastColor(node.color);
+      const nodeStyle = node.color ? {
+        backgroundColor: node.color,
+        '--node-text-color': textColor
+      } : undefined;
+
+      return (
+        <div className="tree-node">
+          <div
+            className={`tree-node-content ${selectedId === node.id ? 'selected' : ''} ${dragOverId === node.id ? 'drag-over' : ''} ${node.color ? 'has-custom-color' : ''} ${node.isAssistant ? 'is-assistant' : ''}`}
+            style={nodeStyle}
+            onClick={() => onSelect(node.id)}
+            onContextMenu={handleContextMenu}
+            draggable
+            onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
+          >
+            <div className="tree-drag-handle" style={textColor ? { color: textColor } : undefined}>
+              <IconGrip />
+            </div>
+            <div
+              className={`tree-expand-toggle ${!hasChildNodes ? 'placeholder' : ''}`}
+              style={textColor ? { color: textColor } : undefined}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (hasChildNodes) {
+                  onSelect(node.id, 'toggle');
+                }
+              }}
+            >
+              {hasChildNodes && (node.collapsed ? <IconChevronRight /> : <IconChevronDown />)}
+            </div>
+            <div className="tree-node-info">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span className="tree-node-id" style={textColor ? { color: textColor, backgroundColor: 'rgba(0,0,0,0.1)' } : undefined}>{node.id}</span>
+                {node.isAssistant && <span className="tree-assistant-badge" style={textColor ? { color: textColor, borderColor: textColor } : undefined}>Asst</span>}
+                <span className="tree-node-name" style={textColor ? { color: textColor } : undefined}>{node.name || '(unnamed)'}</span>
+              </div>
+              {node.description && (
+                <div className="tree-node-desc" style={textColor ? { color: textColor, opacity: 0.8 } : undefined}>{node.description}</div>
+              )}
+            </div>
+          </div>
+          {hasChildNodes && !node.collapsed && (
+            <div className="tree-children">
+              {/* Render assistants first with special styling */}
+              {assistants.map(assistant => (
+                <TreeNode
+                  key={assistant.id}
+                  node={assistant}
+                  nodes={nodes}
+                  level={level + 1}
+                  selectedId={selectedId}
+                  onSelect={onSelect}
+                  onContextMenu={onContextMenu}
+                  onDragStart={onDragStart}
+                  onDragOver={onDragOver}
+                  onDrop={onDrop}
+                  dragOverId={dragOverId}
+                />
+              ))}
+              {/* Then render regular children */}
+              {children.map(child => (
+                <TreeNode
+                  key={child.id}
+                  node={child}
+                  nodes={nodes}
+                  level={level + 1}
+                  selectedId={selectedId}
+                  onSelect={onSelect}
+                  onContextMenu={onContextMenu}
+                  onDragStart={onDragStart}
+                  onDragOver={onDragOver}
+                  onDrop={onDrop}
+                  dragOverId={dragOverId}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    // ============================================
+    // TREE VIEW COMPONENT
+    // ============================================
+    const TreeView = ({ nodes, selectedId, onSelect, onContextMenu, onDragDrop }) => {
+      const [dragOverId, setDragOverId] = useState(null);
+      const [draggingId, setDraggingId] = useState(null);
+
+      const rootNodes = getChildren(nodes, null);
+
+      const handleDragStart = (id) => {
+        setDraggingId(id);
+      };
+
+      const handleDragOver = (id) => {
+        if (draggingId && id !== draggingId) {
+          // Prevent dropping on descendants
+          const descendants = getDescendants(nodes, draggingId);
+          if (!descendants.includes(id)) {
+            setDragOverId(id);
+          }
+        }
+      };
+
+      const handleDrop = (draggedId, targetId) => {
+        setDragOverId(null);
+        setDraggingId(null);
+        onDragDrop(draggedId, targetId);
+      };
+
+      const handleDragEnd = () => {
+        setDragOverId(null);
+        setDraggingId(null);
+      };
+
+      if (rootNodes.length === 0) {
+        return (
+          <div className="empty-state">
+            <div className="empty-state-icon">
+              <IconTree />
+            </div>
+            <p>No nodes yet. Click "Add Root" to create your first node.</p>
+          </div>
+        );
+      }
+
+      return (
+        <div className="tree-container" onDragEnd={handleDragEnd}>
+          {rootNodes.map(node => (
+            <TreeNode
+              key={node.id}
+              node={node}
+              nodes={nodes}
+              level={0}
+              selectedId={selectedId}
+              onSelect={onSelect}
+              onContextMenu={onContextMenu}
+              onDragStart={handleDragStart}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+              dragOverId={dragOverId}
+            />
+          ))}
+        </div>
+      );
+    };
+
+    // ============================================
+    // ORGANOGRAM NODE COMPONENT
+    // ============================================
+    const OrgNode = ({ node, nodes, selectedId, onSelect, onContextMenu }) => {
+      const children = getChildren(nodes, node.id);
+      const assistants = getAssistants(nodes, node.id);
+      const hasChildNodes = children.length > 0;
+
+      const handleContextMenu = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onContextMenu(e, node);
+      };
+
+      const textColor = getContrastColor(node.color);
+      const nodeStyle = node.color ? { backgroundColor: node.color } : undefined;
+
+      return (
+        <div className="org-group">
+          {/* Main node with assistants beside it */}
+          <div className="org-node-with-assistants">
+            {/* Left assistants (odd indexed) */}
+            {assistants.filter((_, i) => i % 2 === 0).length > 0 && (
+              <div className="org-assistants org-assistants-left">
+                {assistants.filter((_, i) => i % 2 === 0).map(assistant => {
+                  const asstTextColor = getContrastColor(assistant.color);
+                  const asstStyle = assistant.color ? { backgroundColor: assistant.color } : undefined;
+                  return (
+                    <div
+                      key={assistant.id}
+                      className={`org-node org-assistant ${selectedId === assistant.id ? 'selected' : ''}`}
+                      style={asstStyle}
+                      onClick={() => onSelect(assistant.id)}
+                      onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); onContextMenu(e, assistant); }}
+                    >
+                      <div className="org-node-id" style={asstTextColor ? { color: asstTextColor, backgroundColor: 'rgba(0,0,0,0.1)' } : undefined}>{assistant.id}</div>
+                      <div className="org-node-name" style={asstTextColor ? { color: asstTextColor } : undefined}>{assistant.name || '(unnamed)'}</div>
+                      {assistant.description && (
+                        <div className="org-node-desc" style={asstTextColor ? { color: asstTextColor, opacity: 0.8 } : undefined}>{assistant.description}</div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Main node */}
+            <div
+              className={`org-node ${selectedId === node.id ? 'selected' : ''}`}
+              style={nodeStyle}
+              onClick={() => onSelect(node.id)}
+              onContextMenu={handleContextMenu}
+            >
+              <div className="org-node-id" style={textColor ? { color: textColor, backgroundColor: 'rgba(0,0,0,0.1)' } : undefined}>{node.id}</div>
+              <div className="org-node-name" style={textColor ? { color: textColor } : undefined}>{node.name || '(unnamed)'}</div>
+              {node.description && (
+                <div className="org-node-desc" style={textColor ? { color: textColor, opacity: 0.8 } : undefined}>{node.description}</div>
+              )}
+            </div>
+
+            {/* Right assistants (even indexed) */}
+            {assistants.filter((_, i) => i % 2 === 1).length > 0 && (
+              <div className="org-assistants org-assistants-right">
+                {assistants.filter((_, i) => i % 2 === 1).map(assistant => {
+                  const asstTextColor = getContrastColor(assistant.color);
+                  const asstStyle = assistant.color ? { backgroundColor: assistant.color } : undefined;
+                  return (
+                    <div
+                      key={assistant.id}
+                      className={`org-node org-assistant ${selectedId === assistant.id ? 'selected' : ''}`}
+                      style={asstStyle}
+                      onClick={() => onSelect(assistant.id)}
+                      onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); onContextMenu(e, assistant); }}
+                    >
+                      <div className="org-node-id" style={asstTextColor ? { color: asstTextColor, backgroundColor: 'rgba(0,0,0,0.1)' } : undefined}>{assistant.id}</div>
+                      <div className="org-node-name" style={asstTextColor ? { color: asstTextColor } : undefined}>{assistant.name || '(unnamed)'}</div>
+                      {assistant.description && (
+                        <div className="org-node-desc" style={asstTextColor ? { color: asstTextColor, opacity: 0.8 } : undefined}>{assistant.description}</div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {hasChildNodes && !node.collapsed && (
+            <div className={`org-children ${children.length > 1 ? 'multiple' : ''}`}>
+              {children.map(child => (
+                <div key={child.id} className="org-child-wrapper">
+                  <OrgNode
+                    node={child}
+                    nodes={nodes}
+                    selectedId={selectedId}
+                    onSelect={onSelect}
+                    onContextMenu={onContextMenu}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    // ============================================
+    // ORGANOGRAM VIEW COMPONENT
+    // ============================================
+    const OrgChartView = ({ nodes, selectedId, onSelect, onContextMenu }) => {
+      const rootNodes = getChildren(nodes, null);
+
+      if (rootNodes.length === 0) {
+        return (
+          <div className="empty-state">
+            <div className="empty-state-icon">
+              <IconOrgChart />
+            </div>
+            <p>No nodes yet. Click "Add Root" to create your first node.</p>
+          </div>
+        );
+      }
+
+      return (
+        <div className="org-container">
+          <div className="org-chart">
+            <div className="org-level">
+              {rootNodes.map(node => (
+                <OrgNode
+                  key={node.id}
+                  node={node}
+                  nodes={nodes}
+                  selectedId={selectedId}
+                  onSelect={onSelect}
+                  onContextMenu={onContextMenu}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // ============================================
+    // MAIN HIERARCHY EDITOR COMPONENT
+    // ============================================
+    const HierarchyEditor = () => {
+      // Load from localStorage
+      const loadSaved = () => {
+        try {
+          const saved = localStorage.getItem('hierarchy-data');
+          if (saved) return JSON.parse(saved);
+        } catch (e) {}
+        return null;
+      };
+
+      const saved = loadSaved();
+      const [nodes, setNodes] = useState(saved?.nodes || []);
+      const [theme, setTheme] = useState(localStorage.getItem('coffeecup-theme') || saved?.theme || 'blueprint');
+      const [activeView, setActiveView] = useState('tree');
+      const [selectedId, setSelectedId] = useState(null);
+      const [contextMenu, setContextMenu] = useState(null);
+      const [editModal, setEditModal] = useState(null);
+      const [zoom, setZoom] = useState(1);
+
+      const fileInputRef = useRef(null);
+      const zoomContainerRef = useRef(null);
+
+      // Apply theme and sync shared key
+      useEffect(() => {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('coffeecup-theme', theme);
+      }, [theme]);
+
+      // Auto-save to localStorage
+      useEffect(() => {
+        const data = { nodes, theme };
+        localStorage.setItem('hierarchy-data', JSON.stringify(data));
+      }, [nodes, theme]);
+
+      // Close context menu on scroll
+      useEffect(() => {
+        const handleScroll = () => setContextMenu(null);
+        window.addEventListener('scroll', handleScroll, true);
+        return () => window.removeEventListener('scroll', handleScroll, true);
+      }, []);
+
+      // ============================================
+      // NODE OPERATIONS
+      // ============================================
+      const addNode = (parentId, siblingId = null) => {
+        const newNode = {
+          id: generateNodeId(nodes),
+          name: '',
+          description: '',
+          parentId: parentId,
+          collapsed: false,
+          order: 0,
+          isAssistant: false
+        };
+
+        // Calculate order
+        const siblings = getChildren(nodes, parentId);
+        if (siblingId) {
+          const siblingIndex = siblings.findIndex(s => s.id === siblingId);
+          newNode.order = siblings[siblingIndex]?.order + 0.5 || siblings.length;
+        } else {
+          newNode.order = siblings.length;
+        }
+
+        setEditModal({ node: newNode, isNew: true, parentId });
+      };
+
+      const addAssistant = (parentId) => {
+        const newNode = {
+          id: generateNodeId(nodes),
+          name: '',
+          description: '',
+          parentId: parentId,
+          collapsed: false,
+          order: 0,
+          isAssistant: true
+        };
+
+        // Calculate order among assistants
+        const existingAssistants = getAssistants(nodes, parentId);
+        newNode.order = existingAssistants.length;
+
+        setEditModal({ node: newNode, isNew: true, parentId });
+      };
+
+      const saveNode = (formData) => {
+        if (editModal.isNew) {
+          const newNode = {
+            ...editModal.node,
+            id: formData.id || editModal.node.id,
+            name: formData.name,
+            description: formData.description,
+            color: formData.color || '',
+            isAssistant: formData.isAssistant || false
+          };
+
+          // Reorder siblings
+          const updatedNodes = [...nodes, newNode];
+          const siblings = getChildren(updatedNodes, newNode.parentId);
+          const reordered = siblings.sort((a, b) => a.order - b.order).map((s, i) => ({ ...s, order: i }));
+
+          setNodes(updatedNodes.map(n => {
+            const reorderedNode = reordered.find(r => r.id === n.id);
+            return reorderedNode || n;
+          }));
+        } else {
+          setNodes(nodes.map(n =>
+            n.id === editModal.node.id
+              ? { ...n, id: formData.id || n.id, name: formData.name, description: formData.description, color: formData.color || '', isAssistant: formData.isAssistant || false }
+              : n
+          ));
+        }
+        setEditModal(null);
+      };
+
+      const deleteNode = (nodeId) => {
+        const descendants = getDescendants(nodes, nodeId);
+        const hasDescendants = descendants.length > 0;
+
+        if (hasDescendants) {
+          if (!confirm(`This will also delete ${descendants.length} child node(s). Continue?`)) {
+            return;
+          }
+        }
+
+        const toDelete = [nodeId, ...descendants];
+        setNodes(nodes.filter(n => !toDelete.includes(n.id)));
+        if (selectedId === nodeId || descendants.includes(selectedId)) {
+          setSelectedId(null);
+        }
+      };
+
+      const toggleCollapse = (nodeId) => {
+        setNodes(nodes.map(n =>
+          n.id === nodeId ? { ...n, collapsed: !n.collapsed } : n
+        ));
+      };
+
+      const handleSelect = (nodeId, action) => {
+        if (action === 'toggle') {
+          toggleCollapse(nodeId);
+        } else {
+          setSelectedId(nodeId);
+        }
+      };
+
+      const handleContextMenu = (e, node) => {
+        setSelectedId(node.id);
+        setContextMenu({
+          x: e.clientX,
+          y: e.clientY,
+          node
+        });
+      };
+
+      const handleDragDrop = (draggedId, targetId) => {
+        // Reparent the dragged node under the target
+        setNodes(nodes.map(n => {
+          if (n.id === draggedId) {
+            const targetChildren = getChildren(nodes, targetId);
+            return { ...n, parentId: targetId, order: targetChildren.length };
+          }
+          return n;
+        }));
+      };
+
+      // ============================================
+      // FILE OPERATIONS
+      // ============================================
+      const saveToFile = () => {
+        const data = { nodes };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'hierarchy.json';
+        a.click();
+        URL.revokeObjectURL(url);
+      };
+
+      const loadFromFile = (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const data = JSON.parse(event.target.result);
+            if (data.nodes) {
+              setNodes(data.nodes);
+              setSelectedId(null);
+            }
+          } catch (err) {
+            alert('Error loading file. Please ensure it is a valid JSON file.');
+          }
+        };
+        reader.readAsText(file);
+        e.target.value = '';
+      };
+
+      const clearAll = () => {
+        if (confirm('Clear all nodes? This cannot be undone.')) {
+          setNodes([]);
+          setSelectedId(null);
+        }
+      };
+
+      const expandAll = () => {
+        setNodes(nodes.map(n => ({ ...n, collapsed: false })));
+      };
+
+      const collapseAll = () => {
+        setNodes(nodes.map(n => ({ ...n, collapsed: true })));
+      };
+
+      // Expand selected node and all its descendants
+      const expandSelected = () => {
+        if (!selectedId) {
+          // No selection - expand all
+          expandAll();
+          return;
+        }
+        const descendants = getDescendants(nodes, selectedId);
+        const toExpand = [selectedId, ...descendants];
+        setNodes(nodes.map(n =>
+          toExpand.includes(n.id) ? { ...n, collapsed: false } : n
+        ));
+      };
+
+      // Collapse selected node and all its descendants
+      const collapseSelected = () => {
+        if (!selectedId) {
+          // No selection - collapse all
+          collapseAll();
+          return;
+        }
+        const descendants = getDescendants(nodes, selectedId);
+        const toCollapse = [selectedId, ...descendants];
+        setNodes(nodes.map(n =>
+          toCollapse.includes(n.id) ? { ...n, collapsed: true } : n
+        ));
+      };
+
+      // ============================================
+      // ZOOM OPERATIONS
+      // ============================================
+      const ZOOM_MIN = 0.25;
+      const ZOOM_MAX = 2;
+      const ZOOM_STEP = 0.25;
+
+      const zoomIn = () => {
+        setZoom(z => Math.min(ZOOM_MAX, z + ZOOM_STEP));
+      };
+
+      const zoomOut = () => {
+        setZoom(z => Math.max(ZOOM_MIN, z - ZOOM_STEP));
+      };
+
+      const resetZoom = () => {
+        setZoom(1);
+      };
+
+      const fitToWindow = () => {
+        if (!zoomContainerRef.current) return;
+        const container = zoomContainerRef.current;
+        const content = container.querySelector('.zoom-content');
+        if (!content) return;
+
+        // Temporarily reset zoom to measure actual content size
+        const currentZoom = zoom;
+        setZoom(1);
+
+        // Use setTimeout to wait for render
+        setTimeout(() => {
+          const containerRect = container.getBoundingClientRect();
+          const contentRect = content.scrollWidth;
+          const contentHeight = content.scrollHeight;
+
+          // Calculate zoom to fit width and height
+          const widthRatio = (containerRect.width - 40) / contentRect; // 40px padding
+          const heightRatio = (containerRect.height - 40) / contentHeight;
+          const newZoom = Math.max(ZOOM_MIN, Math.min(1, Math.min(widthRatio, heightRatio)));
+
+          setZoom(newZoom);
+        }, 0);
+      };
+
+      const handlePrint = () => {
+        const container = zoomContainerRef.current;
+        if (!container) {
+          window.print();
+          return;
+        }
+
+        const content = container.querySelector('.zoom-content');
+        if (!content) {
+          window.print();
+          return;
+        }
+
+        // Store original state
+        const originalZoom = zoom;
+        const originalTransform = content.style.transform;
+        const originalTransformOrigin = content.style.transformOrigin;
+
+        // Reset zoom to measure true content size
+        content.style.transform = 'none';
+        content.classList.add('print-ready');
+
+        // Wait for layout to settle
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            // Get actual content dimensions
+            const orgChart = content.querySelector('.org-chart');
+            const treeContainer = content.querySelector('.tree-container');
+            const chartElement = orgChart || treeContainer;
+
+            if (!chartElement) {
+              window.print();
+              content.classList.remove('print-ready');
+              content.style.transform = originalTransform;
+              setZoom(originalZoom);
+              return;
+            }
+
+            const contentRect = chartElement.getBoundingClientRect();
+            const contentWidth = contentRect.width;
+            const contentHeight = contentRect.height;
+
+            // Landscape A4 printable area (277mm - 16mm margins = 261mm x 190mm - 16mm = 174mm)
+            // At 96 DPI: ~985px x 656px
+            const pageWidth = 985;
+            const pageHeight = 656;
+
+            // Calculate scale to fit page while maximizing use of space
+            const scaleX = pageWidth / contentWidth;
+            const scaleY = pageHeight / contentHeight;
+            const printScale = Math.min(scaleX, scaleY);
+
+            // Apply the scale centered
+            content.style.transform = `scale(${printScale})`;
+            content.style.transformOrigin = 'top center';
+
+            // Small delay to let transform apply
+            setTimeout(() => {
+              window.print();
+
+              // Restore after print dialog closes
+              content.classList.remove('print-ready');
+              content.style.transform = `scale(${originalZoom})`;
+              content.style.transformOrigin = originalTransformOrigin;
+            }, 100);
+          });
+        });
+      };
+
+      // ============================================
+      // RENDER
+      // ============================================
+      return (
+        <div className="min-h-screen p-6 md:p-8">
+          <div className="max-w-7xl mx-auto">
+            {/* Header */}
+            <div className="mb-8 animate-fade-in">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="app-header-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="9" y="2" width="6" height="4" rx="1"/>
+                      <rect x="2" y="18" width="6" height="4" rx="1"/>
+                      <rect x="9" y="18" width="6" height="4" rx="1"/>
+                      <rect x="16" y="18" width="6" height="4" rx="1"/>
+                      <path d="M12 6v6"/>
+                      <path d="M5 18v-4h14v4"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h1 className="text-2xl font-semibold text-primary tracking-tight">Hierarchy Editor</h1>
+                    <p className="text-sm text-muted">WBS, CBS, RBS, Org Charts</p>
+                  </div>
+                </div>
+
+                {/* Theme Selector */}
+                <div className="theme-selector">
+                  <IconPalette />
+                  <label>Theme</label>
+                  <select
+                    value={theme}
+                    onChange={(e) => setTheme(e.target.value)}
+                    className="select-refined"
+                  >
+                    {Object.entries(THEMES).map(([key, { name }]) => (
+                      <option key={key} value={key}>{name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Toolbar */}
+            <div className="card p-4 mb-6 animate-fade-in no-print" style={{ animationDelay: '0.05s' }}>
+              <div className="flex flex-wrap items-center gap-3">
+                {/* View Toggle */}
+                <div className="view-toggle">
+                  <button
+                    className={activeView === 'tree' ? 'active' : ''}
+                    onClick={() => setActiveView('tree')}
+                  >
+                    <IconTreeView />
+                    Tree
+                  </button>
+                  <button
+                    className={activeView === 'organogram' ? 'active' : ''}
+                    onClick={() => setActiveView('organogram')}
+                  >
+                    <IconOrgChart />
+                    Organogram
+                  </button>
+                </div>
+
+                <div style={{ width: '1px', height: '24px', background: 'var(--border-secondary)' }}></div>
+
+                <button className="btn btn-accent" onClick={() => addNode(null)}>
+                  <IconPlus /> Add Root
+                </button>
+
+                <button className="btn btn-secondary btn-sm" onClick={expandSelected} title={selectedId ? "Expand selected and children" : "Expand all"}>
+                  <IconExpand /> {selectedId ? 'Expand' : 'Expand All'}
+                </button>
+                <button className="btn btn-secondary btn-sm" onClick={collapseSelected} title={selectedId ? "Collapse selected and children" : "Collapse all"}>
+                  <IconCollapse /> {selectedId ? 'Collapse' : 'Collapse All'}
+                </button>
+
+                <div style={{ width: '1px', height: '24px', background: 'var(--border-secondary)' }}></div>
+
+                {/* Zoom Controls */}
+                <div className="zoom-controls no-print">
+                  <button onClick={zoomOut} disabled={zoom <= ZOOM_MIN} title="Zoom out">
+                    <IconZoomOut />
+                  </button>
+                  <span className="zoom-level">{Math.round(zoom * 100)}%</span>
+                  <button onClick={zoomIn} disabled={zoom >= ZOOM_MAX} title="Zoom in">
+                    <IconZoomIn />
+                  </button>
+                  <button onClick={fitToWindow} title="Fit to window">
+                    <IconFitScreen />
+                  </button>
+                  <button onClick={resetZoom} title="Reset zoom to 100%">
+                    100%
+                  </button>
+                </div>
+
+                <button className="btn btn-secondary btn-sm no-print" onClick={handlePrint} title="Print">
+                  <IconPrinter /> Print
+                </button>
+
+                <div className="flex-1"></div>
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".json"
+                  onChange={loadFromFile}
+                  className="hidden"
+                />
+                <button className="btn btn-secondary btn-sm" onClick={saveToFile} title="Save file">
+                  <IconDownload /> Save
+                </button>
+                <button className="btn btn-secondary btn-sm" onClick={() => fileInputRef.current?.click()} title="Open file">
+                  <IconUpload /> Open
+                </button>
+                <button className="btn btn-danger btn-sm" onClick={clearAll} title="Clear all">
+                  <IconTrash /> Clear
+                </button>
+              </div>
+            </div>
+
+            {/* Main Content */}
+            <div className="card animate-fade-in" style={{ animationDelay: '0.1s', minHeight: '400px' }}>
+              <div className="zoom-container" ref={zoomContainerRef}>
+                <div className="zoom-content" style={{ transform: `scale(${zoom})` }}>
+                  {activeView === 'tree' ? (
+                    <TreeView
+                      nodes={nodes}
+                      selectedId={selectedId}
+                      onSelect={handleSelect}
+                      onContextMenu={handleContextMenu}
+                      onDragDrop={handleDragDrop}
+                    />
+                  ) : (
+                    <OrgChartView
+                      nodes={nodes}
+                      selectedId={selectedId}
+                      onSelect={handleSelect}
+                      onContextMenu={handleContextMenu}
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Hint */}
+            <div className="text-sm text-muted mt-4 text-center no-print">
+              Right-click on a node to add children, edit, or delete. Drag nodes to reparent them.
+            </div>
+          </div>
+
+          {/* Context Menu */}
+          {contextMenu && (
+            <ContextMenu
+              x={contextMenu.x}
+              y={contextMenu.y}
+              node={contextMenu.node}
+              hasChildren={hasChildren(nodes, contextMenu.node.id)}
+              onClose={() => setContextMenu(null)}
+              onAddChild={() => addNode(contextMenu.node.id)}
+              onAddAssistant={() => addAssistant(contextMenu.node.id)}
+              onAddSibling={() => addNode(contextMenu.node.parentId, contextMenu.node.id)}
+              onEdit={() => setEditModal({ node: contextMenu.node, isNew: false })}
+              onDelete={() => deleteNode(contextMenu.node.id)}
+              onToggleCollapse={() => toggleCollapse(contextMenu.node.id)}
+            />
+          )}
+
+          {/* Edit Modal */}
+          {editModal && (
+            <NodeEditModal
+              node={editModal.node}
+              isNew={editModal.isNew}
+              onSave={saveNode}
+              onClose={() => setEditModal(null)}
+            />
+          )}
+        </div>
+      );
+    };
+
+    // ============================================
+    // RENDER
+    // ============================================
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<HierarchyEditor />);
+  </script>
+</body>
+</html>

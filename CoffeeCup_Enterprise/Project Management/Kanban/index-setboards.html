@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="blueprint">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kanban Board</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- React -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    // ============================================
+    // THEME CONFIGURATION
+    // ============================================
+    const THEMES = {
+      blueprint: { name: 'Architectural Blueprint', description: 'Professional and refined' },
+      fun: { name: 'Fun & Vibrant', description: 'Playful and energetic' },
+      traditional: { name: 'Traditional', description: 'Classic and familiar' },
+      dark: { name: 'Dark Mode', description: 'Easy on the eyes' }
+    };
+
+    // ============================================
+    // ICONS
+    // ============================================
+    const IconKanban = () => (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <rect x="3" y="3" width="18" height="18" rx="2"/>
+        <path d="M9 3v18"/>
+        <path d="M15 3v18"/>
+      </svg>
+    );
+
+    const IconGrip = () => (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" opacity="0.4">
+        <circle cx="8" cy="6" r="2"/><circle cx="16" cy="6" r="2"/>
+        <circle cx="8" cy="12" r="2"/><circle cx="16" cy="12" r="2"/>
+        <circle cx="8" cy="18" r="2"/><circle cx="16" cy="18" r="2"/>
+      </svg>
+    );
+
+    const IconClock = () => (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 6v6l4 2"/>
+      </svg>
+    );
+
+    const IconUser = () => (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <circle cx="12" cy="8" r="4"/>
+        <path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
+      </svg>
+    );
+
+    const IconCalendar = () => (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <rect x="3" y="4" width="18" height="18" rx="2"/>
+        <path d="M16 2v4M8 2v4M3 10h18"/>
+      </svg>
+    );
+
+    const IconNote = () => (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+      </svg>
+    );
+
+    const IconPlus = () => (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+    );
+
+    const IconPalette = () => (
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/>
+        <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.555C21.965 6.012 17.461 2 12 2z"/>
+      </svg>
+    );
+
+    const IconUpload = () => (
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+    );
+
+    const IconDownload = () => (
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+    );
+
+    const IconFolder = () => (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+      </svg>
+    );
+
+    const IconSave = () => (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+        <polyline points="17 21 17 13 7 13 7 21"/>
+        <polyline points="7 3 7 8 15 8"/>
+      </svg>
+    );
+
+    const IconTrash = () => (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+      </svg>
+    );
+
+    const IconCheck = () => (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+    );
+
+    const IconX = () => (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M18 6L6 18M6 6l12 12"/>
+      </svg>
+    );
+
+    const IconClipboard = () => (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+        <rect x="8" y="2" width="8" height="4" rx="1"/>
+      </svg>
+    );
+
+    const IconRefresh = () => (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M23 4v6h-6M1 20v-6h6"/>
+        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+      </svg>
+    );
+
+    const IconCheckCircle = () => (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+        <polyline points="22 4 12 14.01 9 11.01"/>
+      </svg>
+    );
+
+    // ============================================
+    // UTILITY FUNCTIONS
+    // ============================================
+    const getToday = () => {
+      const d = new Date();
+      return d.toISOString().split('T')[0];
+    };
+
+    const formatDate = (dateStr) => {
+      if (!dateStr) return '';
+      const d = new Date(dateStr + 'T00:00:00');
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    };
+
+    const barColors = ['bar-solid-1', 'bar-solid-2', 'bar-solid-3', 'bar-solid-4', 'bar-solid-5', 'bar-solid-6'];
+    const getBarColor = (index) => barColors[index % 6];
+
+    // ============================================
+    // KANBAN CARD COMPONENT
+    // ============================================
+    const KanbanCard = ({ activity, index, onUpdate, onDelete, isExpanded, onToggleExpand }) => {
+      const [editData, setEditData] = useState({
+        name: activity.name,
+        duration: activity.duration,
+        owner: activity.kanban?.owner || '',
+        startedDate: activity.kanban?.startedDate || '',
+        completedDate: activity.kanban?.completedDate || '',
+        notes: activity.kanban?.notes || ''
+      });
+
+      const cardRef = useRef(null);
+
+      useEffect(() => {
+        setEditData({
+          name: activity.name,
+          duration: activity.duration,
+          owner: activity.kanban?.owner || '',
+          startedDate: activity.kanban?.startedDate || '',
+          completedDate: activity.kanban?.completedDate || '',
+          notes: activity.kanban?.notes || ''
+        });
+      }, [activity]);
+
+      const handleDragStart = (e) => {
+        if (isExpanded) {
+          e.preventDefault();
+          return;
+        }
+        e.dataTransfer.setData('text/plain', JSON.stringify({ id: activity.id, index }));
+        e.currentTarget.classList.add('dragging');
+      };
+
+      const handleDragEnd = (e) => {
+        e.currentTarget.classList.remove('dragging');
+      };
+
+      const handleSave = () => {
+        onUpdate(activity.id, {
+          name: editData.name.trim() || activity.name,
+          duration: parseInt(editData.duration) || activity.duration,
+          kanban: {
+            ...activity.kanban,
+            owner: editData.owner.trim(),
+            startedDate: editData.startedDate,
+            completedDate: editData.completedDate,
+            notes: editData.notes.trim()
+          }
+        });
+        onToggleExpand(null);
+      };
+
+      const handleDelete = () => {
+        if (confirm('Delete this task? This cannot be undone.')) {
+          onDelete(activity.id);
+        }
+      };
+
+      const handleKeyDown = (e) => {
+        if (e.key === 'Escape') {
+          onToggleExpand(null);
+        }
+      };
+
+      const status = activity.kanban?.status || 'plan';
+
+      // Collapsed view
+      if (!isExpanded) {
+        return (
+          <div
+            ref={cardRef}
+            className="kanban-card animate-scale-in"
+            draggable="true"
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+            onClick={() => onToggleExpand(activity.id)}
+          >
+            <div className={`kanban-card-bar ${getBarColor(index)}`} />
+            <div className="kanban-card-content">
+              <div className="kanban-card-header">
+                <div className="kanban-card-drag">
+                  <IconGrip />
+                </div>
+                <div className="kanban-card-title">{activity.name}</div>
+              </div>
+              <div className="kanban-card-duration">
+                <IconClock />
+                {activity.duration} day{activity.duration !== 1 ? 's' : ''}
+              </div>
+
+              {/* Show meta info if present */}
+              {(activity.kanban?.owner || activity.kanban?.startedDate || activity.kanban?.completedDate) && (
+                <div className="kanban-card-meta">
+                  {activity.kanban?.owner && (
+                    <div className="kanban-card-meta-item">
+                      <IconUser className="kanban-card-meta-icon" />
+                      <span>{activity.kanban.owner}</span>
+                    </div>
+                  )}
+                  {status === 'underway' && activity.kanban?.startedDate && (
+                    <div className="kanban-card-meta-item">
+                      <IconCalendar className="kanban-card-meta-icon" />
+                      <span>Started {formatDate(activity.kanban.startedDate)}</span>
+                    </div>
+                  )}
+                  {status === 'complete' && (
+                    <>
+                      {activity.kanban?.startedDate && (
+                        <div className="kanban-card-meta-item">
+                          <IconCalendar className="kanban-card-meta-icon" />
+                          <span>{formatDate(activity.kanban.startedDate)} → {formatDate(activity.kanban.completedDate)}</span>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* Show notes preview if present */}
+              {activity.kanban?.notes && (
+                <div className="kanban-card-notes" style={{ maxHeight: '60px', overflow: 'hidden' }}>
+                  {activity.kanban.notes.length > 100
+                    ? activity.kanban.notes.substring(0, 100) + '...'
+                    : activity.kanban.notes}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      }
+
+      // Expanded edit view
+      return (
+        <div
+          ref={cardRef}
+          className="kanban-card expanded animate-scale-in"
+          onKeyDown={handleKeyDown}
+        >
+          <div className={`kanban-card-bar ${getBarColor(index)}`} />
+          <div className="kanban-card-form">
+            <div className="kanban-card-form-field">
+              <label className="kanban-card-form-label">Task Name</label>
+              <input
+                type="text"
+                className="input-refined"
+                value={editData.name}
+                onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                placeholder="Task name"
+                autoFocus
+              />
+            </div>
+
+            <div className="kanban-card-form-row">
+              <div className="kanban-card-form-field">
+                <label className="kanban-card-form-label">Duration (days)</label>
+                <input
+                  type="number"
+                  className="input-refined"
+                  value={editData.duration}
+                  onChange={(e) => setEditData({ ...editData, duration: e.target.value })}
+                  min="0"
+                  placeholder="1"
+                />
+              </div>
+              <div className="kanban-card-form-field">
+                <label className="kanban-card-form-label">Owner</label>
+                <input
+                  type="text"
+                  className="input-refined"
+                  value={editData.owner}
+                  onChange={(e) => setEditData({ ...editData, owner: e.target.value })}
+                  placeholder="Assignee name"
+                />
+              </div>
+            </div>
+
+            <div className="kanban-card-form-row">
+              <div className="kanban-card-form-field">
+                <label className="kanban-card-form-label">Started Date</label>
+                <input
+                  type="date"
+                  className="input-refined"
+                  value={editData.startedDate}
+                  onChange={(e) => setEditData({ ...editData, startedDate: e.target.value })}
+                />
+              </div>
+              <div className="kanban-card-form-field">
+                <label className="kanban-card-form-label">Completed Date</label>
+                <input
+                  type="date"
+                  className="input-refined"
+                  value={editData.completedDate}
+                  onChange={(e) => setEditData({ ...editData, completedDate: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="kanban-card-form-field">
+              <label className="kanban-card-form-label">Notes</label>
+              <textarea
+                className="textarea-refined"
+                value={editData.notes}
+                onChange={(e) => setEditData({ ...editData, notes: e.target.value })}
+                placeholder="Progress notes, blockers, updates..."
+                rows="3"
+              />
+            </div>
+
+            <div className="kanban-card-form-actions">
+              <button
+                className="btn btn-danger btn-sm"
+                onClick={handleDelete}
+              >
+                <IconTrash /> Delete
+              </button>
+              <div className="flex gap-2">
+                <button
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => onToggleExpand(null)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="btn btn-accent btn-sm"
+                  onClick={handleSave}
+                >
+                  <IconCheck /> Save
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // ============================================
+    // KANBAN COLUMN COMPONENT
+    // ============================================
+    const KanbanColumn = ({ status, title, icon, activities, allActivities, onUpdateActivity, onDeleteActivity, onMoveActivity, expandedCard, onToggleExpand }) => {
+      const [isDragOver, setIsDragOver] = useState(false);
+      const columnRef = useRef(null);
+
+      const columnActivities = activities.filter(a => (a.kanban?.status || 'plan') === status);
+
+      const handleDragOver = (e) => {
+        e.preventDefault();
+        setIsDragOver(true);
+      };
+
+      const handleDragLeave = (e) => {
+        // Only set drag over to false if we're leaving the column entirely
+        if (!columnRef.current.contains(e.relatedTarget)) {
+          setIsDragOver(false);
+        }
+      };
+
+      const handleDrop = (e) => {
+        e.preventDefault();
+        setIsDragOver(false);
+
+        try {
+          const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+          const activity = allActivities.find(a => a.id === data.id);
+
+          if (activity && (activity.kanban?.status || 'plan') !== status) {
+            onMoveActivity(data.id, status);
+          }
+        } catch (err) {
+          console.error('Drop error:', err);
+        }
+      };
+
+      // Get the original index in allActivities for consistent colors
+      const getOriginalIndex = (activity) => {
+        return allActivities.findIndex(a => a.id === activity.id);
+      };
+
+      return (
+        <div className="kanban-column">
+          <div className="kanban-column-header">
+            <div className="kanban-column-title">
+              <span className={`status-icon-${status}`}>{icon}</span>
+              {title}
+              <span className="kanban-column-count">{columnActivities.length}</span>
+            </div>
+          </div>
+          <div
+            ref={columnRef}
+            className={`kanban-column-body custom-scroll ${isDragOver ? 'drag-over' : ''}`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
+            {columnActivities.length === 0 ? (
+              <div className="text-center py-8 text-muted text-sm">
+                {status === 'plan' ? 'Add tasks or drag here' : 'Drag tasks here'}
+              </div>
+            ) : (
+              columnActivities.map((activity) => (
+                <KanbanCard
+                  key={activity.id}
+                  activity={activity}
+                  index={getOriginalIndex(activity)}
+                  onUpdate={onUpdateActivity}
+                  onDelete={onDeleteActivity}
+                  isExpanded={expandedCard === activity.id}
+                  onToggleExpand={onToggleExpand}
+                />
+              ))
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    // ============================================
+    // MAIN KANBAN BOARD COMPONENT
+    // ============================================
+    const KanbanBoard = () => {
+      // Load from localStorage
+      const loadSaved = () => {
+        try {
+          const saved = localStorage.getItem('kanban-project');
+          if (saved) return JSON.parse(saved);
+        } catch (e) {}
+        return null;
+      };
+
+      const saved = loadSaved();
+      const [activities, setActivities] = useState(saved?.activities || []);
+      const [startDate, setStartDate] = useState(saved?.startDate || getToday());
+      const [theme, setTheme] = useState(saved?.theme || 'blueprint');
+      const [expandedCard, setExpandedCard] = useState(null);
+      const [newTaskName, setNewTaskName] = useState('');
+      const [newTaskDuration, setNewTaskDuration] = useState('1');
+
+      const fileInputRef = useRef(null);
+
+      // Apply theme
+      useEffect(() => {
+        document.documentElement.setAttribute('data-theme', theme);
+      }, [theme]);
+
+      // Auto-save to localStorage
+      useEffect(() => {
+        const data = { startDate, activities, theme };
+        localStorage.setItem('kanban-project', JSON.stringify(data));
+      }, [startDate, activities, theme]);
+
+      // Close expanded card when clicking outside
+      useEffect(() => {
+        const handleClickOutside = (e) => {
+          if (expandedCard && !e.target.closest('.kanban-card')) {
+            setExpandedCard(null);
+          }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+      }, [expandedCard]);
+
+      // ============================================
+      // CRUD OPERATIONS
+      // ============================================
+      const addTask = () => {
+        if (!newTaskName.trim()) return;
+
+        const newActivity = {
+          id: Date.now(),
+          name: newTaskName.trim(),
+          duration: parseInt(newTaskDuration) || 1,
+          dependency: 'FS',
+          kanban: {
+            status: 'plan',
+            owner: '',
+            startedDate: '',
+            completedDate: '',
+            notes: ''
+          }
+        };
+
+        setActivities([...activities, newActivity]);
+        setNewTaskName('');
+        setNewTaskDuration('1');
+      };
+
+      const updateActivity = (id, updates) => {
+        setActivities(activities.map(a =>
+          a.id === id ? { ...a, ...updates } : a
+        ));
+      };
+
+      const deleteActivity = (id) => {
+        setActivities(activities.filter(a => a.id !== id));
+        if (expandedCard === id) setExpandedCard(null);
+      };
+
+      const moveActivity = (id, newStatus) => {
+        setActivities(activities.map(a => {
+          if (a.id !== id) return a;
+
+          const kanban = { ...a.kanban, status: newStatus };
+
+          // Auto-set dates based on status change
+          if (newStatus === 'underway' && !kanban.startedDate) {
+            kanban.startedDate = getToday();
+          }
+          if (newStatus === 'complete' && !kanban.completedDate) {
+            kanban.completedDate = getToday();
+          }
+
+          return { ...a, kanban };
+        }));
+      };
+
+      // ============================================
+      // FILE OPERATIONS
+      // ============================================
+      const saveToFile = () => {
+        const data = {
+          startDate,
+          activities: activities.map(({ id, ...rest }) => rest) // Strip runtime IDs
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'gantt-project.json';
+        a.click();
+        URL.revokeObjectURL(url);
+      };
+
+      const loadFromFile = (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const data = JSON.parse(event.target.result);
+            if (data.startDate) setStartDate(data.startDate);
+            if (data.theme) setTheme(data.theme);
+            if (data.activities) {
+              // Assign IDs and ensure kanban data exists
+              const loadedActivities = data.activities.map((a, i) => ({
+                ...a,
+                id: Date.now() + i,
+                kanban: a.kanban || {
+                  status: 'plan',
+                  owner: '',
+                  startedDate: '',
+                  completedDate: '',
+                  notes: ''
+                }
+              }));
+              setActivities(loadedActivities);
+            }
+          } catch (err) {
+            alert('Error loading file. Please ensure it is a valid JSON file.');
+          }
+        };
+        reader.readAsText(file);
+        e.target.value = ''; // Reset to allow reloading same file
+      };
+
+      const clearAll = () => {
+        if (confirm('Clear all tasks? This cannot be undone.')) {
+          setActivities([]);
+          setExpandedCard(null);
+        }
+      };
+
+      const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+          addTask();
+        }
+      };
+
+      return (
+        <div className="min-h-screen p-6 md:p-8">
+          <div className="max-w-7xl mx-auto">
+            {/* Header */}
+            <div className="mb-8 animate-fade-in">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="app-header-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="3" width="18" height="18" rx="2"/>
+                      <path d="M9 3v18"/>
+                      <path d="M15 3v18"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h1 className="text-2xl font-semibold text-primary tracking-tight">Kanban Board</h1>
+                    <p className="text-sm text-muted">Drag tasks to track progress</p>
+                  </div>
+                </div>
+
+                {/* Theme Selector */}
+                <div className="theme-selector">
+                  <IconPalette />
+                  <label>Theme</label>
+                  <select
+                    value={theme}
+                    onChange={(e) => setTheme(e.target.value)}
+                    className="select-refined"
+                  >
+                    {Object.entries(THEMES).map(([key, { name }]) => (
+                      <option key={key} value={key}>{name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Add Task Form */}
+            <div className="card p-5 mb-6 animate-fade-in" style={{ animationDelay: '0.05s' }}>
+              <div className="flex flex-wrap gap-4 items-end">
+                <div className="flex-1 min-w-[280px]">
+                  <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-2">Task Name</label>
+                  <input
+                    type="text"
+                    className="input-refined w-full"
+                    placeholder="Enter task description..."
+                    value={newTaskName}
+                    onChange={(e) => setNewTaskName(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    maxLength={100}
+                  />
+                </div>
+                <div className="w-28">
+                  <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-2">Duration</label>
+                  <input
+                    type="number"
+                    className="input-refined w-full text-center font-mono"
+                    placeholder="Days"
+                    min="0"
+                    value={newTaskDuration}
+                    onChange={(e) => setNewTaskDuration(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                  />
+                </div>
+                <button
+                  className="btn btn-accent"
+                  onClick={addTask}
+                  disabled={!newTaskName.trim()}
+                >
+                  <IconPlus /> Add Task
+                </button>
+              </div>
+            </div>
+
+            {/* Toolbar */}
+            <div className="card p-4 mb-6 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex-1"></div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".json"
+                  onChange={loadFromFile}
+                  className="hidden"
+                />
+                <button
+                  className="btn btn-secondary btn-sm"
+                  onClick={saveToFile}
+                  title="Save file"
+                >
+                  <IconDownload /> Save
+                </button>
+                <button
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  title="Open file"
+                >
+                  <IconUpload /> Open
+                </button>
+                <button
+                  className="btn btn-danger btn-sm"
+                  onClick={clearAll}
+                  title="Clear all tasks"
+                >
+                  <IconTrash /> Clear
+                </button>
+              </div>
+            </div>
+
+            {/* Kanban Board */}
+            <div className="kanban-board animate-fade-in" style={{ animationDelay: '0.15s' }}>
+            <KanbanColumn
+              status="plan"
+              title="Plan"
+              icon={<IconClipboard />}
+              activities={activities}
+              allActivities={activities}
+              onUpdateActivity={updateActivity}
+              onDeleteActivity={deleteActivity}
+              onMoveActivity={moveActivity}
+              expandedCard={expandedCard}
+              onToggleExpand={setExpandedCard}
+            />
+            <KanbanColumn
+              status="underway"
+              title="Underway"
+              icon={<IconRefresh />}
+              activities={activities}
+              allActivities={activities}
+              onUpdateActivity={updateActivity}
+              onDeleteActivity={deleteActivity}
+              onMoveActivity={moveActivity}
+              expandedCard={expandedCard}
+              onToggleExpand={setExpandedCard}
+            />
+            <KanbanColumn
+              status="complete"
+              title="Complete"
+              icon={<IconCheckCircle />}
+              activities={activities}
+              allActivities={activities}
+              onUpdateActivity={updateActivity}
+              onDeleteActivity={deleteActivity}
+              onMoveActivity={moveActivity}
+              expandedCard={expandedCard}
+              onToggleExpand={setExpandedCard}
+            />
+          </div>
+          </div>
+        </div>
+      );
+    };
+
+    // ============================================
+    // RENDER
+    // ============================================
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<KanbanBoard />);
+  </script>
+</body>
+</html>

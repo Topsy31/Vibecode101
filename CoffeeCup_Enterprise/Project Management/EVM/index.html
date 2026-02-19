@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="blueprint">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoffeeCup — EVM Dashboard</title>
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%236366f1'/%3E%3Cstop offset='100%25' stop-color='%2310b981'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='6' fill='url(%23g)'/%3E%3Cpolyline points='6,24 12,16 18,18 26,8' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Nunito:wght@400;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <script>if (typeof Chart === 'undefined') { document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.7/chart.umd.min.js"><\/script>'); }</script>
+
+    <!-- React -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        /* =============== CSS VARIABLES =============== */
+        :root {
+            --bg-primary: #fafaf9;
+            --bg-secondary: #f5f5f4;
+            --bg-card: #ffffff;
+            --bg-hover: rgba(0, 0, 0, 0.02);
+            --border-primary: #e7e5e4;
+            --border-secondary: #f5f5f4;
+            --border-accent: #d6d3d1;
+            --text-primary: #292524;
+            --text-secondary: #57534e;
+            --text-muted: #78716c;
+            --text-faint: #a8a29e;
+            --accent-primary: #6366f1;
+            --accent-hover: #4f46e5;
+            --accent-light: rgba(99, 102, 241, 0.12);
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+            --font-primary: 'DM Sans', -apple-system, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+        }
+
+        /* =============== THEMES =============== */
+        [data-theme="blueprint"] {
+            --bg-primary: #fafaf9;
+            --bg-secondary: #f5f5f4;
+            --bg-card: #ffffff;
+            --border-primary: #e7e5e4;
+            --border-secondary: #f5f5f4;
+            --text-primary: #292524;
+            --text-secondary: #57534e;
+            --text-muted: #78716c;
+            --text-faint: #a8a29e;
+            --accent-primary: #b8956a;
+            --accent-hover: #a07d4f;
+            --accent-light: rgba(185, 149, 106, 0.12);
+        }
+
+        [data-theme="blueprint"] body {
+            background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+            background-image: linear-gradient(rgba(0, 0, 0, 0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 0, 0, 0.015) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        [data-theme="fun"] {
+            --bg-primary: #fef7ff;
+            --bg-secondary: #fae8ff;
+            --bg-card: #ffffff;
+            --border-primary: #f0abfc;
+            --border-secondary: #fae8ff;
+            --text-primary: #701a75;
+            --text-secondary: #86198f;
+            --text-muted: #a21caf;
+            --text-faint: #c026d3;
+            --accent-primary: #d946ef;
+            --accent-hover: #c026d3;
+            --accent-light: rgba(217, 70, 239, 0.15);
+            --font-primary: 'Nunito', 'Comic Neue', -apple-system, sans-serif;
+            --radius-lg: 20px;
+            --radius-md: 12px;
+        }
+
+        [data-theme="fun"] body {
+            background: linear-gradient(135deg, #fdf4ff 0%, #fae8ff 50%, #f5d0fe 100%);
+        }
+
+        [data-theme="fun"] .app-header-icon {
+            background: linear-gradient(135deg, #f472b6 0%, #d946ef 50%, #a78bfa 100%);
+            border-radius: 9999px;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0f0f0f;
+            --bg-secondary: #1a1a1a;
+            --bg-card: #242424;
+            --bg-hover: rgba(255, 255, 255, 0.04);
+            --border-primary: #333333;
+            --border-secondary: #2a2a2a;
+            --border-accent: #444444;
+            --text-primary: #f0f0f0;
+            --text-secondary: #b0b0b0;
+            --text-muted: #808080;
+            --text-faint: #606060;
+            --accent-primary: #6366f1;
+            --accent-hover: #818cf8;
+            --accent-light: rgba(99, 102, 241, 0.15);
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        [data-theme="dark"] body {
+            background: linear-gradient(180deg, #0a0a0a 0%, #0f0f0f 100%);
+        }
+
+        [data-theme="dark"] .app-header-icon {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        }
+
+        [data-theme="dark"] .kpi-card {
+            border-color: var(--border-primary);
+        }
+
+        [data-theme="dark"] .select-refined {
+            background-color: #1a1a1a;
+            border-color: var(--border-primary);
+            color: var(--text-secondary);
+        }
+
+        [data-theme="dark"] .select-refined option {
+            background-color: #1a1a1a;
+            color: var(--text-secondary);
+        }
+
+        [data-theme="traditional"] {
+            --bg-primary: #f8f9fa;
+            --bg-secondary: #e9ecef;
+            --bg-card: #ffffff;
+            --border-primary: #ced4da;
+            --border-secondary: #dee2e6;
+            --text-primary: #212529;
+            --text-secondary: #495057;
+            --text-muted: #6c757d;
+            --text-faint: #adb5bd;
+            --accent-primary: #0d6efd;
+            --accent-hover: #0b5ed7;
+            --accent-light: rgba(13, 110, 253, 0.1);
+            --font-primary: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --radius-lg: 4px;
+            --radius-md: 4px;
+        }
+
+        [data-theme="traditional"] body {
+            background: var(--bg-primary);
+        }
+
+        /* =============== BASE =============== */
+        * {
+            font-family: var(--font-primary);
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            color: var(--text-primary);
+        }
+
+        .font-mono {
+            font-family: var(--font-mono);
+        }
+
+        /* =============== HEADER =============== */
+        .app-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .app-header-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-md);
+            background: linear-gradient(135deg, #6366f1 0%, #10b981 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-md);
+        }
+
+        .app-header-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+        }
+
+        .app-header-sub {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .app-header-spacer {
+            flex: 1;
+        }
+
+        /* =============== CARDS =============== */
+        .card {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-primary);
+            box-shadow: var(--shadow-md);
+        }
+
+        .kpi-card {
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .kpi-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .kpi-value {
+            font-size: 26px;
+            font-weight: 700;
+            font-family: var(--font-mono);
+            letter-spacing: -0.02em;
+        }
+
+        .kpi-sub {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .kpi-icon {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.15;
+        }
+
+        /* =============== STATUS BADGES =============== */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 9999px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-green {
+            background: rgba(34, 197, 94, 0.12);
+            color: #16a34a;
+        }
+
+        .badge-amber {
+            background: rgba(245, 158, 11, 0.12);
+            color: #d97706;
+        }
+
+        .badge-red {
+            background: rgba(239, 68, 68, 0.12);
+            color: #dc2626;
+        }
+
+        .badge-blue {
+            background: rgba(59, 130, 246, 0.12);
+            color: #2563eb;
+        }
+
+        /* =============== GAUGE =============== */
+        .gauge-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .gauge-ring {
+            position: relative;
+            width: 120px;
+            height: 120px;
+        }
+
+        .gauge-ring svg {
+            transform: rotate(-90deg);
+        }
+
+        .gauge-ring circle {
+            fill: none;
+            stroke-linecap: round;
+        }
+
+        .gauge-ring .bg {
+            stroke: var(--border-secondary);
+            stroke-width: 8;
+        }
+
+        .gauge-ring .fg {
+            stroke-width: 8;
+            transition: stroke-dashoffset 0.8s ease;
+        }
+
+        .gauge-center {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .gauge-value {
+            font-size: 22px;
+            font-weight: 700;
+            font-family: var(--font-mono);
+        }
+
+        .gauge-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* =============== TABLE =============== */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .data-table th {
+            text-align: left;
+            padding: 10px 14px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            border-bottom: 2px solid var(--border-primary);
+            font-weight: 600;
+        }
+
+        .data-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border-secondary);
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .data-table tr:hover td {
+            background: var(--bg-hover);
+        }
+
+        .data-table .metric-name {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .data-table .metric-value {
+            font-family: var(--font-mono);
+            font-weight: 600;
+        }
+
+        /* =============== CONTROLS =============== */
+        .select-refined {
+            appearance: none;
+            background: var(--bg-card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2378716c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") no-repeat right 10px center;
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-md);
+            padding: 8px 36px 8px 12px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .select-refined:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px var(--accent-light);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: var(--radius-md);
+            transition: all 0.15s;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-secondary);
+            border-color: var(--border-accent);
+        }
+
+        /* =============== SECTION =============== */
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .empty-banner {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-banner-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--bg-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+        }
+
+        /* =============== ANIMATIONS =============== */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-in {
+            animation: fadeIn 0.35s ease-out both;
+        }
+
+        /* =============== PRINT =============== */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+
+            body {
+                background: white !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo, useCallback } = React;
+
+        // ============================================
+        // CONSTANTS
+        // ============================================
+        const COST_KEY = 'cost-project';
+        const GANTT_KEY = 'gantt-project';
+        const THEMES = ['blueprint', 'fun', 'dark', 'traditional'];
+        const THEME_LABELS = { blueprint: 'Architectural Blueprint', fun: 'Fun & Vibrant', dark: 'Dark Mode', traditional: 'Traditional' };
+
+        // ============================================
+        // UTILITIES
+        // ============================================
+        function fmt(amount, sym = '£') {
+            if (amount == null || isNaN(amount)) return `${sym}0`;
+            const abs = Math.abs(amount);
+            if (abs >= 1000000) return `${amount < 0 ? '-' : ''}${sym}${(abs / 1000000).toFixed(1)}m`;
+            if (abs >= 1000) return `${amount < 0 ? '-' : ''}${sym}${(abs / 1000).toFixed(0)}k`;
+            return `${amount < 0 ? '-' : ''}${sym}${abs.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+        }
+
+        function fmtFull(amount, sym = '£') {
+            if (amount == null || isNaN(amount)) return `${sym}0.00`;
+            const abs = Math.abs(amount);
+            return `${amount < 0 ? '-' : ''}${sym}${abs.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+
+        function fmtIdx(val) {
+            if (val == null || isNaN(val) || !isFinite(val)) return '—';
+            return val.toFixed(2);
+        }
+
+        function fmtPct(val) {
+            if (val == null || isNaN(val)) return '—';
+            return `${(val * 100).toFixed(1)}%`;
+        }
+
+        function statusColor(cpi, spi) {
+            if (cpi >= 1.0 && spi >= 1.0) return 'green';
+            if (cpi >= 0.9 && spi >= 0.9) return 'amber';
+            return 'red';
+        }
+
+        function indexColor(val) {
+            if (val == null || isNaN(val) || !isFinite(val)) return 'var(--text-muted)';
+            if (val >= 1.0) return 'var(--success)';
+            if (val >= 0.9) return 'var(--warning)';
+            return 'var(--danger)';
+        }
+
+        function varianceColor(val) {
+            if (val == null || isNaN(val)) return 'var(--text-muted)';
+            if (val >= 0) return 'var(--success)';
+            return 'var(--danger)';
+        }
+
+        // ============================================
+        // DATA LOADING
+        // ============================================
+        function loadCostData() {
+            try {
+                const raw = localStorage.getItem(COST_KEY);
+                if (raw) return JSON.parse(raw);
+            } catch (e) { console.warn('EVM: Failed to load cost data', e); }
+            return null;
+        }
+
+        function loadGanttData() {
+            try {
+                const raw = localStorage.getItem(GANTT_KEY);
+                if (raw) return JSON.parse(raw);
+            } catch (e) { console.warn('EVM: Failed to load gantt data', e); }
+            return null;
+        }
+
+        // ============================================
+        // EVM CALCULATIONS (mirrors Cost Tracker)
+        // ============================================
+        function calcEVM(costData) {
+            if (!costData) return null;
+            const cats = costData.categories || [];
+            const transactions = costData.transactions || [];
+            const periods = (costData.timePhased && costData.timePhased.periods) || [];
+            const sym = costData.meta?.currencySymbol || '£';
+
+            const BAC = cats.reduce((s, c) => s + c.lineItems.reduce((ls, li) => ls + (li.totalCost || 0), 0), 0);
+            const AC = transactions.reduce((s, t) => s + (t.amount || 0), 0);
+            const EV = cats.reduce((s, c) => s + c.lineItems.reduce((ls, li) => ls + ((li.percentComplete || 0) / 100) * (li.totalCost || 0), 0), 0);
+
+            const now = new Date();
+            const PV = periods.filter(p => new Date(p.endDate) <= now).reduce((s, p) => s + (p.planned || 0), 0);
+
+            const CV = EV - AC;
+            const SV = EV - PV;
+            const CPI = AC !== 0 ? EV / AC : 0;
+            const SPI = PV !== 0 ? EV / PV : 0;
+            const EAC = CPI !== 0 ? BAC / CPI : 0;
+            const ETC = EAC - AC;
+            const VAC = BAC - EAC;
+            const TCPI = (BAC - AC) !== 0 ? (BAC - EV) / (BAC - AC) : 0;
+            const pctComplete = BAC !== 0 ? (EV / BAC) * 100 : 0;
+            const pctSpent = BAC !== 0 ? (AC / BAC) * 100 : 0;
+
+            return { BAC, AC, EV, PV, CV, SV, CPI, SPI, EAC, ETC, VAC, TCPI, pctComplete, pctSpent, sym, periods };
+        }
+
+        function calcScheduleMetrics(ganttData) {
+            if (!ganttData || !ganttData.activities || ganttData.activities.length === 0) return null;
+            const acts = ganttData.activities;
+            const startDate = ganttData.startDate ? new Date(ganttData.startDate) : new Date();
+            const totalDuration = acts.reduce((max, a, i) => {
+                // Simple: recompute without full dependency resolution (use ganttData.criticalPath.length if available)
+                return Math.max(max, a.duration || 0);
+            }, 0);
+
+            const cp = ganttData.criticalPath || {};
+            const criticalPathLength = cp.length || totalDuration;
+            const criticalActivities = cp.activityIds || [];
+
+            const now = new Date();
+            const elapsed = Math.max(0, Math.floor((now - startDate) / (1000 * 60 * 60 * 24)));
+            const schedulePct = criticalPathLength > 0 ? Math.min(100, (elapsed / criticalPathLength) * 100) : 0;
+
+            return { totalActivities: acts.length, criticalPathLength, criticalActivities, startDate, elapsed, schedulePct };
+        }
+
+        // ============================================
+        // GAUGE COMPONENT
+        // ============================================
+        function Gauge({ value, label, size = 120 }) {
+            const radius = (size - 16) / 2;
+            const circumference = 2 * Math.PI * radius;
+            const displayVal = (value == null || isNaN(value) || !isFinite(value)) ? 0 : value;
+            const clamped = Math.min(Math.max(displayVal, 0), 2);
+            const offset = circumference - (clamped / 2) * circumference; // 0-2 range fills the circle
+            const color = indexColor(displayVal);
+
+            return (
+                <div className="gauge-container">
+                    <div className="gauge-ring" style={{ width: size, height: size }}>
+                        <svg width={size} height={size}>
+                            <circle className="bg" cx={size / 2} cy={size / 2} r={radius} />
+                            <circle className="fg" cx={size / 2} cy={size / 2} r={radius}
+                                stroke={color} strokeDasharray={circumference} strokeDashoffset={offset} />
+                        </svg>
+                        <div className="gauge-center">
+                            <span className="gauge-value" style={{ color }}>{fmtIdx(displayVal)}</span>
+                            <span className="gauge-label">{label}</span>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // ============================================
+        // S-CURVE CHART
+        // ============================================
+        function SCurveChart({ evm }) {
+            const canvasRef = useRef(null);
+            const chartRef = useRef(null);
+
+            useEffect(() => {
+                if (!canvasRef.current || !evm || !evm.periods || evm.periods.length === 0) return;
+
+                const periods = evm.periods;
+                const labels = periods.map(p => p.label || p.id);
+
+                // Cumulative values
+                let cumPV = 0, cumAC = 0, cumEV = 0;
+                const pvData = [], acData = [], evData = [];
+                const now = new Date();
+
+                periods.forEach(p => {
+                    cumPV += p.planned || 0;
+                    pvData.push(cumPV);
+                    if (new Date(p.endDate) <= now) {
+                        cumEV += p.earned || 0;
+                        cumAC += p.actual || 0;
+                    }
+                    evData.push(new Date(p.endDate) <= now ? cumEV : null);
+                    acData.push(new Date(p.endDate) <= now ? cumAC : null);
+                });
+
+                // Get theme colours
+                const style = getComputedStyle(document.documentElement);
+                const textMuted = style.getPropertyValue('--text-muted').trim() || '#78716c';
+                const borderSec = style.getPropertyValue('--border-secondary').trim() || '#f5f5f4';
+                const bgCard = style.getPropertyValue('--bg-card').trim() || '#ffffff';
+
+                if (chartRef.current) chartRef.current.destroy();
+
+                chartRef.current = new Chart(canvasRef.current, {
+                    type: 'line',
+                    data: {
+                        labels,
+                        datasets: [
+                            {
+                                label: 'Planned Value (PV)', data: pvData, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.08)',
+                                borderWidth: 2.5, pointRadius: 3, pointHoverRadius: 5, fill: true, tension: 0.3
+                            },
+                            {
+                                label: 'Earned Value (EV)', data: evData, borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,0.08)',
+                                borderWidth: 2.5, pointRadius: 3, pointHoverRadius: 5, fill: true, tension: 0.3
+                            },
+                            {
+                                label: 'Actual Cost (AC)', data: acData, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.08)',
+                                borderWidth: 2.5, pointRadius: 3, pointHoverRadius: 5, fill: true, tension: 0.3
+                            },
+                        ],
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: {
+                            legend: { position: 'top', labels: { usePointStyle: true, padding: 16, font: { size: 12 }, color: textMuted } },
+                            tooltip: {
+                                backgroundColor: bgCard, titleColor: textMuted, bodyColor: textMuted, borderColor: borderSec, borderWidth: 1,
+                                padding: 12, cornerRadius: 8, usePointStyle: true,
+                                callbacks: { label: ctx => ` ${ctx.dataset.label}: ${evm.sym}${(ctx.parsed.y || 0).toLocaleString()}` }
+                            },
+                        },
+                        scales: {
+                            x: { grid: { color: borderSec }, ticks: { color: textMuted, font: { size: 11 }, maxRotation: 45 } },
+                            y: {
+                                grid: { color: borderSec }, ticks: {
+                                    color: textMuted, font: { size: 11 },
+                                    callback: v => fmt(v, evm.sym)
+                                }, beginAtZero: true
+                            },
+                        },
+                    },
+                });
+
+                return () => { if (chartRef.current) chartRef.current.destroy(); };
+            }, [evm]);
+
+            return <canvas ref={canvasRef} />;
+        }
+
+        // ============================================
+        // MAIN APP
+        // ============================================
+        function App() {
+            const [theme, setTheme] = useState(localStorage.getItem('coffeecup-theme') || 'blueprint');
+            const [lastRefresh, setLastRefresh] = useState(Date.now());
+
+            // Apply theme
+            useEffect(() => {
+                document.documentElement.setAttribute('data-theme', theme);
+                localStorage.setItem('coffeecup-theme', theme);
+            }, [theme]);
+
+            // On mount: check shared theme
+            useEffect(() => {
+                const shared = localStorage.getItem('coffeecup-theme');
+                if (shared && shared !== theme) setTheme(shared);
+            }, []);
+
+            // Load data
+            const costData = useMemo(() => loadCostData(), [lastRefresh]);
+            const ganttData = useMemo(() => loadGanttData(), [lastRefresh]);
+            const evm = useMemo(() => calcEVM(costData), [costData]);
+            const schedule = useMemo(() => calcScheduleMetrics(ganttData), [ganttData]);
+
+            const refresh = () => setLastRefresh(Date.now());
+
+            const sym = evm?.sym || costData?.meta?.currencySymbol || '£';
+            const hasData = evm && evm.BAC > 0;
+            const status = hasData ? statusColor(evm.CPI, evm.SPI) : 'blue';
+
+            // Save minimal EVM state for PMPlan integration
+            useEffect(() => {
+                if (evm) {
+                    localStorage.setItem('evm-project', JSON.stringify({
+                        ...evm,
+                        criticalPathLength: schedule?.criticalPathLength || 0,
+                        criticalActivities: schedule?.criticalActivities?.length || 0,
+                        scheduleElapsed: schedule?.elapsed || 0,
+                        schedulePct: schedule?.schedulePct || 0,
+                        lastUpdated: new Date().toISOString()
+                    }));
+                }
+            }, [evm, schedule]);
+
+            return (
+                <div className="min-h-screen p-6 md:p-8">
+                    <div className="max-w-7xl mx-auto">
+
+                        {/* Header */}
+                        <div className="app-header no-print animate-in">
+                            <div className="app-header-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="4,20 10,14 14,16 20,8" /><polyline points="14,8 20,8 20,14" />
+                                </svg>
+                            </div>
+                            <div>
+                                <div className="app-header-title">EVM Dashboard</div>
+                                <div className="app-header-sub">Earned Value Management — Project Performance</div>
+                            </div>
+                            <div className="app-header-spacer" />
+
+                            <div className="flex items-center gap-3 no-print">
+                                <button className="btn btn-secondary" onClick={refresh} title="Refresh data from Cost Tracker & Gantt">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10" /><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" /></svg>
+                                    Refresh
+                                </button>
+                                <div className="flex items-center gap-2">
+                                    <label style={{ fontSize: 12, color: 'var(--text-muted)' }}>Theme</label>
+                                    <select className="select-refined" value={theme} onChange={e => setTheme(e.target.value)} style={{ width: 140 }}>
+                                        {THEMES.map(t => <option key={t} value={t}>{THEME_LABELS[t]}</option>)}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        {!hasData ? (
+                            /* ============ EMPTY STATE ============ */
+                            <div className="card empty-banner animate-in" style={{ animationDelay: '0.1s' }}>
+                                <div className="empty-banner-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-faint)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <polyline points="4,20 10,14 14,16 20,8" /><polyline points="14,8 20,8 20,14" />
+                                    </svg>
+                                </div>
+                                <p style={{ fontSize: 15, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 4 }}>No EVM Data Available</p>
+                                <p style={{ fontSize: 13, maxWidth: 400, margin: '0 auto', lineHeight: 1.6 }}>
+                                    Open the <strong>Cost Tracker</strong> to add budget items, transactions, and time-phased data.
+                                    Open the <strong>Gantt Chart</strong> to build your schedule. Data will appear here automatically.
+                                </p>
+                            </div>
+                        ) : (
+                            <>
+                                {/* ============ STATUS BANNER ============ */}
+                                <div className="card p-4 mb-6 animate-in" style={{ animationDelay: '0.05s', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                                    <span className={`badge badge-${status}`}>
+                                        {status === 'green' ? '● On Track' : status === 'amber' ? '● At Risk' : '● Over Budget / Behind'}
+                                    </span>
+                                    <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                                        {evm.pctComplete.toFixed(1)}% earned • {evm.pctSpent.toFixed(1)}% spent
+                                    </span>
+                                    {schedule && (
+                                        <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                                            • Day {schedule.elapsed} of {schedule.criticalPathLength} ({schedule.schedulePct.toFixed(0)}% elapsed)
+                                        </span>
+                                    )}
+                                    <div style={{ flex: 1 }} />
+                                    <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>
+                                        Data from: {costData?.meta?.name || 'Cost Tracker'}
+                                    </span>
+                                </div>
+
+                                {/* ============ KPI CARDS ============ */}
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                                    {[
+                                        { label: 'Budget at Completion', value: fmt(evm.BAC, sym), sub: 'BAC — Total planned budget', icon: '📊', color: 'var(--info)' },
+                                        { label: 'Planned Value', value: fmt(evm.PV, sym), sub: 'PV — Value planned to date', icon: '📅', color: '#3b82f6' },
+                                        { label: 'Earned Value', value: fmt(evm.EV, sym), sub: 'EV — Value of work done', icon: '✅', color: 'var(--success)' },
+                                        { label: 'Actual Cost', value: fmt(evm.AC, sym), sub: 'AC — Amount spent to date', icon: '💷', color: 'var(--danger)' },
+                                    ].map((kpi, i) => (
+                                        <div key={i} className="card kpi-card animate-in" style={{ animationDelay: `${0.1 + i * 0.05}s` }}>
+                                            <div className="kpi-label">{kpi.label}</div>
+                                            <div className="kpi-value">{kpi.value}</div>
+                                            <div className="kpi-sub">{kpi.sub}</div>
+                                            <div className="kpi-icon" style={{ background: kpi.color, fontSize: 16 }}>{kpi.icon}</div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* ============ PERFORMANCE INDICES ============ */}
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                                    <div className="card p-6 flex items-center justify-around animate-in" style={{ animationDelay: '0.3s' }}>
+                                        <Gauge value={evm.CPI} label="CPI" />
+                                        <Gauge value={evm.SPI} label="SPI" />
+                                    </div>
+
+                                    {/* Variance Cards */}
+                                    <div className="card p-5 animate-in" style={{ animationDelay: '0.35s' }}>
+                                        <div className="section-title" style={{ fontSize: 14 }}>
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20V10" /><path d="M18 20V4" /><path d="M6 20v-4" /></svg>
+                                            Variance Analysis
+                                        </div>
+                                        <div style={{ display: 'grid', gap: 12 }}>
+                                            {[
+                                                { label: 'Cost Variance (CV)', val: evm.CV, desc: 'EV − AC' },
+                                                { label: 'Schedule Variance (SV)', val: evm.SV, desc: 'EV − PV' },
+                                                { label: 'Variance at Completion', val: evm.VAC, desc: 'BAC − EAC' },
+                                            ].map((v, i) => (
+                                                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                    <div>
+                                                        <div style={{ fontSize: 12, fontWeight: 500 - 900, color: 'var(--text-secondary)' }}>{v.label}</div>
+                                                        <div style={{ fontSize: 10, color: 'var(--text-faint)' }}>{v.desc}</div>
+                                                    </div>
+                                                    <div className="font-mono" style={{ fontSize: 15, fontWeight: 700, color: varianceColor(v.val) }}>
+                                                        {v.val >= 0 ? '+' : ''}{fmt(v.val, sym)}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Forecasting */}
+                                    <div className="card p-5 animate-in" style={{ animationDelay: '0.4s' }}>
+                                        <div className="section-title" style={{ fontSize: 14 }}>
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="4,20 10,14 14,16 20,8" /><polyline points="14,8 20,8 20,14" /></svg>
+                                            Forecasts
+                                        </div>
+                                        <div style={{ display: 'grid', gap: 12 }}>
+                                            {[
+                                                { label: 'Estimate at Completion', val: fmt(evm.EAC, sym), desc: 'EAC = BAC ÷ CPI', color: varianceColor(evm.BAC - evm.EAC) },
+                                                { label: 'Estimate to Complete', val: fmt(evm.ETC, sym), desc: 'ETC = EAC − AC', color: 'var(--text-primary)' },
+                                                { label: 'To-Complete Performance', val: fmtIdx(evm.TCPI), desc: 'TCPI — required CPI', color: indexColor(1 / (evm.TCPI || 1)) },
+                                            ].map((v, i) => (
+                                                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                    <div>
+                                                        <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)' }}>{v.label}</div>
+                                                        <div style={{ fontSize: 10, color: 'var(--text-faint)' }}>{v.desc}</div>
+                                                    </div>
+                                                    <div className="font-mono" style={{ fontSize: 15, fontWeight: 700, color: v.color }}>
+                                                        {v.val}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* ============ S-CURVE ============ */}
+                                {evm.periods && evm.periods.length > 0 && (
+                                    <div className="card p-5 mb-6 animate-in" style={{ animationDelay: '0.45s' }}>
+                                        <div className="section-title">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 3v18h18" /><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3" /></svg>
+                                            S-Curve — Cumulative Performance
+                                        </div>
+                                        <div style={{ height: 320, position: 'relative' }}>
+                                            <SCurveChart evm={evm} />
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* ============ SCHEDULE + CRITICAL PATH ============ */}
+                                {schedule && (
+                                    <div className="card p-5 mb-6 animate-in" style={{ animationDelay: '0.5s' }}>
+                                        <div className="section-title">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="4" rx="1" /><rect x="3" y="10" width="12" height="4" rx="1" /><rect x="3" y="16" width="15" height="4" rx="1" /></svg>
+                                            Schedule Overview
+                                        </div>
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                            <div>
+                                                <div className="kpi-label">Total Activities</div>
+                                                <div className="font-mono" style={{ fontSize: 20, fontWeight: 700 }}>{schedule.totalActivities}</div>
+                                            </div>
+                                            <div>
+                                                <div className="kpi-label">Critical Path Length</div>
+                                                <div className="font-mono" style={{ fontSize: 20, fontWeight: 700, color: 'var(--danger)' }}>{schedule.criticalPathLength} days</div>
+                                            </div>
+                                            <div>
+                                                <div className="kpi-label">Critical Activities</div>
+                                                <div className="font-mono" style={{ fontSize: 20, fontWeight: 700, color: 'var(--danger)' }}>{schedule.criticalActivities.length}</div>
+                                            </div>
+                                            <div>
+                                                <div className="kpi-label">Elapsed / Remaining</div>
+                                                <div className="font-mono" style={{ fontSize: 20, fontWeight: 700 }}>
+                                                    {schedule.elapsed}d <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 400 }}>/ {Math.max(0, schedule.criticalPathLength - schedule.elapsed)}d</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {/* Progress bar */}
+                                        <div style={{ marginTop: 16, height: 8, background: 'var(--bg-secondary)', borderRadius: 4, overflow: 'hidden' }}>
+                                            <div style={{
+                                                width: `${Math.min(100, schedule.schedulePct)}%`, height: '100%',
+                                                background: schedule.schedulePct > 100 ? 'var(--danger)' : 'var(--success)',
+                                                borderRadius: 4, transition: 'width 0.5s ease'
+                                            }} />
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* ============ METRICS TABLE ============ */}
+                                <div className="card p-5 animate-in" style={{ animationDelay: '0.55s' }}>
+                                    <div className="section-title">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" /><line x1="3" y1="9" x2="21" y2="9" /><line x1="3" y1="15" x2="21" y2="15" /><line x1="9" y1="3" x2="9" y2="21" /></svg>
+                                        Full Metrics Table
+                                    </div>
+                                    <div style={{ overflowX: 'auto' }}>
+                                        <table className="data-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Metric</th>
+                                                    <th>Acronym</th>
+                                                    <th>Formula</th>
+                                                    <th style={{ textAlign: 'right' }}>Value</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {[
+                                                    { name: 'Budget at Completion', acr: 'BAC', formula: 'Σ planned costs', val: fmtFull(evm.BAC, sym), status: '' },
+                                                    { name: 'Planned Value', acr: 'PV', formula: 'Σ planned (to date)', val: fmtFull(evm.PV, sym), status: '' },
+                                                    { name: 'Earned Value', acr: 'EV', formula: 'Σ (%complete × cost)', val: fmtFull(evm.EV, sym), status: '' },
+                                                    { name: 'Actual Cost', acr: 'AC', formula: 'Σ transactions', val: fmtFull(evm.AC, sym), status: '' },
+                                                    { name: 'Cost Variance', acr: 'CV', formula: 'EV − AC', val: fmtFull(evm.CV, sym), status: evm.CV >= 0 ? 'green' : 'red' },
+                                                    { name: 'Schedule Variance', acr: 'SV', formula: 'EV − PV', val: fmtFull(evm.SV, sym), status: evm.SV >= 0 ? 'green' : 'red' },
+                                                    { name: 'Cost Performance Index', acr: 'CPI', formula: 'EV ÷ AC', val: fmtIdx(evm.CPI), status: evm.CPI >= 1 ? 'green' : evm.CPI >= 0.9 ? 'amber' : 'red' },
+                                                    { name: 'Schedule Performance Index', acr: 'SPI', formula: 'EV ÷ PV', val: fmtIdx(evm.SPI), status: evm.SPI >= 1 ? 'green' : evm.SPI >= 0.9 ? 'amber' : 'red' },
+                                                    { name: 'Estimate at Completion', acr: 'EAC', formula: 'BAC ÷ CPI', val: fmtFull(evm.EAC, sym), status: evm.EAC <= evm.BAC ? 'green' : 'red' },
+                                                    { name: 'Estimate to Complete', acr: 'ETC', formula: 'EAC − AC', val: fmtFull(evm.ETC, sym), status: '' },
+                                                    { name: 'Variance at Completion', acr: 'VAC', formula: 'BAC − EAC', val: fmtFull(evm.VAC, sym), status: evm.VAC >= 0 ? 'green' : 'red' },
+                                                    { name: 'To-Complete Performance Index', acr: 'TCPI', formula: '(BAC−EV) ÷ (BAC−AC)', val: fmtIdx(evm.TCPI), status: evm.TCPI <= 1 ? 'green' : evm.TCPI <= 1.1 ? 'amber' : 'red' },
+                                                ].map((m, i) => (
+                                                    <tr key={i}>
+                                                        <td className="metric-name">{m.name}</td>
+                                                        <td><span className="badge badge-blue">{m.acr}</span></td>
+                                                        <td style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{m.formula}</td>
+                                                        <td className="metric-value" style={{ textAlign: 'right' }}>{m.val}</td>
+                                                        <td>
+                                                            {m.status && (
+                                                                <span className={`badge badge-${m.status}`}>
+                                                                    {m.status === 'green' ? 'Good' : m.status === 'amber' ? 'Watch' : 'Alert'}
+                                                                </span>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                {/* Footer */}
+                                <div className="mt-8 pt-6 border-t text-center text-xs no-print animate-in" style={{ borderColor: 'var(--border-primary)', color: 'var(--text-faint)', animationDelay: '0.6s' }}>
+                                    <p>Data sourced from Cost Tracker and Gantt Chart via localStorage • Click Refresh to update</p>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+
+</html>

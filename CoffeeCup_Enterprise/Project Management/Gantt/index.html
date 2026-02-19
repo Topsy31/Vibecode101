@@ -1,0 +1,1808 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="blueprint">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CoffeeCup — Gantt Chart</title>
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%2364748b'/%3E%3Cstop offset='100%25' stop-color='%23475569'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='6' fill='url(%23g)'/%3E%3Crect x='6' y='8' width='14' height='3' rx='1' fill='white'/%3E%3Crect x='10' y='13' width='10' height='3' rx='1' fill='white'/%3E%3Crect x='13' y='18' width='8' height='3' rx='1' fill='white'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="fonts.css">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useRef, useEffect } = React;
+
+    // Theme configurations
+    const THEMES = {
+      blueprint: {
+        name: 'Architectural Blueprint',
+        description: 'Professional and refined'
+      },
+      fun: {
+        name: 'Fun & Vibrant',
+        description: 'Playful and energetic'
+      },
+      traditional: {
+        name: 'Traditional',
+        description: 'Classic and familiar'
+      },
+      dark: {
+        name: 'Dark Mode',
+        description: 'Easy on the eyes'
+      }
+    };
+
+    function GanttChartEditor() {
+      // Migration function for backwards compatibility (defined early for loadSaved)
+      const migrateActivitiesOnLoad = (activities) => {
+        if (!activities || !Array.isArray(activities)) return [];
+
+        // Check if already migrated
+        const needsMigration = activities.some(a => !Array.isArray(a.dependencies));
+        if (!needsMigration) return activities;
+
+        // First pass: assign IDs to all activities
+        const withIds = activities.map((a) => ({
+          ...a,
+          id: a.id || crypto.randomUUID()
+        }));
+
+        // Second pass: migrate dependencies with correct IDs
+        return withIds.map((activity, index) => {
+          if (Array.isArray(activity.dependencies)) {
+            return activity;
+          }
+
+          const newActivity = {
+            ...activity,
+            dependencies: []
+          };
+
+          if (index > 0) {
+            newActivity.dependencies = [{
+              predecessorId: withIds[index - 1].id,
+              type: activity.dependency || 'FS',
+              lag: 0
+            }];
+          }
+
+          delete newActivity.dependency;
+          return newActivity;
+        });
+      };
+
+      const loadSaved = () => {
+        try {
+          const saved = localStorage.getItem('gantt-project');
+          if (saved) {
+            const data = JSON.parse(saved);
+            if (data.activities) {
+              data.activities = migrateActivitiesOnLoad(data.activities);
+            }
+            return data;
+          }
+        } catch (e) { }
+        return null;
+      };
+      const saved = loadSaved();
+
+      const [activities, setActivities] = useState(saved?.activities || []);
+      const [name, setName] = useState('');
+      const [duration, setDuration] = useState('');
+      const [startDate, setStartDate] = useState(saved?.startDate || new Date().toISOString().split('T')[0]);
+      const [draggedIndex, setDraggedIndex] = useState(null);
+      const [dragOverIndex, setDragOverIndex] = useState(null);
+      const [editingId, setEditingId] = useState(null);
+      const [editForm, setEditForm] = useState({ name: '', duration: '' });
+      const [dependencyModalOpen, setDependencyModalOpen] = useState(false);
+      const [dependencyModalFor, setDependencyModalFor] = useState(null);
+      const [dependencyForm, setDependencyForm] = useState({ predecessorId: '', type: 'FS', lag: 0 });
+      const [editingDependency, setEditingDependency] = useState(null); // predecessorId when editing existing
+      const [showArrows, setShowArrows] = useState(true);
+      const [showCriticalPath, setShowCriticalPath] = useState(true);
+      const [unitWidth, setUnitWidth] = useState(36);
+      const [timeScale, setTimeScale] = useState('days');
+      const [theme, setTheme] = useState(localStorage.getItem('coffeecup-theme') || saved?.theme || 'blueprint');
+      const [printMode, setPrintMode] = useState('chart'); // 'chart' or 'table'
+
+      const timelineContainerRef = useRef(null);
+      const fileInputRef = useRef(null);
+
+      // Apply theme to document and sync shared key
+      useEffect(() => {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('coffeecup-theme', theme);
+      }, [theme]);
+
+      // Auto-save to localStorage (includes computed critical path for EVM Dashboard)
+      useEffect(() => {
+        const criticalPathIds = [...criticalSet];
+        const criticalPathLength = activities.length > 0 ? totalDuration : 0;
+        localStorage.setItem('gantt-project', JSON.stringify({
+          startDate, activities, theme,
+          criticalPath: {
+            activityIds: criticalPathIds,
+            length: criticalPathLength,
+            float: Object.fromEntries(activities.map(a => [a.id, floatMap[a.id] ?? 0]))
+          }
+        }));
+      }, [activities, startDate, theme, criticalSet, floatMap]);
+
+      const saveToFile = () => {
+        const data = {
+          startDate,
+          activities: activities.map(({ id, ...rest }) => rest)
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'gantt-project.json';
+        a.click();
+        URL.revokeObjectURL(url);
+      };
+
+      const loadFromFile = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const data = JSON.parse(event.target.result);
+            if (data.startDate) setStartDate(data.startDate);
+            if (data.activities && Array.isArray(data.activities)) {
+              setActivities(migrateActivitiesOnLoad(data.activities));
+            }
+          } catch (err) {
+            alert('Invalid JSON file');
+          }
+        };
+        reader.readAsText(file);
+        e.target.value = '';
+      };
+
+      const clearAll = () => {
+        if (activities.length === 0) return;
+        if (confirm('Are you sure you want to clear all activities? This cannot be undone.')) {
+          setActivities([]);
+          setStartDate(new Date().toISOString().split('T')[0]);
+        }
+      };
+
+      // Break long words (over 16 chars) to prevent layout issues
+      const breakLongWords = (text) => {
+        return text.split(' ').map(word => {
+          if (word.length <= 16) return word;
+          return word.match(/.{1,16}/g).join(' ');
+        }).join(' ');
+      };
+
+      const addActivity = () => {
+        if (name.trim() && duration >= 0 && duration !== '') {
+          setActivities([...activities, {
+            id: crypto.randomUUID(),
+            name: breakLongWords(name.trim().slice(0, 100)),
+            duration: parseInt(duration),
+            dependencies: []
+          }]);
+          setName('');
+          setDuration('');
+        }
+      };
+
+      const removeActivity = (id) => {
+        setActivities(activities.filter(a => a.id !== id));
+        if (editingId === id) setEditingId(null);
+      };
+
+      const startEditing = (activity) => {
+        setEditingId(activity.id);
+        setEditForm({
+          name: activity.name,
+          duration: activity.duration.toString()
+        });
+      };
+
+      const saveEdit = () => {
+        if (editForm.name.trim() && editForm.duration >= 0 && editForm.duration !== '') {
+          setActivities(activities.map(a =>
+            a.id === editingId
+              ? { ...a, name: breakLongWords(editForm.name.trim().slice(0, 100)), duration: parseInt(editForm.duration) }
+              : a
+          ));
+          setEditingId(null);
+        }
+      };
+
+      const cancelEdit = () => {
+        setEditingId(null);
+      };
+
+      // Dependency management functions
+      const openDependencyModal = (activityId, existingDep = null) => {
+        setDependencyModalFor(activityId);
+        if (existingDep) {
+          // Editing existing dependency
+          setEditingDependency(existingDep.predecessorId);
+          setDependencyForm({
+            predecessorId: existingDep.predecessorId,
+            type: existingDep.type,
+            lag: existingDep.lag || 0
+          });
+        } else {
+          // Adding new dependency
+          setEditingDependency(null);
+          setDependencyForm({ predecessorId: '', type: 'FS', lag: 0 });
+        }
+        setDependencyModalOpen(true);
+      };
+
+      const closeDependencyModal = () => {
+        setDependencyModalOpen(false);
+        setDependencyModalFor(null);
+        setEditingDependency(null);
+      };
+
+      const saveDependency = () => {
+        if (!dependencyForm.predecessorId || !dependencyModalFor) return;
+
+        const isEditing = editingDependency !== null;
+
+        // Check for cycles (skip if editing and predecessor unchanged)
+        if (!isEditing || editingDependency !== dependencyForm.predecessorId) {
+          if (wouldCreateCycle(dependencyModalFor, dependencyForm.predecessorId, activities)) {
+            alert('Cannot add this dependency - it would create a circular reference.');
+            return;
+          }
+        }
+
+        // Check for duplicate (skip if editing the same predecessor)
+        if (!isEditing || editingDependency !== dependencyForm.predecessorId) {
+          const activity = activities.find(a => a.id === dependencyModalFor);
+          if (activity?.dependencies?.some(d => d.predecessorId === dependencyForm.predecessorId)) {
+            alert('This dependency already exists.');
+            return;
+          }
+        }
+
+        setActivities(activities.map(a => {
+          if (a.id === dependencyModalFor) {
+            if (isEditing) {
+              // Update existing dependency
+              return {
+                ...a,
+                dependencies: (a.dependencies || []).map(d =>
+                  d.predecessorId === editingDependency
+                    ? {
+                      predecessorId: dependencyForm.predecessorId,
+                      type: dependencyForm.type,
+                      lag: parseInt(dependencyForm.lag) || 0
+                    }
+                    : d
+                )
+              };
+            } else {
+              // Add new dependency
+              return {
+                ...a,
+                dependencies: [...(a.dependencies || []), {
+                  predecessorId: dependencyForm.predecessorId,
+                  type: dependencyForm.type,
+                  lag: parseInt(dependencyForm.lag) || 0
+                }]
+              };
+            }
+          }
+          return a;
+        }));
+
+        closeDependencyModal();
+      };
+
+      const removeDependency = (activityId, predecessorId) => {
+        setActivities(activities.map(a => {
+          if (a.id === activityId) {
+            return {
+              ...a,
+              dependencies: (a.dependencies || []).filter(d => d.predecessorId !== predecessorId)
+            };
+          }
+          return a;
+        }));
+      };
+
+      // Get display label for an activity (row number and name)
+      const getActivityLabel = (activityId) => {
+        const index = activities.findIndex(a => a.id === activityId);
+        if (index === -1) return '?';
+        const activity = activities[index];
+        return `#${index + 1}`;
+      };
+
+      const getActivityNameById = (activityId) => {
+        const activity = activities.find(a => a.id === activityId);
+        return activity?.name || 'Unknown';
+      };
+
+      const handleDragStart = (e, index) => {
+        if (editingId) return;
+        setDraggedIndex(index);
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/html', e.target.outerHTML);
+      };
+
+      const handleDragOver = (e, index) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        if (index !== draggedIndex) {
+          setDragOverIndex(index);
+        }
+      };
+
+      const handleDragLeave = () => {
+        setDragOverIndex(null);
+      };
+
+      const handleDrop = (e, dropIndex) => {
+        e.preventDefault();
+        if (draggedIndex === null || draggedIndex === dropIndex) {
+          setDraggedIndex(null);
+          setDragOverIndex(null);
+          return;
+        }
+
+        const newActivities = [...activities];
+        const [draggedItem] = newActivities.splice(draggedIndex, 1);
+        newActivities.splice(dropIndex, 0, draggedItem);
+
+        setActivities(newActivities);
+        setDraggedIndex(null);
+        setDragOverIndex(null);
+      };
+
+      const handleDragEnd = () => {
+        setDraggedIndex(null);
+        setDragOverIndex(null);
+      };
+
+      const addDays = (date, days) => {
+        const result = new Date(date);
+        result.setDate(result.getDate() + days);
+        return result;
+      };
+
+      const formatDate = (date, format = 'short') => {
+        if (format === 'short') {
+          return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+        }
+        if (format === 'withYear') {
+          return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+        return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+      };
+
+      const projectStartDate = new Date(startDate);
+
+      // Detect circular dependencies using DFS
+      const detectCycle = (activities) => {
+        const visited = new Set();
+        const recStack = new Set();
+        const activityMap = new Map(activities.map(a => [a.id, a]));
+
+        const dfs = (id) => {
+          visited.add(id);
+          recStack.add(id);
+
+          const activity = activityMap.get(id);
+          if (activity && activity.dependencies) {
+            for (const dep of activity.dependencies) {
+              if (!visited.has(dep.predecessorId)) {
+                if (dfs(dep.predecessorId)) return true;
+              } else if (recStack.has(dep.predecessorId)) {
+                return true; // Cycle detected
+              }
+            }
+          }
+
+          recStack.delete(id);
+          return false;
+        };
+
+        for (const activity of activities) {
+          if (!visited.has(activity.id)) {
+            if (dfs(activity.id)) return true;
+          }
+        }
+        return false;
+      };
+
+      // Topological sort for dependency order processing
+      const topologicalSort = (activities) => {
+        const activityMap = new Map(activities.map(a => [a.id, a]));
+        const visited = new Set();
+        const result = [];
+
+        const visit = (activity) => {
+          if (visited.has(activity.id)) return;
+          visited.add(activity.id);
+
+          // Visit all predecessors first
+          if (activity.dependencies) {
+            for (const dep of activity.dependencies) {
+              const pred = activityMap.get(dep.predecessorId);
+              if (pred) visit(pred);
+            }
+          }
+
+          result.push(activity);
+        };
+
+        for (const activity of activities) {
+          visit(activity);
+        }
+
+        return result;
+      };
+
+      // Check if adding a dependency would create a cycle
+      const wouldCreateCycle = (activityId, newPredecessorId, activities) => {
+        // Temporarily add the dependency and check for cycles
+        const testActivities = activities.map(a => {
+          if (a.id === activityId) {
+            return {
+              ...a,
+              dependencies: [...(a.dependencies || []), { predecessorId: newPredecessorId, type: 'FS', lag: 0 }]
+            };
+          }
+          return a;
+        });
+        return detectCycle(testActivities);
+      };
+
+      const calculateStartTimes = () => {
+        if (activities.length === 0) return [];
+
+        const startTimesMap = {};
+        const activityMap = new Map(activities.map(a => [a.id, a]));
+
+        // Process in topological order
+        const sorted = topologicalSort(activities);
+
+        for (const activity of sorted) {
+          if (!activity.dependencies || activity.dependencies.length === 0) {
+            // No dependencies - starts at day 0
+            startTimesMap[activity.id] = 0;
+          } else {
+            let maxStart = 0;
+
+            for (const dep of activity.dependencies) {
+              const pred = activityMap.get(dep.predecessorId);
+              if (!pred) continue; // Skip invalid references
+
+              const predStart = startTimesMap[dep.predecessorId] ?? 0;
+              const predEnd = predStart + pred.duration;
+              const lag = dep.lag || 0;
+
+              let constrainedStart;
+              switch (dep.type) {
+                case 'FS': // Finish-to-Start: start when predecessor finishes
+                  constrainedStart = predEnd + lag;
+                  break;
+                case 'SS': // Start-to-Start: start when predecessor starts
+                  constrainedStart = predStart + lag;
+                  break;
+                case 'FF': // Finish-to-Finish: finish when predecessor finishes
+                  constrainedStart = predEnd - activity.duration + lag;
+                  break;
+                case 'SF': // Start-to-Finish: finish when predecessor starts
+                  constrainedStart = predStart - activity.duration + lag;
+                  break;
+                default:
+                  constrainedStart = predEnd + lag; // Default to FS
+              }
+
+              maxStart = Math.max(maxStart, constrainedStart);
+            }
+
+            // Ensure start is never negative
+            startTimesMap[activity.id] = Math.max(0, maxStart);
+          }
+        }
+
+        // Return array in display order for compatibility with existing rendering
+        return activities.map(a => startTimesMap[a.id] ?? 0);
+      };
+
+      const startTimes = calculateStartTimes();
+
+      const calculateTotalDuration = () => {
+        if (activities.length === 0) return 0;
+        let maxEnd = 0;
+        for (let i = 0; i < activities.length; i++) {
+          const end = startTimes[i] + activities[i].duration;
+          if (end > maxEnd) maxEnd = end;
+        }
+        return maxEnd;
+      };
+
+      const totalDuration = calculateTotalDuration();
+
+      // ============================================
+      // CRITICAL PATH — Backward Pass & Float
+      // ============================================
+      const calculateCriticalPath = () => {
+        if (activities.length === 0) return { criticalSet: new Set(), floatMap: {} };
+
+        const activityMap = new Map(activities.map(a => [a.id, a]));
+
+        // Early start map (from forward pass)
+        const esMap = {};
+        activities.forEach((a, i) => { esMap[a.id] = startTimes[i]; });
+
+        // Early finish
+        const efMap = {};
+        activities.forEach(a => { efMap[a.id] = esMap[a.id] + a.duration; });
+
+        // Build successors map
+        const successors = {};
+        activities.forEach(a => { successors[a.id] = []; });
+        activities.forEach(a => {
+          (a.dependencies || []).forEach(dep => {
+            if (successors[dep.predecessorId]) {
+              successors[dep.predecessorId].push({ activityId: a.id, type: dep.type, lag: dep.lag || 0 });
+            }
+          });
+        });
+
+        // Late finish — initialise to project end
+        const lfMap = {};
+        activities.forEach(a => { lfMap[a.id] = totalDuration; });
+
+        // Backward pass in reverse topological order
+        const sorted = topologicalSort(activities);
+        for (let i = sorted.length - 1; i >= 0; i--) {
+          const activity = sorted[i];
+          const succs = successors[activity.id];
+          if (succs.length > 0) {
+            let minLF = Infinity;
+            for (const succ of succs) {
+              const succActivity = activityMap.get(succ.activityId);
+              if (!succActivity) continue;
+              let constrainedLF;
+              switch (succ.type) {
+                case 'FS': constrainedLF = esMap[succ.activityId] - succ.lag; break;
+                case 'SS': constrainedLF = esMap[succ.activityId] - succ.lag + activity.duration; break;
+                case 'FF': constrainedLF = lfMap[succ.activityId] - succ.lag; break;
+                case 'SF': constrainedLF = lfMap[succ.activityId] - succ.lag + activity.duration; break;
+                default: constrainedLF = esMap[succ.activityId] - succ.lag; break;
+              }
+              minLF = Math.min(minLF, constrainedLF);
+            }
+            lfMap[activity.id] = minLF;
+          }
+        }
+
+        // Late start & total float
+        const lsMap = {};
+        const floatMap = {};
+        const criticalSet = new Set();
+        activities.forEach(a => {
+          lsMap[a.id] = lfMap[a.id] - a.duration;
+          floatMap[a.id] = lsMap[a.id] - esMap[a.id];
+          if (Math.abs(floatMap[a.id]) < 0.001) {
+            criticalSet.add(a.id);
+          }
+        });
+
+        return { criticalSet, floatMap };
+      };
+
+      const { criticalSet, floatMap } = calculateCriticalPath();
+
+      const generateTimelineUnits = () => {
+        if (totalDuration === 0) return { units: [], totalUnits: 14 };
+
+        const endDate = addDays(projectStartDate, totalDuration);
+        const units = [];
+
+        if (timeScale === 'days') {
+          const numDays = Math.max(totalDuration, 14);
+          for (let i = 0; i < numDays; i++) {
+            const date = addDays(projectStartDate, i);
+            units.push({
+              date,
+              label: date.getDate().toString(),
+              subLabel: date.toLocaleDateString('en-GB', { month: 'short' }),
+              isWeekend: date.getDay() === 0 || date.getDay() === 6,
+              isFirstOfPeriod: date.getDate() === 1
+            });
+          }
+          return { units, totalUnits: numDays };
+        }
+
+        if (timeScale === 'weeks') {
+          const numWeeks = Math.max(Math.ceil(totalDuration / 7), 4);
+          for (let i = 0; i < numWeeks; i++) {
+            const weekStart = addDays(projectStartDate, i * 7);
+            units.push({
+              date: weekStart,
+              label: `W${i + 1}`,
+              subLabel: `${weekStart.getDate()} ${weekStart.toLocaleDateString('en-GB', { month: 'short' })}`,
+              isWeekend: false,
+              isFirstOfPeriod: weekStart.getMonth() !== addDays(weekStart, -7).getMonth()
+            });
+          }
+          return { units, totalUnits: numWeeks, daysPerUnit: 7 };
+        }
+
+        if (timeScale === 'months') {
+          const startYear = projectStartDate.getFullYear();
+          const startMonth = projectStartDate.getMonth();
+          const endYear = endDate.getFullYear();
+          const endMonth = endDate.getMonth();
+
+          const numMonths = Math.max((endYear - startYear) * 12 + (endMonth - startMonth) + 1, 3);
+
+          for (let i = 0; i < numMonths; i++) {
+            const monthDate = new Date(startYear, startMonth + i, 1);
+            const daysInMonth = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0).getDate();
+            units.push({
+              date: monthDate,
+              label: monthDate.toLocaleDateString('en-GB', { month: 'short' }),
+              subLabel: monthDate.getFullYear().toString(),
+              isWeekend: false,
+              isFirstOfPeriod: monthDate.getMonth() === 0,
+              daysInMonth
+            });
+          }
+          return { units, totalUnits: numMonths, scale: 'months' };
+        }
+
+        return { units: [], totalUnits: 14 };
+      };
+
+      const { units: timelineUnits, totalUnits } = generateTimelineUnits();
+      const timelineWidth = totalUnits * unitWidth;
+
+      const getBarPosition = (startDay, durationDays) => {
+        if (timeScale === 'days') {
+          return {
+            left: startDay * unitWidth + 2,
+            width: Math.max(durationDays * unitWidth - 4, 4)
+          };
+        }
+
+        if (timeScale === 'weeks') {
+          const startWeek = startDay / 7;
+          const durationWeeks = durationDays / 7;
+          return {
+            left: startWeek * unitWidth + 2,
+            width: Math.max(durationWeeks * unitWidth - 4, 4)
+          };
+        }
+
+        if (timeScale === 'months') {
+          const activityStart = addDays(projectStartDate, startDay);
+          const activityEnd = addDays(projectStartDate, startDay + durationDays - 1);
+
+          let leftOffset = 0;
+          let barWidth = 0;
+          let foundStart = false;
+
+          for (let i = 0; i < timelineUnits.length; i++) {
+            const unit = timelineUnits[i];
+            const monthStart = unit.date;
+            const monthEnd = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0);
+            const daysInMonth = unit.daysInMonth;
+
+            if (!foundStart) {
+              if (activityStart <= monthEnd) {
+                foundStart = true;
+                const dayInMonth = activityStart >= monthStart
+                  ? activityStart.getDate() - 1
+                  : 0;
+                leftOffset = i * unitWidth + (dayInMonth / daysInMonth) * unitWidth;
+              }
+            }
+
+            if (foundStart) {
+              if (activityEnd <= monthEnd) {
+                const endDayInMonth = activityEnd >= monthStart
+                  ? activityEnd.getDate()
+                  : 0;
+                const startDayInMonth = activityStart >= monthStart && activityStart <= monthEnd
+                  ? activityStart.getDate() - 1
+                  : 0;
+
+                if (activityStart >= monthStart) {
+                  barWidth = ((endDayInMonth - startDayInMonth) / daysInMonth) * unitWidth;
+                } else {
+                  barWidth += (endDayInMonth / daysInMonth) * unitWidth;
+                }
+                break;
+              } else {
+                if (activityStart >= monthStart && activityStart <= monthEnd) {
+                  const startDayInMonth = activityStart.getDate() - 1;
+                  barWidth += ((daysInMonth - startDayInMonth) / daysInMonth) * unitWidth;
+                } else {
+                  barWidth += unitWidth;
+                }
+              }
+            }
+          }
+
+          return {
+            left: leftOffset + 2,
+            width: Math.max(barWidth - 4, 4)
+          };
+        }
+
+        return { left: 0, width: 0 };
+      };
+
+      // Bar color classes
+      const barColors = ['bar-1', 'bar-2', 'bar-3', 'bar-4', 'bar-5', 'bar-6'];
+
+      // Get CSS variable value for fill colors
+      const getFillColor = (index) => {
+        const colors = {
+          blueprint: ['#64748b', '#84a98c', '#c9a96e', '#c9a9a6', '#94a3b8', '#d4a574'],
+          fun: ['#f472b6', '#a78bfa', '#60a5fa', '#34d399', '#fbbf24', '#fb923c'],
+          traditional: ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#6f42c1', '#fd7e14'],
+          dark: ['#6366f1', '#22c55e', '#f59e0b', '#ec4899', '#06b6d4', '#8b5cf6']
+        };
+        return colors[theme]?.[index % 6] || colors.blueprint[index % 6];
+      };
+
+      const suggestScale = () => {
+        if (totalDuration <= 60) return 'days';
+        if (totalDuration <= 180) return 'weeks';
+        return 'months';
+      };
+
+      const fitToView = () => {
+        if (timelineContainerRef.current && totalUnits > 0) {
+          const containerWidth = timelineContainerRef.current.offsetWidth - 20;
+          const newUnitWidth = Math.max(20, Math.floor(containerWidth / totalUnits));
+          setUnitWidth(Math.min(newUnitWidth, 80));
+        }
+      };
+
+      const handlePrint = () => {
+        window.print();
+      };
+
+      const autoScale = () => {
+        const suggested = suggestScale();
+        setTimeScale(suggested);
+        if (suggested === 'days') setUnitWidth(36);
+        else if (suggested === 'weeks') setUnitWidth(60);
+        else setUnitWidth(80);
+      };
+
+      // Icon components
+      const IconGrip = () => (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" opacity="0.4">
+          <circle cx="8" cy="6" r="2" /><circle cx="16" cy="6" r="2" />
+          <circle cx="8" cy="12" r="2" /><circle cx="16" cy="12" r="2" />
+          <circle cx="8" cy="18" r="2" /><circle cx="16" cy="18" r="2" />
+        </svg>
+      );
+
+      const IconEdit = () => (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+        </svg>
+      );
+
+      const IconCheck = () => (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+      );
+
+      const IconX = () => (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      );
+
+      const IconDownload = () => (
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
+        </svg>
+      );
+
+      const IconUpload = () => (
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" />
+        </svg>
+      );
+
+      const IconPrinter = () => (
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="6 9 6 2 18 2 18 9" /><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><rect width="12" height="8" x="6" y="14" />
+        </svg>
+      );
+
+      const IconTrash = () => (
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+        </svg>
+      );
+
+      const IconPlus = () => (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+      );
+
+      const IconPalette = () => (
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="13.5" cy="6.5" r=".5" /><circle cx="17.5" cy="10.5" r=".5" /><circle cx="8.5" cy="7.5" r=".5" /><circle cx="6.5" cy="12.5" r=".5" />
+          <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.555C21.965 6.012 17.461 2 12 2z" />
+        </svg>
+      );
+
+      // Dependency chip component
+      const DependencyChip = ({ dep, activityId, onRemove, onEdit }) => {
+        const predIndex = activities.findIndex(a => a.id === dep.predecessorId);
+        const predActivity = activities.find(a => a.id === dep.predecessorId);
+        const label = predIndex >= 0 ? `#${predIndex + 1}` : '?';
+        const tagClass = dep.type === 'SS' ? 'tag-ss' : dep.type === 'FF' ? 'tag-ff' : dep.type === 'SF' ? 'tag-sf' : 'tag-fs';
+
+        return (
+          <span
+            className="dependency-chip dependency-chip-editable"
+            title={`${predActivity?.name || 'Unknown'} - Click to edit`}
+            onClick={() => onEdit(activityId, dep)}
+          >
+            <span className={`tag ${tagClass}`}>{dep.type}</span>
+            <span>{label}</span>
+            {dep.lag !== 0 && <span className="text-faint">{dep.lag > 0 ? `+${dep.lag}d` : `${dep.lag}d`}</span>}
+            <span className="dependency-chip-remove" onClick={(e) => { e.stopPropagation(); onRemove(activityId, dep.predecessorId); }}>×</span>
+          </span>
+        );
+      };
+
+      // Dependency Modal (Add or Edit)
+      const DependencyModal = () => {
+        if (!dependencyModalOpen || !dependencyModalFor) return null;
+
+        const isEditing = editingDependency !== null;
+        const currentActivity = activities.find(a => a.id === dependencyModalFor);
+        const currentIndex = activities.findIndex(a => a.id === dependencyModalFor);
+
+        // For editing: include the current predecessor in the list
+        // For adding: filter out existing dependencies
+        const existingPredIds = new Set((currentActivity?.dependencies || []).map(d => d.predecessorId));
+        const availablePredecessors = activities.filter(a => {
+          if (a.id === dependencyModalFor) return false; // Can't depend on self
+          if (isEditing && a.id === editingDependency) return true; // Include current predecessor when editing
+          if (existingPredIds.has(a.id)) return false; // Exclude existing dependencies
+          if (wouldCreateCycle(dependencyModalFor, a.id, activities)) return false; // Exclude cycle-creating options
+          return true;
+        });
+
+        // Get the current predecessor name for edit mode subtitle
+        const editingPredActivity = isEditing ? activities.find(a => a.id === editingDependency) : null;
+
+        return (
+          <div className="modal-overlay" onClick={closeDependencyModal}>
+            <div className="modal" onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <h3 className="modal-title">{isEditing ? 'Edit Dependency' : 'Add Dependency'}</h3>
+                <p className="modal-subtitle">
+                  {isEditing
+                    ? `Editing dependency from "${editingPredActivity?.name || 'Unknown'}" to "${currentActivity?.name}"`
+                    : `Define what must happen before "${currentActivity?.name}" can start`
+                  }
+                </p>
+              </div>
+
+              <div className="modal-body">
+                {/* Predecessor select - disabled when editing (can't change predecessor, only type/lag) */}
+                <div className="modal-field">
+                  <label className="modal-label">Predecessor Activity</label>
+                  <select
+                    className="input-refined w-full"
+                    value={dependencyForm.predecessorId}
+                    onChange={e => setDependencyForm({ ...dependencyForm, predecessorId: e.target.value })}
+                    disabled={isEditing}
+                  >
+                    <option value="">Select an activity...</option>
+                    {availablePredecessors.map((a, i) => {
+                      const idx = activities.findIndex(act => act.id === a.id) + 1;
+                      return (
+                        <option key={a.id} value={a.id}>
+                          #{idx}. {a.name} ({a.duration} days)
+                        </option>
+                      );
+                    })}
+                  </select>
+                  {!isEditing && availablePredecessors.length === 0 && (
+                    <p className="text-faint text-xs mt-2">No available predecessors (all would create circular dependencies)</p>
+                  )}
+                </div>
+
+                {/* Dependency type */}
+                <div className="modal-field">
+                  <label className="modal-label">Relationship Type</label>
+                  <div className="dependency-type-grid">
+                    <label className={`dependency-type-option ${dependencyForm.type === 'FS' ? 'selected' : ''}`}>
+                      <input
+                        type="radio"
+                        name="dep-type"
+                        checked={dependencyForm.type === 'FS'}
+                        onChange={() => setDependencyForm({ ...dependencyForm, type: 'FS' })}
+                      />
+                      <div>
+                        <div className="dependency-type-header"><span className="tag tag-fs">FS</span> Finish-to-Start</div>
+                        <div className="dependency-type-desc">Start when predecessor finishes</div>
+                      </div>
+                    </label>
+                    <label className={`dependency-type-option ${dependencyForm.type === 'SS' ? 'selected' : ''}`}>
+                      <input
+                        type="radio"
+                        name="dep-type"
+                        checked={dependencyForm.type === 'SS'}
+                        onChange={() => setDependencyForm({ ...dependencyForm, type: 'SS' })}
+                      />
+                      <div>
+                        <div className="dependency-type-header"><span className="tag tag-ss">SS</span> Start-to-Start</div>
+                        <div className="dependency-type-desc">Start when predecessor starts</div>
+                      </div>
+                    </label>
+                    <label className={`dependency-type-option ${dependencyForm.type === 'FF' ? 'selected' : ''}`}>
+                      <input
+                        type="radio"
+                        name="dep-type"
+                        checked={dependencyForm.type === 'FF'}
+                        onChange={() => setDependencyForm({ ...dependencyForm, type: 'FF' })}
+                      />
+                      <div>
+                        <div className="dependency-type-header"><span className="tag tag-ff">FF</span> Finish-to-Finish</div>
+                        <div className="dependency-type-desc">Finish when predecessor finishes</div>
+                      </div>
+                    </label>
+                    <label className={`dependency-type-option ${dependencyForm.type === 'SF' ? 'selected' : ''}`}>
+                      <input
+                        type="radio"
+                        name="dep-type"
+                        checked={dependencyForm.type === 'SF'}
+                        onChange={() => setDependencyForm({ ...dependencyForm, type: 'SF' })}
+                      />
+                      <div>
+                        <div className="dependency-type-header"><span className="tag tag-sf">SF</span> Start-to-Finish</div>
+                        <div className="dependency-type-desc">Finish when predecessor starts</div>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Lag time */}
+                <div className="modal-field">
+                  <label className="modal-label">Lag / Lead Time (Optional)</label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="number"
+                      value={dependencyForm.lag}
+                      onChange={e => setDependencyForm({ ...dependencyForm, lag: e.target.value })}
+                      className="input-refined w-24 text-center font-mono"
+                    />
+                    <span className="text-sm text-secondary">days</span>
+                    <span className="text-xs text-faint">(negative = lead/overlap, positive = lag/delay)</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={closeDependencyModal}>Cancel</button>
+                <button
+                  className="btn btn-accent"
+                  onClick={saveDependency}
+                  disabled={!dependencyForm.predecessorId}
+                >
+                  {isEditing ? 'Save Changes' : 'Add Dependency'}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      };
+
+      // Dependency arrows SVG component
+      // Left columns width: w-10 (40px) + w-56 (224px) + w-20 (80px) + w-48 (192px) = 536px
+      const LEFT_COLUMNS_WIDTH = 536;
+
+      const DependencyArrows = ({ rowHeight = 56 }) => {
+        if (!showArrows || activities.length === 0) return null;
+
+        // Calculate arrow path with right-angle routing
+        const calculateArrowPath = (from, to) => {
+          // Offset from bar edge for cleaner routing
+          const offsetX = 8;
+
+          if (Math.abs(from.y - to.y) < 5) {
+            // Same row - straight horizontal line
+            return `M ${from.x} ${from.y} L ${to.x} ${to.y}`;
+          }
+
+          // Route: horizontal from start, down/up, then horizontal to end
+          const midX = Math.max(from.x, to.x) + 20;
+
+          return `M ${from.x} ${from.y}
+                  L ${midX} ${from.y}
+                  L ${midX} ${to.y}
+                  L ${to.x} ${to.y}`;
+        };
+
+        const arrows = [];
+        activities.forEach((activity, idx) => {
+          if (!activity.dependencies) return;
+
+          activity.dependencies.forEach(dep => {
+            const predIdx = activities.findIndex(a => a.id === dep.predecessorId);
+            if (predIdx === -1) return;
+
+            const predActivity = activities[predIdx];
+            const predStart = startTimes[predIdx];
+            const currStart = startTimes[idx];
+
+            // Calculate from/to positions based on dependency type
+            // Add LEFT_COLUMNS_WIDTH offset since SVG covers the whole row
+            let fromX, toX;
+            const fromY = predIdx * rowHeight + rowHeight / 2;
+            const toY = idx * rowHeight + rowHeight / 2;
+
+            const predBarPos = getBarPosition(predStart, predActivity.duration);
+            const currBarPos = getBarPosition(currStart, activity.duration);
+
+            // From position depends on first letter of type (F=Finish, S=Start)
+            if (dep.type[0] === 'F') {
+              fromX = LEFT_COLUMNS_WIDTH + predBarPos.left + predBarPos.width;
+            } else {
+              fromX = LEFT_COLUMNS_WIDTH + predBarPos.left;
+            }
+
+            // To position depends on second letter of type
+            if (dep.type[1] === 'S') {
+              toX = LEFT_COLUMNS_WIDTH + currBarPos.left;
+            } else {
+              toX = LEFT_COLUMNS_WIDTH + currBarPos.left + currBarPos.width;
+            }
+
+            arrows.push({
+              key: `${activity.id}-${dep.predecessorId}`,
+              from: { x: fromX, y: fromY },
+              to: { x: toX, y: toY },
+              type: dep.type,
+              activityId: activity.id,
+              predecessorId: dep.predecessorId
+            });
+          });
+        });
+
+        if (arrows.length === 0) return null;
+
+        const svgHeight = activities.length * rowHeight;
+
+        return (
+          <svg
+            className="dependency-arrows-overlay no-print"
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: svgHeight,
+              pointerEvents: 'none',
+              overflow: 'visible',
+              zIndex: 10
+            }}
+          >
+            <defs>
+              <marker
+                id="arrowhead"
+                markerWidth="8"
+                markerHeight="8"
+                refX="6"
+                refY="4"
+                orient="auto"
+              >
+                <polygon points="0 0, 8 4, 0 8" fill="var(--text-muted)" />
+              </marker>
+              <marker
+                id="arrowhead-critical"
+                markerWidth="8"
+                markerHeight="8"
+                refX="6"
+                refY="4"
+                orient="auto"
+              >
+                <polygon points="0 0, 8 4, 0 8" fill="var(--danger, #dc2626)" />
+              </marker>
+            </defs>
+            {arrows.map(arrow => {
+              const isCritical = showCriticalPath && criticalSet.has(arrow.activityId) && criticalSet.has(arrow.predecessorId);
+              return (
+                <path
+                  key={arrow.key}
+                  d={calculateArrowPath(arrow.from, arrow.to)}
+                  className={`dependency-line${isCritical ? ' critical-arrow' : ''}`}
+                  stroke={isCritical ? 'var(--danger, #dc2626)' : 'var(--text-muted)'}
+                  strokeWidth={isCritical ? 2 : 1.5}
+                  fill="none"
+                  markerEnd={isCritical ? 'url(#arrowhead-critical)' : 'url(#arrowhead)'}
+                  opacity={isCritical ? 0.8 : 0.5}
+                />
+              );
+            })}
+          </svg>
+        );
+      };
+
+      return (
+        <div className="min-h-screen p-6 md:p-8">
+          <div className="max-w-7xl mx-auto">
+            {/* Header */}
+            <div className="no-print mb-8 animate-fade-in">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="app-header-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="4" width="18" height="4" rx="1" /><rect x="3" y="10" width="12" height="4" rx="1" /><rect x="3" y="16" width="15" height="4" rx="1" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h1 className="text-2xl font-semibold text-primary tracking-tight">Gantt Chart</h1>
+                    <p className="text-sm text-muted">Plan and visualize your project timeline</p>
+                  </div>
+                </div>
+
+                {/* Theme Selector */}
+                <div className="theme-selector">
+                  <IconPalette />
+                  <label>Theme</label>
+                  <select
+                    value={theme}
+                    onChange={(e) => setTheme(e.target.value)}
+                    className="select-refined"
+                  >
+                    {Object.entries(THEMES).map(([key, value]) => (
+                      <option key={key} value={key}>{value.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Add Activity Form */}
+            <div className="no-print card p-5 mb-6 animate-fade-in" style={{ animationDelay: '0.05s' }}>
+              <div className="flex flex-wrap gap-4 items-end">
+                <div className="flex-shrink-0">
+                  <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-2">Project Start</label>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="input-refined w-40"
+                  />
+                </div>
+                <div className="flex-1 min-w-[280px]">
+                  <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-2">Activity Name</label>
+                  <input
+                    type="text"
+                    placeholder="Enter activity description..."
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && addActivity()}
+                    maxLength={100}
+                    className="input-refined w-full"
+                  />
+                </div>
+                <div className="w-28">
+                  <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-1">Duration</label>
+                  <p className="text-[10px] text-faint mb-1 text-center">0 = milestone</p>
+                  <input
+                    type="number"
+                    placeholder="Days"
+                    value={duration}
+                    onChange={(e) => setDuration(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && addActivity()}
+                    min="0"
+                    className="input-refined w-full text-center font-mono"
+                    title="Enter 0 for a milestone"
+                  />
+                </div>
+                <button onClick={addActivity} className="btn btn-accent">
+                  <IconPlus /> Add Activity
+                </button>
+              </div>
+            </div>
+
+            {/* Toolbar */}
+            <div className="no-print card p-4 mb-6 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-muted uppercase tracking-wider">Scale</span>
+                  <select
+                    value={timeScale}
+                    onChange={(e) => {
+                      setTimeScale(e.target.value);
+                      if (e.target.value === 'days') setUnitWidth(36);
+                      else if (e.target.value === 'weeks') setUnitWidth(60);
+                      else setUnitWidth(80);
+                    }}
+                    className="select-refined"
+                  >
+                    <option value="days">Days</option>
+                    <option value="weeks">Weeks</option>
+                    <option value="months">Months</option>
+                  </select>
+                  <button onClick={autoScale} className="btn btn-secondary btn-sm" title="Auto-select best scale">
+                    Auto
+                  </button>
+                </div>
+
+                <div className="divider"></div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-muted uppercase tracking-wider">Zoom</span>
+                  <input
+                    type="range"
+                    min="20"
+                    max="100"
+                    value={unitWidth}
+                    onChange={(e) => setUnitWidth(parseInt(e.target.value))}
+                    className="w-24"
+                  />
+                  <button onClick={fitToView} className="btn btn-secondary btn-sm">
+                    Fit
+                  </button>
+                </div>
+
+                <div className="divider"></div>
+
+                <div className="flex items-center gap-2">
+                  <label className="flex items-center gap-1.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={showArrows}
+                      onChange={(e) => setShowArrows(e.target.checked)}
+                      className="accent-blue-600"
+                    />
+                    <span className="text-sm text-secondary">Show Arrows</span>
+                  </label>
+                  <label className="flex items-center gap-1.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={showCriticalPath}
+                      onChange={(e) => setShowCriticalPath(e.target.checked)}
+                      className="accent-red-600"
+                    />
+                    <span className="text-sm text-secondary">Critical Path</span>
+                  </label>
+                </div>
+
+                <div className="flex-1"></div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-muted uppercase tracking-wider">Print as</span>
+                  <select
+                    value={printMode}
+                    onChange={(e) => setPrintMode(e.target.value)}
+                    className="select-refined"
+                  >
+                    <option value="chart">Chart</option>
+                    <option value="table">Table</option>
+                  </select>
+                  <button onClick={handlePrint} className="btn btn-secondary btn-sm">
+                    <IconPrinter /> Print
+                  </button>
+                  <button onClick={saveToFile} className="btn btn-secondary btn-sm">
+                    <IconDownload /> Save
+                  </button>
+                  <button onClick={() => fileInputRef.current.click()} className="btn btn-secondary btn-sm">
+                    <IconUpload /> Open
+                  </button>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={loadFromFile}
+                    accept=".json"
+                    className="hidden"
+                  />
+                  <button onClick={clearAll} className="btn btn-danger btn-sm" title="Clear all activities">
+                    <IconTrash /> Clear
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Gantt Chart */}
+            {activities.length === 0 ? (
+              <div className="card empty-state no-print animate-fade-in" style={{ animationDelay: '0.15s' }}>
+                <div className="empty-state-icon">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-faint">
+                    <rect x="3" y="4" width="18" height="4" rx="1" /><rect x="3" y="10" width="12" height="4" rx="1" /><rect x="3" y="16" width="15" height="4" rx="1" />
+                  </svg>
+                </div>
+                <p className="text-secondary font-medium mb-1">No activities yet</p>
+                <p className="text-faint text-sm">Add your first activity above to start building your timeline</p>
+              </div>
+            ) : (
+              <div className="gantt-print-area animate-fade-in" style={{ animationDelay: '0.15s' }}>
+                <div className="print-title hidden mb-4">
+                  <h1 className="text-xl font-semibold text-primary">Project Gantt Chart</h1>
+                  <p className="text-sm text-muted">
+                    {formatDate(projectStartDate, 'withYear')} — {formatDate(addDays(projectStartDate, totalDuration - 1), 'withYear')} ({totalDuration} days)
+                  </p>
+                </div>
+
+                {/* Screen layout (flex-based) - hidden during print, replaced by table for repeating headers */}
+                <div className="card overflow-hidden gantt-screen-only">
+                  {/* Header Row */}
+                  <div className="flex gantt-header">
+                    <div className="flex-shrink-0 flex">
+                      <div className="w-10 px-2 py-3 gantt-cell no-print"></div>
+                      <div className="w-56 px-4 py-3 font-medium text-xs text-muted uppercase tracking-wider gantt-cell">Activity</div>
+                      <div className="w-20 px-2 py-3 font-medium text-xs text-muted uppercase tracking-wider gantt-cell text-center">Days</div>
+                      <div className="w-48 px-2 py-3 font-medium text-xs text-muted uppercase tracking-wider gantt-cell">Dependencies</div>
+                    </div>
+                    <div className="flex-1 px-3 py-3 font-medium text-xs text-muted uppercase tracking-wider">
+                      Timeline <span className="lowercase font-normal">({timeScale})</span>
+                    </div>
+                  </div>
+
+                  {/* Timeline Header Row */}
+                  <div className="flex border-b border-primary">
+                    <div className="flex-shrink-0 flex bg-secondary h-12" style={{ opacity: 0.5 }}>
+                      <div className="w-10 gantt-cell no-print"></div>
+                      <div className="w-56 gantt-cell"></div>
+                      <div className="w-20 gantt-cell"></div>
+                      <div className="w-48 gantt-cell"></div>
+                    </div>
+                    <div className="flex-1 overflow-x-auto custom-scroll" ref={timelineContainerRef}>
+                      <div className="flex text-xs h-12" style={{ width: timelineWidth, minWidth: '100%', background: 'var(--bg-secondary)', opacity: 0.5 }}>
+                        {timelineUnits.map((unit, i) => (
+                          <div
+                            key={i}
+                            className={`timeline-unit text-center flex flex-col justify-center
+                              ${unit.isWeekend ? 'weekend' : ''}
+                              ${unit.isFirstOfPeriod ? 'first-of-period' : ''}`}
+                            style={{ width: unitWidth, minWidth: unitWidth }}
+                          >
+                            <div className="font-medium text-secondary leading-tight truncate px-0.5">{unit.label}</div>
+                            <div className="text-faint text-[10px] truncate leading-tight px-0.5">{unit.subLabel}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Activity Rows with Dependency Arrows Overlay */}
+                  <div className="gantt-rows-container" style={{ position: 'relative' }}>
+                    <DependencyArrows rowHeight={56} />
+                    {activities.map((activity, index) => {
+                      const isDragging = draggedIndex === index;
+                      const isDragOver = dragOverIndex === index;
+                      const isEditing = editingId === activity.id;
+                      const start = startTimes[index];
+                      const barColor = barColors[index % barColors.length];
+                      const activityStartDate = addDays(projectStartDate, start);
+                      const activityEndDate = addDays(projectStartDate, start + activity.duration - 1);
+                      const barPos = getBarPosition(start, activity.duration);
+
+                      return (
+                        <div
+                          key={activity.id}
+                          draggable={!isEditing}
+                          onDragStart={(e) => handleDragStart(e, index)}
+                          onDragOver={(e) => handleDragOver(e, index)}
+                          onDragLeave={handleDragLeave}
+                          onDrop={(e) => handleDrop(e, index)}
+                          onDragEnd={handleDragEnd}
+                          className={`
+                          flex gantt-row animate-slide-in
+                          ${isDragging ? 'dragging' : ''}
+                          ${isDragOver ? 'drag-over' : ''}
+                          ${isEditing ? 'editing' : ''}
+                        `}
+                          style={{ animationDelay: `${index * 0.03}s` }}
+                        >
+                          {/* Left side - Activity info */}
+                          <div className="flex-shrink-0 flex min-h-14">
+                            {/* First column: Grip (view mode) or Save/Cancel (edit mode) */}
+                            <div className="w-10 px-1 gantt-cell flex items-center justify-center no-print">
+                              {isEditing ? (
+                                <div className="flex flex-col gap-0.5">
+                                  <button onClick={saveEdit} className="p-1 text-green-600 hover:text-green-700 hover:bg-green-50 rounded transition-colors" title="Save (Enter)">
+                                    <IconCheck />
+                                  </button>
+                                  <button onClick={cancelEdit} className="p-1 text-red-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors" title="Cancel (Esc)">
+                                    <IconX />
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="cursor-grab active:cursor-grabbing text-faint hover:text-secondary transition-colors">
+                                  <IconGrip />
+                                </div>
+                              )}
+                            </div>
+
+                            {isEditing ? (
+                              <>
+                                <div className="w-56 px-2 py-2 gantt-cell flex items-center">
+                                  <input
+                                    type="text"
+                                    value={editForm.name}
+                                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') saveEdit();
+                                      if (e.key === 'Escape') cancelEdit();
+                                    }}
+                                    maxLength={100}
+                                    className="input-refined w-full py-1.5 text-sm"
+                                    autoFocus
+                                  />
+                                </div>
+                                <div className="w-20 px-2 gantt-cell flex items-center">
+                                  <input
+                                    type="number"
+                                    value={editForm.duration}
+                                    onChange={(e) => setEditForm({ ...editForm, duration: e.target.value })}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') saveEdit();
+                                      if (e.key === 'Escape') cancelEdit();
+                                    }}
+                                    min="0"
+                                    className="input-refined w-full py-1.5 text-sm text-center font-mono"
+                                  />
+                                </div>
+                                <div className="w-48 px-2 py-2 gantt-cell flex flex-wrap items-center content-center gap-1">
+                                  {(activity.dependencies || []).map(dep => (
+                                    <DependencyChip key={dep.predecessorId} dep={dep} activityId={activity.id} onRemove={removeDependency} onEdit={openDependencyModal} />
+                                  ))}
+                                  <button onClick={() => openDependencyModal(activity.id)} className="btn btn-secondary btn-sm text-xs">+ Add</button>
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <div className="w-56 px-4 py-3 gantt-cell flex items-center group">
+                                  <span className="text-sm text-primary leading-snug break-words flex-1">{activity.name}</span>
+                                  <div className="flex items-center gap-0.5 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity no-print ml-2">
+                                    <button onClick={() => startEditing(activity)} className="p-1.5 text-faint hover:text-secondary rounded transition-colors" title="Edit">
+                                      <IconEdit />
+                                    </button>
+                                    <button onClick={() => removeActivity(activity.id)} className="p-1.5 text-faint hover:text-red-500 rounded transition-colors" title="Delete">
+                                      <IconX />
+                                    </button>
+                                  </div>
+                                </div>
+                                <div className="w-20 px-2 gantt-cell text-center text-secondary flex items-center justify-center font-mono text-sm">
+                                  {activity.duration}
+                                </div>
+                                <div className="w-48 px-2 py-2 gantt-cell flex flex-wrap items-center content-center gap-1">
+                                  {(activity.dependencies || []).length === 0 ? (
+                                    <span className="text-xs text-faint italic">None</span>
+                                  ) : (
+                                    (activity.dependencies || []).map(dep => (
+                                      <DependencyChip key={dep.predecessorId} dep={dep} activityId={activity.id} onRemove={removeDependency} onEdit={openDependencyModal} />
+                                    ))
+                                  )}
+                                  <button onClick={() => openDependencyModal(activity.id)} className="btn btn-secondary btn-sm text-xs no-print">+ Add</button>
+                                </div>
+                              </>
+                            )}
+                          </div>
+
+                          {/* Right side - Timeline bar */}
+                          <div className="flex-1 relative min-h-14 overflow-hidden">
+                            <div className="absolute inset-0 flex">
+                              {timelineUnits.map((unit, i) => (
+                                <div
+                                  key={i}
+                                  className={`timeline-unit h-full ${unit.isWeekend ? 'weekend' : ''}`}
+                                  style={{ width: unitWidth, minWidth: unitWidth, borderColor: 'var(--border-secondary)' }}
+                                />
+                              ))}
+                            </div>
+                            <div className="absolute inset-y-0 flex items-center" style={{ left: barPos.left }}>
+                              {activity.duration === 0 ? (
+                                <svg
+                                  width="18"
+                                  height="18"
+                                  viewBox="0 0 20 20"
+                                  style={{ marginLeft: '-9px' }}
+                                  title={`${activity.name}: ${formatDate(activityStartDate, 'withYear')} (Milestone)`}
+                                  className="drop-shadow-sm"
+                                >
+                                  <polygon
+                                    points="10,1 19,10 10,19 1,10"
+                                    fill={getFillColor(index)}
+                                    stroke="white"
+                                    strokeWidth="1.5"
+                                  />
+                                </svg>
+                              ) : (
+                                <div
+                                  className={`${barColor} activity-bar h-7 text-white text-xs flex items-center justify-center${showCriticalPath && criticalSet.has(activity.id) ? ' critical-path-bar' : ''}`}
+                                  style={{ width: barPos.width }}
+                                  title={`${activity.name}: ${formatDate(activityStartDate, 'withYear')} - ${formatDate(activityEndDate, 'withYear')} (${activity.duration} days)${floatMap[activity.id] != null ? ` | Float: ${floatMap[activity.id]}d` : ''}`}
+                                >
+                                  {barPos.width > 130 && (
+                                    <span className="px-2 truncate font-medium text-[11px] tracking-tight opacity-95">
+                                      {formatDate(activityStartDate)} — {formatDate(activityEndDate)}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Footer Row */}
+                  <div className="flex gantt-header h-12">
+                    <div className="flex-shrink-0 flex">
+                      <div className="w-10 gantt-cell no-print"></div>
+                      <div className="w-56 px-4 font-medium text-secondary text-sm gantt-cell flex items-center">
+                        Total Duration
+                      </div>
+                      <div className="w-20 px-2 font-semibold text-primary gantt-cell flex items-center justify-center font-mono">
+                        {totalDuration}
+                      </div>
+                      <div className="w-48 gantt-cell"></div>
+                    </div>
+                    <div className="flex-1 px-4 flex items-center gap-4 text-sm text-muted">
+                      {activities.length > 0 && (
+                        <span>
+                          {formatDate(projectStartDate, 'withYear')} — {formatDate(addDays(projectStartDate, totalDuration - 1), 'withYear')}
+                        </span>
+                      )}
+                      {showCriticalPath && criticalSet.size > 0 && (
+                        <span className="flex items-center gap-1.5" style={{ color: 'var(--danger)' }}>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" /></svg>
+                          Critical Path: {criticalSet.size} task{criticalSet.size !== 1 ? 's' : ''}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Print layout - TABLE MODE (simple list with dates) */}
+                <table className={`gantt-print-table ${printMode === 'table' ? 'gantt-print-only' : 'hidden'}`}>
+                  <thead className="gantt-print-thead">
+                    <tr className="gantt-print-row">
+                      <th className="gantt-print-header-cell" style={{ width: '35%' }}>Activity</th>
+                      <th className="gantt-print-header-cell" style={{ width: '8%', textAlign: 'center' }}>Days</th>
+                      <th className="gantt-print-header-cell" style={{ width: '25%' }}>Dependencies</th>
+                      <th className="gantt-print-header-cell" style={{ width: '32%' }}>Dates</th>
+                    </tr>
+                  </thead>
+                  <tbody className="gantt-print-tbody">
+                    {activities.map((activity, index) => {
+                      const start = startTimes[index];
+                      const activityStartDate = addDays(projectStartDate, start);
+                      const activityEndDate = addDays(projectStartDate, start + activity.duration - 1);
+                      const depsDisplay = (activity.dependencies || []).map(d => {
+                        const pred = activities.find(a => a.id === d.predecessorId);
+                        const idx = activities.findIndex(a => a.id === d.predecessorId) + 1;
+                        return `#${idx} (${d.type}${d.lag ? ` ${d.lag > 0 ? '+' : ''}${d.lag}d` : ''})`;
+                      }).join(', ') || 'None';
+                      return (
+                        <tr key={activity.id} className="gantt-print-row">
+                          <td className="gantt-print-cell">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              {activity.duration === 0 ? (
+                                <svg width="14" height="14" viewBox="0 0 20 20">
+                                  <polygon points="10,1 19,10 10,19 1,10" fill={getFillColor(index)} />
+                                </svg>
+                              ) : (
+                                <div style={{
+                                  width: '14px',
+                                  height: '14px',
+                                  borderRadius: '3px',
+                                  background: getFillColor(index)
+                                }}></div>
+                              )}
+                              <span>{activity.name}</span>
+                            </div>
+                          </td>
+                          <td className="gantt-print-cell" style={{ textAlign: 'center', fontFamily: 'var(--font-mono)' }}>
+                            {activity.duration}
+                          </td>
+                          <td className="gantt-print-cell" style={{ fontSize: '11px' }}>
+                            {depsDisplay}
+                          </td>
+                          <td className="gantt-print-cell">
+                            {activity.duration === 0
+                              ? formatDate(activityStartDate, 'withYear') + ' (Milestone)'
+                              : `${formatDate(activityStartDate, 'withYear')} — ${formatDate(activityEndDate, 'withYear')}`
+                            }
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                  <tfoot className="gantt-print-tfoot">
+                    <tr className="gantt-print-row">
+                      <td className="gantt-print-cell" style={{ fontWeight: '600' }}>Total Duration</td>
+                      <td className="gantt-print-cell" style={{ textAlign: 'center', fontWeight: '700', fontFamily: 'var(--font-mono)' }}>{totalDuration}</td>
+                      <td className="gantt-print-cell"></td>
+                      <td className="gantt-print-cell">
+                        {formatDate(projectStartDate, 'withYear')} — {formatDate(addDays(projectStartDate, totalDuration - 1), 'withYear')}
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+
+                {/* Print layout - CHART MODE (visual bars with repeating timeline headers) */}
+                <table className={`gantt-chart-print-table ${printMode === 'chart' ? 'gantt-chart-print-only' : 'hidden'}`}>
+                  <thead className="gantt-print-thead">
+                    <tr className="gantt-print-row">
+                      <th className="gantt-print-header-cell" style={{ width: '180px', minWidth: '180px' }}>Activity</th>
+                      <th className="gantt-print-header-cell" style={{ width: '40px', minWidth: '40px', textAlign: 'center' }}>Days</th>
+                      <th className="gantt-print-header-cell" style={{ width: '100px', minWidth: '100px' }}>Deps</th>
+                      <th className="gantt-print-header-cell gantt-timeline-header-cell" style={{ padding: 0 }}>
+                        <div style={{ display: 'flex', width: timelineWidth, minWidth: '100%' }}>
+                          {timelineUnits.map((unit, i) => (
+                            <div
+                              key={i}
+                              style={{
+                                width: unitWidth,
+                                minWidth: unitWidth,
+                                textAlign: 'center',
+                                padding: '6px 0',
+                                borderRight: '1px solid var(--border-secondary)',
+                                background: unit.isWeekend ? 'var(--bg-weekend)' : 'var(--bg-secondary)'
+                              }}
+                            >
+                              <div style={{ fontWeight: 500, fontSize: '10px', lineHeight: 1.2 }}>{unit.label}</div>
+                              <div style={{ fontSize: '9px', color: 'var(--text-faint)', lineHeight: 1.2 }}>{unit.subLabel}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="gantt-print-tbody">
+                    {activities.map((activity, index) => {
+                      const start = startTimes[index];
+                      const activityStartDate = addDays(projectStartDate, start);
+                      const activityEndDate = addDays(projectStartDate, start + activity.duration - 1);
+                      const barPos = getBarPosition(start, activity.duration);
+                      return (
+                        <tr key={activity.id} className="gantt-print-row">
+                          <td className="gantt-print-cell" style={{ width: '180px', minWidth: '180px' }}>
+                            <span style={{ fontSize: '12px' }}>{activity.name}</span>
+                          </td>
+                          <td className="gantt-print-cell" style={{ width: '40px', minWidth: '40px', textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: '12px' }}>
+                            {activity.duration}
+                          </td>
+                          <td className="gantt-print-cell" style={{ width: '100px', minWidth: '100px', fontSize: '10px' }}>
+                            {(activity.dependencies || []).length === 0 ? 'None' : (activity.dependencies || []).map(d => {
+                              const idx = activities.findIndex(a => a.id === d.predecessorId) + 1;
+                              return `#${idx}(${d.type})`;
+                            }).join(', ')}
+                          </td>
+                          <td className="gantt-print-cell gantt-timeline-cell" style={{ padding: 0, position: 'relative', height: '36px' }}>
+                            {/* Timeline grid background */}
+                            <div style={{ display: 'flex', position: 'absolute', inset: 0, width: timelineWidth }}>
+                              {timelineUnits.map((unit, i) => (
+                                <div
+                                  key={i}
+                                  style={{
+                                    width: unitWidth,
+                                    minWidth: unitWidth,
+                                    height: '100%',
+                                    borderRight: '1px solid var(--border-secondary)',
+                                    background: unit.isWeekend ? 'var(--bg-weekend)' : 'transparent'
+                                  }}
+                                />
+                              ))}
+                            </div>
+                            {/* Activity bar */}
+                            <div style={{ position: 'absolute', top: '50%', transform: 'translateY(-50%)', left: barPos.left }}>
+                              {activity.duration === 0 ? (
+                                <svg width="14" height="14" viewBox="0 0 20 20" style={{ marginLeft: '-7px' }}>
+                                  <polygon points="10,1 19,10 10,19 1,10" fill={getFillColor(index)} />
+                                </svg>
+                              ) : (
+                                <div
+                                  style={{
+                                    width: barPos.width,
+                                    height: '20px',
+                                    background: getFillColor(index),
+                                    borderRadius: 'var(--radius-md)',
+                                    boxShadow: 'var(--shadow-bar)'
+                                  }}
+                                />
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                  <tfoot className="gantt-print-tfoot">
+                    <tr className="gantt-print-row">
+                      <td className="gantt-print-cell" style={{ fontWeight: '600', fontSize: '12px' }}>Total: {totalDuration} days</td>
+                      <td className="gantt-print-cell" colSpan="3" style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                        {formatDate(projectStartDate, 'withYear')} — {formatDate(addDays(projectStartDate, totalDuration - 1), 'withYear')}
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            )}
+
+            {/* Legend */}
+            <div className="mt-5 flex flex-wrap items-center gap-4 text-xs text-muted no-print animate-fade-in" style={{ animationDelay: '0.2s' }}>
+              <span className="font-medium text-secondary uppercase tracking-wider">Legend</span>
+              <div className="flex items-center gap-1.5">
+                <span className="tag tag-fs">FS</span>
+                <span>Finish-to-Start</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="tag tag-ss">SS</span>
+                <span>Start-to-Start</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="tag tag-ff">FF</span>
+                <span>Finish-to-Finish</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="tag tag-sf">SF</span>
+                <span>Start-to-Finish</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <svg width="12" height="12" viewBox="0 0 20 20">
+                  <polygon points="10,1 19,10 10,19 1,10" fill={getFillColor(0)} />
+                </svg>
+                <span>Milestone</span>
+              </div>
+              {showCriticalPath && (
+                <div className="flex items-center gap-1.5">
+                  <div style={{ width: 16, height: 8, borderRadius: 3, background: 'var(--danger)', boxShadow: '0 0 6px var(--danger)' }}></div>
+                  <span>Critical Path</span>
+                </div>
+              )}
+              {timeScale === 'days' && (
+                <div className="flex items-center gap-1.5">
+                  <div className="w-4 h-4 rounded weekend" style={{ background: 'var(--bg-weekend)', border: '1px solid var(--border-primary)' }}></div>
+                  <span>Weekend</span>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="mt-8 pt-6 border-t text-center text-xs text-faint no-print animate-fade-in" style={{ animationDelay: '0.25s', borderColor: 'var(--border-primary)' }}>
+              <p>Drag rows to reorder • Click activity to edit • Data auto-saves to browser</p>
+            </div>
+          </div>
+
+          {/* Dependency Modal */}
+          <DependencyModal />
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<GanttChartEditor />);
+  </script>
+</body>
+
+</html>
