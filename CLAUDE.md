@@ -6,17 +6,46 @@ This is the root folder for vibe coding experiments and applications. This file 
 
 ## Projects Overview
 
+### Book & Marketing
+
 | Folder | Purpose | Status |
 |--------|---------|--------|
 | `VibeCoded-Ebook/` | "Vibe-Coding: The Art of Collaborating with AI" e-book | Active (2nd edition) |
 | `VibeCoding-Ebook-Marketing/` | Marketing website for e-book launch | Active (Feb 2026 launch) |
-| `Marketing_Manager/` | AI-powered marketing SaaS tool | Complete (8 phases) |
-| `Interloquial_Experiment/` | Research platform testing interloquial prompting | Active |
 | `VibeCoding_101/` | Educational presentation and training materials | Complete |
-| `Gantt Chart/` | Interactive React Gantt chart editor | Complete |
+
+### Production Applications
+
+| Folder | Purpose | Status |
+|--------|---------|--------|
+| `SRM25/` | [New project] | New |
+| `SRM-AI/` | AI interface for Safran Risk Manager data analysis and visualisation | Active |
+| `TimeCapture/` | Mobile-first PWA for billable time tracking (Vue 3, GitHub Gist sync) | Complete |
+| `TimeCapture-v2/` | TimeCapture refactored version | Complete |
+| `Marketing_Manager/` | AI-powered marketing SaaS (22K lines, multi-API) | Complete |
+| `CARM_Project/` | Risk management tool (FastAPI backend, Streamlit frontend) | Active |
+| `Investing/` | Crypto trading algorithm with backtesting and dashboard (Python) | Active |
+
+### Utilities & Experiments
+
+| Folder | Purpose | Status |
+|--------|---------|--------|
+| `EASquare/` | Micro-ownership conservation platform (land parcel sales, maps, certificates) | New |
+| `Name_Match/` | Company name matching scripts (BvD data preprocessing) | Active |
+| `Photosnake/` | Photo Snake game - classic snake with personal photos | Complete |
+| `Duplicate Finder/` | File deduplication utility | In Progress |
+| `Focus/` | [New project] | New |
+| `Ubiquity/` | [Planning stage] | New |
+| `Interloquial_Experiment/` | Research platform testing interloquial prompting | Active |
+
+### Templates & Archives
+
+| Folder | Purpose | Status |
+|--------|---------|--------|
 | `CoffeeCup/` | Dashboard/interface framework templates | Template |
+| `Consulting/` | Consulting materials | New |
 | `Contacts/` | Email list exports | Archive |
-| `Consulting/` | [New project] | New |
+| `Archive/` | Archived/deprecated projects | Archive |
 
 ---
 
@@ -66,12 +95,27 @@ These skills are available across all projects:
 - **Monorepo:** Use pnpm workspaces + Turborepo for multi-app projects
 - **Git commits:** Include `Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>`
 
-### Technology Stack (Common Choices)
-- **Frontend:** React 18, Next.js 14, Tailwind CSS, shadcn/ui
-- **Backend:** Node.js, TypeScript, Fastify, Prisma ORM
-- **Database:** PostgreSQL, Supabase
+### Technology Stack (Varies by Project)
+
+**Web Applications:**
+- **Frontend:** React 18, Vue 3, Vanilla JS
+- **Build Tools:** Vite, Webpack
+- **Styling:** Tailwind CSS
+- **Desktop:** Electron (SRM-AI)
+
+**Backend & APIs:**
+- **Node.js:** TypeScript, Fastify
+- **Python:** FastAPI, Streamlit, Flask
+- **Database:** PostgreSQL, Supabase, SQLite, IndexedDB
+
+**AI & Data:**
+- **AI APIs:** Claude, OpenAI, Azure OpenAI, Ollama (local)
+- **Data Processing:** CCXT (crypto), Pyodide (browser Python)
+- **Visualisation:** Plotly.js, D3.js, Matplotlib
+
+**Infrastructure:**
 - **Queue:** Redis + BullMQ
-- **AI:** Anthropic Claude API
+- **Hosting:** GitHub Pages, Vercel
 - **Email:** Resend API
 
 ### Static Sites (No Build Required)
@@ -117,6 +161,9 @@ Each project has its own `CLAUDE.md` with specific instructions:
 - `Marketing_Manager/CLAUDE.md` — Tech stack, build commands, HISTORY.md requirements
 - `VibeCoding-Ebook-Marketing/CLAUDE.md` — Visual identity, marketing strategy
 - `Interloquial_Experiment/CLAUDE.md` — Experiment design, ethics requirements
+- `SRM-AI/CLAUDE.md` — Security constraints (data never leaves user environment), React/TypeScript/Pyodide stack
+- `TimeCapture/CLAUDE.md` — Vue 3 PWA, GitHub Gist sync, mobile-first design
+- `Investing/CLAUDE.md` — Python crypto trading framework, CCXT, FastAPI dashboard
 
 ---
 
@@ -125,24 +172,33 @@ Each project has its own `CLAUDE.md` with specific instructions:
 ```
 e:\Vibe Coding\
 ├── .claude\
-│   └── skills\           # Root-level skills (available to all projects)
-│       ├── adversarial-editor\
-│       ├── challenge\
-│       ├── commit\
-│       ├── newproject\
-│       ├── pdf-chapter-builder\
-│       ├── q\
-│       └── verify\
-├── CLAUDE.md             # This file
-├── CoffeeCup\            # [nested repo]
-├── Consulting\           # [nested repo, no remote]
-├── Contacts\
-├── Gantt Chart\
-├── Interloquial_Experiment\  # [nested repo]
-├── Marketing_Manager\    # [nested repo]
-├── VibeCoded-Ebook\      # [nested repo]
-├── VibeCoding-Ebook-Marketing\  # [nested repo]
-└── VibeCoding_101\
+│   └── skills\              # Root-level skills (available to all projects)
+├── CLAUDE.md                # This file
+│
+├── VibeCoded-Ebook\         # [nested repo] E-book project
+├── VibeCoding-Ebook-Marketing\  # [nested repo] Marketing site
+├── VibeCoding_101\          # Training materials
+│
+├── SRM25\                   # [nested repo] New project
+├── SRM-AI\                  # [nested repo] Risk Manager AI interface
+├── TimeCapture\             # [nested repo] Time tracking PWA v1
+├── TimeCapture-v2\          # [nested repo] Time tracking PWA v2
+├── Marketing_Manager\       # [nested repo] Marketing automation
+├── CARM_Project\            # Risk management tool
+├── Investing\               # [nested repo] Crypto trading
+│
+├── EASquare\                # [nested repo] Conservation platform
+├── Focus\                   # [nested repo] New project
+├── Name_Match\              # Company name matching
+├── Photosnake\              # [nested repo] Snake game
+├── Duplicate Finder\        # [nested repo] File deduplication
+├── Ubiquity\                # [nested repo] New project
+├── Interloquial_Experiment\ # [nested repo] Research platform
+│
+├── CoffeeCup\               # [nested repo] Dashboard templates
+├── Consulting\              # [nested repo, no remote]
+├── Contacts\                # Email exports
+└── Archive\                 # Archived projects
 ```
 
 ---
@@ -156,13 +212,27 @@ This workspace contains multiple independent git repositories. Each project fold
 2. Ask for clarification if changes span multiple repos
 3. Commit to the correct repo (not the parent)
 
-| Folder | Git Remote | Branch |
-|--------|------------|--------|
-| Root (`e:\Vibe Coding`) | Vibecode101 | main |
-| `CoffeeCup/` | CoffeeCup | main |
-| `Consulting/` | (none - local only) | main |
-| `VibeCoded-Ebook/` | (check) | - |
-| `Marketing_Manager/` | (check) | - |
+| Folder | Git Remote | Notes |
+|--------|------------|-------|
+| Root (`e:\Vibe Coding`) | Vibecode101 | Parent repo |
+| `VibeCoded-Ebook/` | vibe-cpde-book | E-book (second_redraft branch) |
+| `VibeCoding-Ebook-Marketing/` | (check) | Marketing site |
+| `SRM25/` | (no remote) | New project |
+| `SRM-AI/` | SRM-AI | Risk Manager AI |
+| `TimeCapture/` | TimeCapture | Time tracking v1 |
+| `TimeCapture-v2/` | TimeCapture-v2 | Time tracking v2 |
+| `Marketing_Manager/` | (check) | Marketing automation |
+| `Investing/` | Investing | Crypto trading |
+| `Photosnake/` | Vibe-Snake | Snake game |
+| `Interloquial_Experiment/` | (check) | Research platform |
+| `CoffeeCup/` | CoffeeCup | Dashboard templates |
+| `Duplicate Finder/` | (no remote) | Local only |
+| `Ubiquity/` | (no remote) | Local only |
+| `Consulting/` | (none) | Local only |
+| `EASquare/` | (no remote) | Local only |
+| `Focus/` | (no remote) | New project |
+| `CARM_Project/` | (not a repo) | No git |
+| `Name_Match/` | (not a repo) | No git |
 
 ---
 
