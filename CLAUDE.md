@@ -19,6 +19,7 @@ This is the root folder for vibe coding experiments and applications. This file 
 | Folder | Purpose | Status |
 |--------|---------|--------|
 | `SRM25/` | [New project] | New |
+| `SRM_MCP/` | MCP server — ontological intelligence layer for Safran Risk Manager AI reasoning | Active |
 | `SRM-AI/` | AI interface for Safran Risk Manager data analysis and visualisation | Active |
 | `TimeCapture/` | Mobile-first PWA for billable time tracking (Vue 3, GitHub Gist sync) | Complete |
 | `TimeCapture-v2/` | TimeCapture refactored version | Complete |
@@ -37,6 +38,7 @@ This is the root folder for vibe coding experiments and applications. This file 
 | `Focus/` | [New project] | New |
 | `Ubiquity/` | [Planning stage] | New |
 | `Interloquial_Experiment/` | Research platform testing interloquial prompting | Active |
+| `Alarm/` | AGSHome alarm hub + O-KAM camera security integration (Python, TinyTuya, OpenCV) | New |
 
 ### Templates & Archives
 
@@ -164,6 +166,7 @@ Each project has its own `CLAUDE.md` with specific instructions:
 - `SRM-AI/CLAUDE.md` — Security constraints (data never leaves user environment), React/TypeScript/Pyodide stack
 - `TimeCapture/CLAUDE.md` — Vue 3 PWA, GitHub Gist sync, mobile-first design
 - `Investing/CLAUDE.md` — Python crypto trading framework, CCXT, FastAPI dashboard
+- `Alarm/CLAUDE.md` — AGSHome alarm + O-KAM camera, Python/TinyTuya/OpenCV
 
 ---
 
@@ -180,6 +183,7 @@ e:\Vibe Coding\
 ├── VibeCoding_101\          # Training materials
 │
 ├── SRM25\                   # [nested repo] New project
+├── SRM_MCP\                 # [nested repo] MCP ontological intelligence layer
 ├── SRM-AI\                  # [nested repo] Risk Manager AI interface
 ├── TimeCapture\             # [nested repo] Time tracking PWA v1
 ├── TimeCapture-v2\          # [nested repo] Time tracking PWA v2
@@ -194,6 +198,7 @@ e:\Vibe Coding\
 ├── Duplicate Finder\        # [nested repo] File deduplication
 ├── Ubiquity\                # [nested repo] New project
 ├── Interloquial_Experiment\ # [nested repo] Research platform
+├── Alarm\                   # [nested repo] Security integration
 │
 ├── CoffeeCup\               # [nested repo] Dashboard templates
 ├── Consulting\              # [nested repo, no remote]
@@ -218,6 +223,7 @@ This workspace contains multiple independent git repositories. Each project fold
 | `VibeCoded-Ebook/` | vibe-cpde-book | E-book (second_redraft branch) |
 | `VibeCoding-Ebook-Marketing/` | (check) | Marketing site |
 | `SRM25/` | (no remote) | New project |
+| `SRM_MCP/` | (no remote) | MCP server — local only |
 | `SRM-AI/` | SRM-AI | Risk Manager AI |
 | `TimeCapture/` | TimeCapture | Time tracking v1 |
 | `TimeCapture-v2/` | TimeCapture-v2 | Time tracking v2 |
@@ -225,6 +231,7 @@ This workspace contains multiple independent git repositories. Each project fold
 | `Investing/` | Investing | Crypto trading |
 | `Photosnake/` | Vibe-Snake | Snake game |
 | `Interloquial_Experiment/` | (check) | Research platform |
+| `Alarm/` | (no remote) | Security integration |
 | `CoffeeCup/` | CoffeeCup | Dashboard templates |
 | `Duplicate Finder/` | (no remote) | Local only |
 | `Ubiquity/` | (no remote) | Local only |
