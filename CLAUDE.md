@@ -71,11 +71,20 @@ These skills are available across all projects:
 | Skill | Purpose |
 |-------|---------|
 | `/q` | Ask clarifying questions before starting work |
+| `/ice` | Run an ICE planning session — Intent, Constraints, Expectations |
 | `/challenge` | Challenge assumptions and sharpen the prompt |
 | `/verify` | Review AI output critically before accepting |
+| `/adversarial-editor` | Stress-test documents, proposals, and strategies from hostile perspectives |
 | `/newproject` | Create new project folder with git and Claude init |
 | `/commit` | Create git commit with descriptive message (nested repo aware) |
-| `/status` | Get brief project status update |
+| `/status` | Get a brief project status update |
+
+### E-book Specific Skills
+
+| Skill | Purpose |
+|-------|---------|
+| `/build` | Build a reading-ready PDF from a chapter |
+| `/sarah` | Reader-focused chapter assessment (Operations Manager persona) |
 
 ### How Skills Work
 - Skills are defined in `.claude/skills/[skill-name]/SKILL.md`
