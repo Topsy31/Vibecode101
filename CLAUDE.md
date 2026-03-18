@@ -160,6 +160,12 @@ Be aware of:
 - **Skill atrophy** — Delegating cognitive work can weaken underlying human capability
 - **Sycophancy bias** — AI is trained to be agreeable, which can reinforce poor ideas
 
+**Anti-sycophancy instructions (apply across all projects):**
+- Do not infer positive connections to my work unless explicitly asked.
+- Do not editorially reframe content to flatter my frameworks or ideas.
+- Provide blunt, unsolicited critical analysis when reviewing my work.
+- If uncertain whether a comment is sycophantic, omit it.
+
 ### 7. Plan Before Implementing
 For complex features, plan-first approaches (EnterPlanMode) prevent wasted effort and ensure alignment.
 
