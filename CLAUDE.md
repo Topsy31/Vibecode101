@@ -18,7 +18,9 @@ This is the root folder for vibe coding experiments and applications. This file 
 
 | Folder | Purpose | Status |
 |--------|---------|--------|
+| `WhiteSpace/` | Web-based professional book publishing platform (LuaLaTeX SaaS) | Active |
 | `SRM25/` | [New project] | New |
+| `SRM-Decision/` | [New project] | New |
 | `SRM_MCP/` | MCP server — ontological intelligence layer for Safran Risk Manager AI reasoning | Active |
 | `SRM-AI/` | AI interface for Safran Risk Manager data analysis and visualisation | Active |
 | `TimeCapture/` | Mobile-first PWA for billable time tracking (Vue 3, GitHub Gist sync) | Complete |
@@ -174,6 +176,7 @@ For complex features, plan-first approaches (EnterPlanMode) prevent wasted effor
 ## Project-Specific CLAUDE.md Files
 
 Each project has its own `CLAUDE.md` with specific instructions:
+- `WhiteSpace/CLAUDE.md` — Tech stack, build pipeline port plan, Docker/TeX Live constraints
 - `VibeCoded-Ebook/CLAUDE.md` — Editorial conventions, reference handling
 - `Marketing_Manager/CLAUDE.md` — Tech stack, build commands, HISTORY.md requirements
 - `VibeCoding-Ebook-Marketing/CLAUDE.md` — Visual identity, marketing strategy
@@ -193,11 +196,13 @@ e:\Vibe Coding\
 │   └── skills\              # Root-level skills (available to all projects)
 ├── CLAUDE.md                # This file
 │
+├── WhiteSpace\              # [nested repo] Book publishing SaaS
 ├── VibeCoded-Ebook\         # [nested repo] E-book project
 ├── VibeCoding-Ebook-Marketing\  # [nested repo] Marketing site
 ├── VibeCoding_101\          # Training materials
 │
 ├── SRM25\                   # [nested repo] New project
+├── SRM-Decision\            # [nested repo] New project
 ├── SRM_MCP\                 # [nested repo] MCP ontological intelligence layer
 ├── SRM-AI\                  # [nested repo] Risk Manager AI interface
 ├── TimeCapture\             # [nested repo] Time tracking PWA v1
@@ -235,9 +240,11 @@ This workspace contains multiple independent git repositories. Each project fold
 | Folder | Git Remote | Notes |
 |--------|------------|-------|
 | Root (`e:\Vibe Coding`) | Vibecode101 | Parent repo |
+| `WhiteSpace/` | (no remote yet) | Book publishing SaaS |
 | `VibeCoded-Ebook/` | vibe-cpde-book | E-book (second_redraft branch) |
 | `VibeCoding-Ebook-Marketing/` | (check) | Marketing site |
 | `SRM25/` | (no remote) | New project |
+| `SRM-Decision/` | (no remote) | New project |
 | `SRM_MCP/` | (no remote) | MCP server — local only |
 | `SRM-AI/` | SRM-AI | Risk Manager AI |
 | `TimeCapture/` | TimeCapture | Time tracking v1 |
