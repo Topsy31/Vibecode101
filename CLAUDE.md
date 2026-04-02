@@ -1,274 +1,90 @@
 # CLAUDE.md - Vibe Coding Root
 
-This is the root folder for vibe coding experiments and applications. This file captures key learnings, patterns, and conventions discovered across all projects.
+Universal rules that apply to every project in this workspace.
+Each project has its own `CLAUDE.md` with additional constraints. Project-specific rules override root where they conflict.
+Project inventory lives in `PROJECTS.md` (not loaded automatically — check it when you need context on other projects).
 
 ---
 
-## Projects Overview
+## Writing Standards
 
-### Book & Marketing
-
-| Folder | Purpose | Status |
-|--------|---------|--------|
-| `VibeCoded-Ebook/` | "Vibe-Coding: The Art of Collaborating with AI" e-book | Active (2nd edition) |
-| `VibeCoding-Ebook-Marketing/` | Marketing website for e-book launch | Active (Feb 2026 launch) |
-| `VibeCoding_101/` | Educational presentation and training materials | Complete |
-
-### Production Applications
-
-| Folder | Purpose | Status |
-|--------|---------|--------|
-| `WhiteSpace/` | Web-based professional book publishing platform (LuaLaTeX SaaS) | Active |
-| `SRM25/` | [New project] | New |
-| `SRM-Decision/` | [New project] | New |
-| `SRM_MCP/` | MCP server — ontological intelligence layer for Safran Risk Manager AI reasoning | Active |
-| `SRM-AI/` | AI interface for Safran Risk Manager data analysis and visualisation | Active |
-| `TimeCapture/` | Mobile-first PWA for billable time tracking (Vue 3, GitHub Gist sync) | Complete |
-| `TimeCapture-v2/` | TimeCapture refactored version | Complete |
-| `Marketing_Manager/` | AI-powered marketing SaaS (22K lines, multi-API) | Complete |
-| `CARM_Project/` | Risk management tool (FastAPI backend, Streamlit frontend) | Active |
-| `Investing/` | Crypto trading algorithm with backtesting and dashboard (Python) | Active |
-
-### Utilities & Experiments
-
-| Folder | Purpose | Status |
-|--------|---------|--------|
-| `EASquare/` | Micro-ownership conservation platform (land parcel sales, maps, certificates) | New |
-| `Name_Match/` | Company name matching scripts (BvD data preprocessing) | Active |
-| `Photosnake/` | Photo Snake game - classic snake with personal photos | Complete |
-| `Duplicate Finder/` | File deduplication utility | In Progress |
-| `Focus/` | [New project] | New |
-| `Ubiquity/` | [Planning stage] | New |
-| `Interloquial_Experiment/` | Research platform testing interloquial prompting | Active |
-| `Alarm/` | AGSHome alarm hub + O-KAM camera security integration (Python, TinyTuya, OpenCV) | New |
-
-### Templates & Archives
-
-| Folder | Purpose | Status |
-|--------|---------|--------|
-| `CoffeeCup/` | Dashboard/interface framework templates | Template |
-| `Consulting/` | Consulting materials | New |
-| `Contacts/` | Email list exports | Archive |
-| `Archive/` | Archived/deprecated projects | Archive |
+- **British English:** -ise, -isation, -our, -re endings
+- **Currency:** GBP (£) for all pricing
+- **Voice:** First person, conversational but professional
+- **No emojis** in copy, tables, or documentation
 
 ---
 
-## Core Concepts
+## Behavioural Rules
 
-### Interloquial Communication
-Communication between different kinds of intelligences (human-AI). Distinct from interpersonal (human-human). Recognises that AI is not human, so we shouldn't talk to it like it is.
+### Anti-sycophancy
+- Do not infer positive connections to my work unless explicitly asked.
+- Do not editorially reframe content to flatter my frameworks or ideas.
+- Provide blunt, unsolicited critical analysis when reviewing work.
+- If uncertain whether a comment is sycophantic, omit it.
 
-### ICE Framework
-**I**ntent, **C**onstraints, **E**xpectations — a planning conversation framework (not a prompt template). Front-loads the thinking that should happen before work begins.
+### Reference integrity
+**No hallucinated references.** Every citation must be verified. Do not invent sources, statistics, or quotations.
 
-### Key Insight
-**Vague inputs produce vague outputs.** Most poor AI results stem from unclear requests, not AI limitations.
+### No custom authentication
+Never build custom auth. Delegate to Clerk, Auth0, Supabase Auth, or equivalent. The cost of getting auth wrong is too high; the cost of delegation is negligible.
+
+### Never commit secrets
+API keys, credentials, and passwords belong in `.env` files. `.env` is in `.gitignore`. This is not optional. Git history is permanent.
+
+### Query-building over answering
+When reasoning about real data (counts, errors, metrics), build code that answers the question rather than inferring the answer. The code can be verified. The inference cannot.
 
 ---
 
-## Available Skills (Slash Commands)
+## Security: STRIDE
 
-These skills are available across all projects:
+Apply STRIDE at the start of any feature touching data, authentication, or external services:
+
+| Category | Question |
+|----------|----------|
+| **S**poofing | Could someone impersonate a legitimate user or system? |
+| **T**ampering | Could data be modified without authorisation? |
+| **R**epudiation | Could someone deny performing an action? |
+| **I**nformation Disclosure | Could private data reach the wrong person? |
+| **D**enial of Service | Could this be overwhelmed or made unavailable? |
+| **E**levation of Privilege | Could someone gain permissions they should not have? |
+
+---
+
+## The 40% Rule
+
+In any commercial application, approximately 40% of backend scope exists for the operator, not users. Plan administrative infrastructure (account management, queue monitoring, storage reporting, subscription lifecycle) as a first-class deliverable from the start.
+
+---
+
+## Git
+
+- **Co-author line:** `Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>`
+- **Nested repos:** `/commit` detects which repo contains changes. Never commit to the parent repo when changes belong to a nested project repo.
+
+---
+
+## Skills
+
+All skills are defined in `e:\Vibe Coding\.claude\skills\`. Available across all projects:
 
 | Skill | Purpose |
 |-------|---------|
 | `/q` | Ask clarifying questions before starting work |
 | `/ice` | Run an ICE planning session — Intent, Constraints, Expectations |
-| `/challenge` | Challenge assumptions and sharpen the prompt |
-| `/verify` | Review AI output critically before accepting |
-| `/adversarial-editor` | Stress-test documents, proposals, and strategies from hostile perspectives |
+| `/challenge` | Challenge assumptions from hostile positions |
+| `/verify` | Review output critically before accepting |
+| `/adversarial-editor` | Stress-test documents and strategies |
 | `/newproject` | Create new project folder with git and Claude init |
-| `/commit` | Create git commit with descriptive message (nested repo aware) |
-| `/status` | Get a brief project status update |
-
-### E-book Specific Skills
-
-| Skill | Purpose |
-|-------|---------|
-| `/build` | Build a reading-ready PDF from a chapter |
-| `/sarah` | Reader-focused chapter assessment (Operations Manager persona) |
-
-### How Skills Work
-- Skills are defined in `.claude/skills/[skill-name]/SKILL.md`
-- User-invocable skills have `user-invocable: true` in frontmatter
-- Invoke with `/skill-name` (e.g., `/q`, `/challenge`)
+| `/commit` | Git commit and push (nested-repo aware) |
+| `/status` | Brief project status update |
 
 ---
 
-## Key Patterns & Conventions
+## New Projects
 
-### Writing Standards
-- **British English:** -ise, -isation, -our, -re endings
-- **Currency:** GBP (£) for all pricing
-- **Voice:** First person, conversational but professional
-- **No emojis** in tables or formal documentation
-
-### Development Practices
-- **HISTORY.md:** Document development history for learning/book purposes
-- **Monorepo:** Use pnpm workspaces + Turborepo for multi-app projects
-- **Git commits:** Include `Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>`
-
-### Technology Stack (Varies by Project)
-
-**Web Applications:**
-- **Frontend:** React 18, Vue 3, Vanilla JS
-- **Build Tools:** Vite, Webpack
-- **Styling:** Tailwind CSS
-- **Desktop:** Electron (SRM-AI)
-
-**Backend & APIs:**
-- **Node.js:** TypeScript, Fastify
-- **Python:** FastAPI, Streamlit, Flask
-- **Database:** PostgreSQL, Supabase, SQLite, IndexedDB
-
-**AI & Data:**
-- **AI APIs:** Claude, OpenAI, Azure OpenAI, Ollama (local)
-- **Data Processing:** CCXT (crypto), Pyodide (browser Python)
-- **Visualisation:** Plotly.js, D3.js, Matplotlib
-
-**Infrastructure:**
-- **Queue:** Redis + BullMQ
-- **Hosting:** GitHub Pages, Vercel
-- **Email:** Resend API
-
-### Static Sites (No Build Required)
-Several projects use CDN-loaded frameworks for simplicity:
-- React via CDN + Babel for in-browser JSX
-- Tailwind via CDN
-- Vanilla JavaScript for lightweight apps
-
----
-
-## Lessons Learned
-
-### 1. Front-load Thinking
-Five minutes of clarification saves hours of rework. Use `/q` before complex tasks.
-
-### 2. Trust but Verify
-AI output can be fluent without being accurate. Use `/verify` for important work.
-
-### 3. Document as You Go
-Update HISTORY.md after significant changes. Future you will thank present you.
-
-### 4. Reference Integrity
-**NO HALLUCINATED REFERENCES.** Every citation must be verified and documented.
-
-### 5. Avoid Over-Engineering
-Only make changes that are directly requested or clearly necessary. Keep solutions simple.
-
-### 6. Psychological Guardrails
-Be aware of:
-- **Automation complacency** — The more fluent the output, the less critically it gets reviewed
-- **Skill atrophy** — Delegating cognitive work can weaken underlying human capability
-- **Sycophancy bias** — AI is trained to be agreeable, which can reinforce poor ideas
-
-**Anti-sycophancy instructions (apply across all projects):**
-- Do not infer positive connections to my work unless explicitly asked.
-- Do not editorially reframe content to flatter my frameworks or ideas.
-- Provide blunt, unsolicited critical analysis when reviewing my work.
-- If uncertain whether a comment is sycophantic, omit it.
-
-### 7. Plan Before Implementing
-For complex features, plan-first approaches (EnterPlanMode) prevent wasted effort and ensure alignment.
-
----
-
-## Project-Specific CLAUDE.md Files
-
-Each project has its own `CLAUDE.md` with specific instructions:
-- `WhiteSpace/CLAUDE.md` — Tech stack, build pipeline port plan, Docker/TeX Live constraints
-- `VibeCoded-Ebook/CLAUDE.md` — Editorial conventions, reference handling
-- `Marketing_Manager/CLAUDE.md` — Tech stack, build commands, HISTORY.md requirements
-- `VibeCoding-Ebook-Marketing/CLAUDE.md` — Visual identity, marketing strategy
-- `Interloquial_Experiment/CLAUDE.md` — Experiment design, ethics requirements
-- `SRM-AI/CLAUDE.md` — Security constraints (data never leaves user environment), React/TypeScript/Pyodide stack
-- `TimeCapture/CLAUDE.md` — Vue 3 PWA, GitHub Gist sync, mobile-first design
-- `Investing/CLAUDE.md` — Python crypto trading framework, CCXT, FastAPI dashboard
-- `Alarm/CLAUDE.md` — AGSHome alarm + O-KAM camera, Python/TinyTuya/OpenCV
-
----
-
-## File Organisation
-
-```
-e:\Vibe Coding\
-├── .claude\
-│   └── skills\              # Root-level skills (available to all projects)
-├── CLAUDE.md                # This file
-│
-├── WhiteSpace\              # [nested repo] Book publishing SaaS
-├── VibeCoded-Ebook\         # [nested repo] E-book project
-├── VibeCoding-Ebook-Marketing\  # [nested repo] Marketing site
-├── VibeCoding_101\          # Training materials
-│
-├── SRM25\                   # [nested repo] New project
-├── SRM-Decision\            # [nested repo] New project
-├── SRM_MCP\                 # [nested repo] MCP ontological intelligence layer
-├── SRM-AI\                  # [nested repo] Risk Manager AI interface
-├── TimeCapture\             # [nested repo] Time tracking PWA v1
-├── TimeCapture-v2\          # [nested repo] Time tracking PWA v2
-├── Marketing_Manager\       # [nested repo] Marketing automation
-├── CARM_Project\            # Risk management tool
-├── Investing\               # [nested repo] Crypto trading
-│
-├── EASquare\                # [nested repo] Conservation platform
-├── Focus\                   # [nested repo] New project
-├── Name_Match\              # Company name matching
-├── Photosnake\              # [nested repo] Snake game
-├── Duplicate Finder\        # [nested repo] File deduplication
-├── Ubiquity\                # [nested repo] New project
-├── Interloquial_Experiment\ # [nested repo] Research platform
-├── Alarm\                   # [nested repo] Security integration
-│
-├── CoffeeCup\               # [nested repo] Dashboard templates
-├── Consulting\              # [nested repo, no remote]
-├── Contacts\                # Email exports
-└── Archive\                 # Archived projects
-```
-
----
-
-## Nested Repository Structure
-
-This workspace contains multiple independent git repositories. Each project folder marked `[nested repo]` has its own `.git` directory and commit history.
-
-**Important:** When committing changes, use `/commit` which will:
-1. Detect which repo(s) contain changes
-2. Ask for clarification if changes span multiple repos
-3. Commit to the correct repo (not the parent)
-
-| Folder | Git Remote | Notes |
-|--------|------------|-------|
-| Root (`e:\Vibe Coding`) | Vibecode101 | Parent repo |
-| `WhiteSpace/` | (no remote yet) | Book publishing SaaS |
-| `VibeCoded-Ebook/` | vibe-cpde-book | E-book (second_redraft branch) |
-| `VibeCoding-Ebook-Marketing/` | (check) | Marketing site |
-| `SRM25/` | (no remote) | New project |
-| `SRM-Decision/` | (no remote) | New project |
-| `SRM_MCP/` | (no remote) | MCP server — local only |
-| `SRM-AI/` | SRM-AI | Risk Manager AI |
-| `TimeCapture/` | TimeCapture | Time tracking v1 |
-| `TimeCapture-v2/` | TimeCapture-v2 | Time tracking v2 |
-| `Marketing_Manager/` | (check) | Marketing automation |
-| `Investing/` | Investing | Crypto trading |
-| `Photosnake/` | Vibe-Snake | Snake game |
-| `Interloquial_Experiment/` | (check) | Research platform |
-| `Alarm/` | (no remote) | Security integration |
-| `CoffeeCup/` | CoffeeCup | Dashboard templates |
-| `Duplicate Finder/` | (no remote) | Local only |
-| `Ubiquity/` | (no remote) | Local only |
-| `Consulting/` | (none) | Local only |
-| `EASquare/` | (no remote) | Local only |
-| `Focus/` | (no remote) | New project |
-| `CARM_Project/` | (not a repo) | No git |
-| `Name_Match/` | (not a repo) | No git |
-
----
-
-## When Starting New Projects
-
-1. Create a project-specific `CLAUDE.md` with build commands and conventions
-2. Create `.claude/settings.local.json` for bash permissions if needed
-3. Skills from root `.claude/skills/` are inherited automatically
-4. Update root `CLAUDE.md` with new project in the overview table
-5. If documenting for learning, create `HISTORY.md` from the start
+1. Create a project-specific `CLAUDE.md` — open with "Inherits from root `CLAUDE.md`."
+2. Create `.claude/settings.local.json` for bash permissions if needed.
+3. Add the project to `PROJECTS.md`.
+4. If documenting for learning, create `HISTORY.md` from the start.
