@@ -3,7 +3,7 @@
 This file is reference only — it is not loaded automatically by Claude.
 Open it when you need context on a project you are not currently working in.
 
-Last updated: 2026-04-02
+Last updated: 2026-04-17
 
 ---
 
@@ -26,6 +26,8 @@ Last updated: 2026-04-02
 
 | Folder | Purpose | Git Remote |
 |--------|---------|------------|
+| `ICE/` | Claude Code plugin — ICE planning framework for marketplace distribution | Topsy31/ICE |
+| `Meliovox/` | Adaptive language production via Telegram — 4-persona team (Sandy, Friend, MrBrown, MrsWhite), Azure Functions, Claude API, Stripe | Topsy31/meliovox |
 | `SRM25/` | New project | No remote |
 | `SRM-Decision/` | New project | No remote |
 | `EASquare/` | Micro-ownership conservation platform | No remote |
