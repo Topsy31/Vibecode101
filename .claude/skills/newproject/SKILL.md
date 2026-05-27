@@ -134,7 +134,18 @@ Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>"
 ```
 
 ### 8. Update Root CLAUDE.md
-Add the new project to the Projects Overview table in `e:\Vibe Coding\CLAUDE.md`.
+Update `e:\Vibe Coding\CLAUDE.md` in two places:
+
+**a) Projects Overview table** — Add a new row:
+```
+| `<folder-name>/` | [New project] | New |
+```
+
+**b) File Organisation section** — Add the new folder to the directory tree:
+```
+├── <folder-name>\
+```
+Insert it alphabetically among the other project folders.
 
 ### 9. Confirm Completion
 Report back:

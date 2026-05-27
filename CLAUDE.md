@@ -4,6 +4,10 @@ Universal rules that apply to every project in this workspace.
 Each project has its own `CLAUDE.md` with additional constraints. Project-specific rules override root where they conflict.
 Project inventory lives in `PROJECTS.md` (not loaded automatically — check it when you need context on other projects).
 
+**Output discipline:** Respond with code only. No preamble, no recap, no explanation unless asked.
+
+**Compaction:** When compacting, preserve open files, current task, architectural decisions, and unresolved errors.
+
 ---
 
 ## Writing Standards
@@ -37,18 +41,9 @@ When reasoning about real data (counts, errors, metrics), build code that answer
 
 ---
 
-## Security: STRIDE
+## Security
 
-Apply STRIDE at the start of any feature touching data, authentication, or external services:
-
-| Category | Question |
-|----------|----------|
-| **S**poofing | Could someone impersonate a legitimate user or system? |
-| **T**ampering | Could data be modified without authorisation? |
-| **R**epudiation | Could someone deny performing an action? |
-| **I**nformation Disclosure | Could private data reach the wrong person? |
-| **D**enial of Service | Could this be overwhelmed or made unavailable? |
-| **E**levation of Privilege | Could someone gain permissions they should not have? |
+Apply STRIDE threat-modelling (Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, Elevation of Privilege) before any feature touching auth, data, or external services.
 
 ---
 
@@ -67,18 +62,15 @@ In any commercial application, approximately 40% of backend scope exists for the
 
 ## Skills
 
-All skills are defined in `e:\Vibe Coding\.claude\skills\`. Available across all projects:
+Skills are defined in `e:\Vibe Coding\.claude\skills\`. Key skills for every session:
 
-| Skill | Purpose |
-|-------|---------|
-| `/q` | Ask clarifying questions before starting work |
-| `/ice` | Run an ICE planning session — Intent, Constraints, Expectations |
-| `/challenge` | Challenge assumptions from hostile positions |
-| `/verify` | Review output critically before accepting |
-| `/adversarial-editor` | Stress-test documents and strategies |
-| `/newproject` | Create new project folder with git and Claude init |
-| `/commit` | Git commit and push (nested-repo aware) |
-| `/status` | Brief project status update |
+| Skill | When to use |
+|-------|-------------|
+| `/token-check` | Start of session, or any mid-session health check |
+| `/wrap` | End of every phase — commits, checks context, compacts if needed |
+| `/commit` | Quick mid-phase saves only |
+| `/ice` | Before starting any non-trivial task |
+| `/q` | When requirements need clarifying before work begins |
 
 ---
 

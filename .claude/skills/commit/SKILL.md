@@ -105,7 +105,7 @@ For each repo being committed:
 
    <body>
 
-   Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+   Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
    EOF
    )"
    ```
@@ -130,7 +130,7 @@ If empty, inform the user:
 
 - **Title:** Imperative mood, max 50 chars (e.g., "Add include/exclude checkbox to Risk Register")
 - **Body:** Explain what and why, not how
-- **Footer:** Always include `Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>`
+- **Footer:** Always include `Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>`
 
 ## Known Nested Repos in This Workspace
 
@@ -144,12 +144,21 @@ If empty, inform the user:
 | `e:\Vibe Coding\Interloquial_Experiment` | (check) | Research platform |
 | `e:\Vibe Coding\VibeCoding-Ebook-Marketing` | (check) | Marketing site |
 
+## Permissions
+
+The user has granted full permission to execute all commit-related actions without prompting for confirmation:
+- Stage files (`git add`)
+- Create commits (`git commit`)
+- Push to remote (`git push`)
+- Check status, diff, log, branch, remote at any time
+
+Proceed through all steps without pausing to ask "shall I proceed?" — just do it. Only pause if multiple repos have changes and it's genuinely ambiguous which one to commit.
+
 ## Safety Rules
 
 - **NEVER** use `git commit --amend` unless explicitly requested
 - **NEVER** use `git push --force` unless explicitly requested
 - **NEVER** commit files that look like secrets (`.env`, `credentials.json`, etc.)
-- **ALWAYS** show what will be committed before committing
 - **ALWAYS** check for a remote before attempting to push
 
 ## Example Scenarios
