@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Risk Radar — Strategic Navigation</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0a0e1a;
+      color: #e0e6f0;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    #app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* Toolbar */
+    #toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 24px;
+      background: #0d1220;
+      border-bottom: 1px solid #1e2a40;
+      flex-shrink: 0;
+    }
+
+    .brand {
+      font-size: 1.1rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      color: #4fc3f7;
+      text-transform: uppercase;
+    }
+
+    .scenario-switcher {
+      display: flex;
+      gap: 8px;
+    }
+
+    .scenario-btn {
+      padding: 6px 16px;
+      background: #1a2235;
+      border: 1px solid #2a3550;
+      border-radius: 4px;
+      color: #8a9bb5;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+
+    .scenario-btn:hover { border-color: #4fc3f7; color: #e0e6f0; }
+    .scenario-btn.active { background: #1a3a5c; border-color: #4fc3f7; color: #4fc3f7; }
+
+    /* Main layout */
+    #main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* Radar panel */
+    #radar-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      padding: 20px;
+      gap: 16px;
+    }
+
+    #radar-canvas {
+      max-width: min(700px, calc(100vh - 160px));
+      max-height: min(700px, calc(100vh - 160px));
+      width: 100%;
+      height: auto;
+      border-radius: 50%;
+      box-shadow: 0 0 60px rgba(79, 195, 247, 0.08);
+    }
+
+    /* Branch controls */
+    #branch-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .branch-label {
+      font-size: 0.75rem;
+      color: #4a5a75;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-right: 4px;
+    }
+
+    .branch-btn {
+      padding: 5px 14px;
+      background: #1a2235;
+      border: 1px solid #2a3550;
+      border-radius: 20px;
+      color: #8a9bb5;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: all 0.2s;
+    }
+
+    .branch-btn:hover { border-color: #7986cb; color: #e0e6f0; }
+    .branch-btn.active { background: #1f2b4a; border-color: #7986cb; color: #b0beff; }
+
+    /* Objectives panel */
+    #objectives-panel {
+      width: 320px;
+      min-width: 280px;
+      background: #0d1220;
+      border-left: 1px solid #1e2a40;
+      padding: 24px 20px;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    #objectives-panel h2 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #4fc3f7;
+      margin-bottom: 4px;
+    }
+
+    .objectives-subtitle {
+      font-size: 0.75rem;
+      color: #4a5a75;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    #objectives-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    /* Objective items */
+    .obj-item {
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .obj-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: background 0.15s;
+      background: #131a2e;
+      border: 1px solid #1e2a40;
+      border-radius: 6px;
+    }
+
+    .obj-header:hover { background: #18213a; }
+    .obj-header.expanded { border-radius: 6px 6px 0 0; border-bottom-color: transparent; }
+
+    .obj-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      transition: background 0.4s;
+    }
+
+    .obj-name {
+      flex: 1;
+      font-size: 0.82rem;
+      color: #c8d4e8;
+      line-height: 1.3;
+    }
+
+    .obj-status {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      transition: color 0.4s;
+    }
+
+    .obj-expand-icon {
+      font-size: 0.6rem;
+      color: #4a5a75;
+      transition: transform 0.2s;
+    }
+
+    .obj-header.expanded .obj-expand-icon { transform: rotate(180deg); }
+
+    /* Sub-objectives */
+    .obj-children {
+      display: none;
+      flex-direction: column;
+      gap: 2px;
+      background: #0f1624;
+      border: 1px solid #1e2a40;
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+      padding: 4px 8px 8px;
+    }
+
+    .obj-children.open { display: flex; }
+
+    .obj-child {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 4px;
+    }
+
+    .obj-child-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      transition: background 0.4s;
+    }
+
+    .obj-child-name {
+      flex: 1;
+      font-size: 0.77rem;
+      color: #8a9bb5;
+    }
+
+    .obj-child-status {
+      font-size: 0.68rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      transition: color 0.4s;
+    }
+
+    /* Legend */
+    #legend {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid #1e2a40;
+    }
+
+    #legend p {
+      font-size: 0.7rem;
+      color: #4a5a75;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 10px;
+    }
+
+    .legend-items {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.75rem;
+      color: #6a7a95;
+    }
+
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <header id="toolbar">
+      <span class="brand">Risk Radar</span>
+      <div class="scenario-switcher">
+        <button class="scenario-btn active" data-scenario="A">Scenario A — Improving</button>
+        <button class="scenario-btn" data-scenario="B">Scenario B — Deteriorating</button>
+      </div>
+    </header>
+
+    <main id="main">
+      <section id="radar-panel">
+        <canvas id="radar-canvas" width="700" height="700"></canvas>
+        <div id="branch-controls">
+          <p class="branch-label">Decision Branches</p>
+          <button class="branch-btn active" data-branch="0">Current Bearing</button>
+          <button class="branch-btn" data-branch="1">Branch A</button>
+          <button class="branch-btn" data-branch="2">Branch B</button>
+          <button class="branch-btn" data-branch="3">Branch C</button>
+        </div>
+      </section>
+
+      <section id="objectives-panel">
+        <h2>Strategic Objectives</h2>
+        <p class="objectives-subtitle">True North alignment</p>
+        <ul id="objectives-list"></ul>
+        <div id="legend">
+          <p>Status Key</p>
+          <div class="legend-items">
+            <div class="legend-item"><div class="legend-dot" style="background:#26a69a"></div> Strong — on track</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#ffa726"></div> Moderate — at risk</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#ef5350"></div> Weak — off bearing</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#b71c1c;box-shadow:0 0 4px #b71c1c"></div> Critical — needs action</div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // ─── Data ────────────────────────────────────────────────────────────────
+
+    const SCENARIOS = {
+      A: {
+        label: 'Scenario A — Improving',
+        trackHistory: [
+          { bearing: 168, month: -12 },
+          { bearing: 145, month: -11 },
+          { bearing: 122, month: -10 },
+          { bearing: 100, month: -9  },
+          { bearing: 82,  month: -8  },
+          { bearing: 64,  month: -7  },
+          { bearing: 52,  month: -6  },
+          { bearing: 40,  month: -5  },
+          { bearing: 34,  month: -4  },
+          { bearing: 28,  month: -3  },
+          { bearing: 22,  month: -2  },
+          { bearing: 18,  month: -1  },
+        ],
+        threats: [
+          { label: 'Skills Gap',        bearing: 45,  range: 0.45, size: 14, type: 'threat'      },
+          { label: 'Regulatory Change', bearing: 320, range: 0.65, size: 11, type: 'threat'      },
+          { label: 'Competitor Move',   bearing: 80,  range: 0.70, size: 9,  type: 'threat'      },
+          { label: 'Market Expansion',  bearing: 10,  range: 0.50, size: 13, type: 'opportunity' },
+          { label: 'Tech Partnership',  bearing: 355, range: 0.60, size: 11, type: 'opportunity' },
+        ],
+        branches: [
+          {
+            label: 'Current Bearing',
+            projectedBearing: 18,
+            coneHalfAngle: 22,
+            color: '#4fc3f7',
+            objectiveImpact: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          },
+          {
+            label: 'Branch A: Invest in Capability',
+            projectedBearing: 5,
+            coneHalfAngle: 16,
+            color: '#26a69a',
+            objectiveImpact: [1, 1, 0, 1, 0, 0, -1, 0, 1, 0, 0, 1],
+          },
+          {
+            label: 'Branch B: Strategic Pivot',
+            projectedBearing: 32,
+            coneHalfAngle: 30,
+            color: '#ffa726',
+            objectiveImpact: [-1, 0, 1, -1, 1, 0, 0, -1, 0, 1, 0, -1],
+          },
+          {
+            label: 'Branch C: Consolidate',
+            projectedBearing: 12,
+            coneHalfAngle: 18,
+            color: '#7986cb',
+            objectiveImpact: [0, -1, 0, 0, -1, 1, 1, 0, 0, 0, 1, 0],
+          },
+        ],
+        baseObjectiveStatus: [0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1],
+      },
+
+      B: {
+        label: 'Scenario B — Deteriorating',
+        trackHistory: [
+          { bearing: 5,  month: -12 },
+          { bearing: 8,  month: -11 },
+          { bearing: 12, month: -10 },
+          { bearing: 16, month: -9  },
+          { bearing: 20, month: -8  },
+          { bearing: 24, month: -7  },
+          { bearing: 28, month: -6  },
+          { bearing: 33, month: -5  },
+          { bearing: 37, month: -4  },
+          { bearing: 39, month: -3  },
+          { bearing: 41, month: -2  },
+          { bearing: 42, month: -1  },
+        ],
+        threats: [
+          { label: 'Talent Flight',    bearing: 55,  range: 0.35, size: 16, type: 'threat'      },
+          { label: 'Tech Disruption',  bearing: 30,  range: 0.55, size: 14, type: 'threat'      },
+          { label: 'Cash Constraint',  bearing: 100, range: 0.40, size: 12, type: 'threat'      },
+          { label: 'Regulatory Risk',  bearing: 340, range: 0.60, size: 10, type: 'threat'      },
+          { label: 'Niche Opportunity',bearing: 5,   range: 0.75, size: 9,  type: 'opportunity' },
+        ],
+        branches: [
+          {
+            label: 'Current Bearing',
+            projectedBearing: 42,
+            coneHalfAngle: 45,
+            color: '#4fc3f7',
+            objectiveImpact: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          },
+          {
+            label: 'Branch A: Invest in Capability',
+            projectedBearing: 28,
+            coneHalfAngle: 35,
+            color: '#26a69a',
+            objectiveImpact: [1, 0, 1, 0, 1, -1, 0, 1, 0, 0, 1, 0],
+          },
+          {
+            label: 'Branch B: Strategic Pivot',
+            projectedBearing: 58,
+            coneHalfAngle: 55,
+            color: '#ffa726',
+            objectiveImpact: [-1, -1, 0, -1, 0, 0, -1, 0, -1, 0, 0, -2],
+          },
+          {
+            label: 'Branch C: Consolidate',
+            projectedBearing: 35,
+            coneHalfAngle: 38,
+            color: '#7986cb',
+            objectiveImpact: [0, 1, 0, 1, -1, 1, 0, 0, 1, -1, 0, 1],
+          },
+        ],
+        baseObjectiveStatus: [1, 2, 1, 2, 3, 1, 2, 1, 3, 1, 2, 2],
+      },
+    };
+
+    const OBJECTIVES = [
+      { name: 'Revenue Growth',         children: ['Expand into new markets', 'Increase retention rate', 'Launch premium tier'] },
+      { name: 'Operational Efficiency', children: ['Reduce cost per transaction', 'Automate manual workflows'] },
+      { name: 'Talent & Culture',        children: ['Reduce attrition below 10%', 'Build leadership pipeline'] },
+      { name: 'Technology Capability',  children: ['Migrate to cloud infrastructure', 'Implement data platform'] },
+      { name: 'Customer Experience',    children: ['NPS above 60', 'Reduce onboarding time by 40%'] },
+      { name: 'Regulatory Compliance',  children: ['ISO 27001 certification', 'GDPR audit readiness'] },
+      { name: 'Strategic Partnerships', children: ['Sign 3 channel partners', 'API ecosystem launch'] },
+      { name: 'Financial Resilience',   children: ['18-month cash runway', 'Diversify revenue streams'] },
+      { name: 'Innovation Pipeline',    children: ['2 new products in development', 'R&D budget at 15% revenue'] },
+      { name: 'Market Positioning',     children: ['Analyst recognition (Gartner/Forrester)', 'Thought leadership content'] },
+      { name: 'ESG Commitments',        children: ['Carbon neutral by 2027', 'Diversity targets met'] },
+      { name: 'Risk Management',        children: ['Board risk appetite statement', 'Quarterly ERM review cycle'] },
+    ];
+
+    const STATUS_LABELS  = ['Strong', 'Moderate', 'Weak', 'Critical'];
+    const STATUS_CLASSES = ['strong', 'moderate', 'weak', 'critical'];
+    const STATUS_COLORS  = ['#26a69a', '#ffa726', '#ef5350', '#b71c1c'];
+
+    // ─── State ───────────────────────────────────────────────────────────────
+    let activeScenario = 'A';
+    let activeBranch   = 0;
+
+    // ─── Canvas ──────────────────────────────────────────────────────────────
+    const canvas = document.getElementById('radar-canvas');
+    const ctx    = canvas.getContext('2d');
+    const CX     = canvas.width  / 2;   // 350
+    const CY     = canvas.height / 2;   // 350
+    const MAX_R  = 300;
+
+    function bearingToAngle(deg) {
+      return (deg - 90) * Math.PI / 180;
+    }
+
+    function polarPoint(bearing, fraction) {
+      const a = bearingToAngle(bearing);
+      const r = fraction * MAX_R;
+      return { x: CX + r * Math.cos(a), y: CY + r * Math.sin(a) };
+    }
+
+    function drawBackground() {
+      // Base fill
+      ctx.beginPath();
+      ctx.arc(CX, CY, MAX_R + 2, 0, Math.PI * 2);
+      ctx.fillStyle = '#070b14';
+      ctx.fill();
+
+      // Radial gradient glow
+      const grad = ctx.createRadialGradient(CX, CY, 0, CX, CY, MAX_R);
+      grad.addColorStop(0,   'rgba(79, 195, 247, 0.06)');
+      grad.addColorStop(0.5, 'rgba(79, 195, 247, 0.02)');
+      grad.addColorStop(1,   'rgba(0, 0, 0, 0)');
+      ctx.beginPath();
+      ctx.arc(CX, CY, MAX_R, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Subtle spokes every 30°
+      for (let b = 0; b < 360; b += 30) {
+        const p = polarPoint(b, 1.0);
+        ctx.beginPath();
+        ctx.moveTo(CX, CY);
+        ctx.lineTo(p.x, p.y);
+        ctx.strokeStyle = 'rgba(79, 195, 247, 0.05)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+    }
+
+    function drawRangeRings() {
+      const rings = [
+        { fraction: 0.25, label: '6 months' },
+        { fraction: 0.50, label: '1 year'   },
+        { fraction: 0.75, label: '2 years'  },
+        { fraction: 1.00, label: '5 years'  },
+      ];
+      rings.forEach(ring => {
+        ctx.beginPath();
+        ctx.arc(CX, CY, ring.fraction * MAX_R, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(79, 195, 247, 0.14)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        ctx.fillStyle = 'rgba(79, 195, 247, 0.35)';
+        ctx.font = '10px Segoe UI, system-ui, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(ring.label, CX + ring.fraction * MAX_R + 6, CY - 5);
+      });
+    }
+
+    function drawCompassRose() {
+      const cardinals = [
+        { bearing: 0,   label: 'N', highlight: true  },
+        { bearing: 90,  label: 'E', highlight: false },
+        { bearing: 180, label: 'S', highlight: false },
+        { bearing: 270, label: 'W', highlight: false },
+      ];
+      cardinals.forEach(c => {
+        const outer = polarPoint(c.bearing, 1.08);
+        ctx.fillStyle   = c.highlight ? '#4fc3f7' : 'rgba(79, 195, 247, 0.4)';
+        ctx.font        = c.highlight ? 'bold 13px Segoe UI' : '11px Segoe UI';
+        ctx.textAlign   = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(c.label, outer.x, outer.y);
+      });
+
+      // True North label
+      ctx.fillStyle   = 'rgba(79, 195, 247, 0.5)';
+      ctx.font        = '9px Segoe UI';
+      ctx.textAlign   = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText('TRUE NORTH', CX, CY - MAX_R - 14);
+
+      // North tick
+      ctx.beginPath();
+      ctx.moveTo(CX, CY - MAX_R);
+      ctx.lineTo(CX, CY - MAX_R - 10);
+      ctx.strokeStyle = '#4fc3f7';
+      ctx.lineWidth   = 2;
+      ctx.stroke();
+    }
+
+    function drawCone(branch) {
+      const bearing    = branch.projectedBearing;
+      const halfAngle  = branch.coneHalfAngle;
+      const color      = branch.color;
+
+      // Four time bands — cone widens as range increases
+      const bands = [
+        { outerFraction: 0.25, innerFraction: 0,    alpha: 0.22 },
+        { outerFraction: 0.50, innerFraction: 0.25, alpha: 0.16 },
+        { outerFraction: 0.75, innerFraction: 0.50, alpha: 0.10 },
+        { outerFraction: 1.00, innerFraction: 0.75, alpha: 0.06 },
+      ];
+
+      bands.forEach(band => {
+        const outerHalf = halfAngle * band.outerFraction;
+        const innerHalf = halfAngle * band.innerFraction;
+
+        const startOuter = bearingToAngle(bearing - outerHalf);
+        const endOuter   = bearingToAngle(bearing + outerHalf);
+        const startInner = bearingToAngle(bearing - innerHalf);
+        const endInner   = bearingToAngle(bearing + innerHalf);
+
+        ctx.beginPath();
+        ctx.arc(CX, CY, band.outerFraction * MAX_R, startOuter, endOuter);
+        if (band.innerFraction === 0) {
+          ctx.lineTo(CX, CY);
+        } else {
+          ctx.arc(CX, CY, band.innerFraction * MAX_R, endInner, startInner, true);
+        }
+        ctx.closePath();
+
+        const alphaHex = Math.round(band.alpha * 255).toString(16).padStart(2, '0');
+        ctx.fillStyle  = color + alphaHex;
+        ctx.fill();
+      });
+
+      // Cone boundary lines
+      const leftEdge  = polarPoint(bearing - halfAngle, 1.0);
+      const rightEdge = polarPoint(bearing + halfAngle, 1.0);
+
+      ctx.setLineDash([4, 5]);
+      ctx.lineWidth = 1;
+
+      ctx.beginPath();
+      ctx.moveTo(CX, CY);
+      ctx.lineTo(leftEdge.x, leftEdge.y);
+      ctx.strokeStyle = color + '66';
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(CX, CY);
+      ctx.lineTo(rightEdge.x, rightEdge.y);
+      ctx.stroke();
+
+      ctx.setLineDash([]);
+    }
+
+    function drawTrackHistory(scenario) {
+      const track = scenario.trackHistory;
+      if (track.length < 2) return;
+
+      // Oldest point at outer edge, newest near centre
+      const points = track.map((t, i) => {
+        const fraction = 0.90 - (i / (track.length - 1)) * 0.82;
+        return polarPoint(t.bearing, fraction);
+      });
+
+      // Trail line
+      ctx.beginPath();
+      ctx.moveTo(points[0].x, points[0].y);
+      points.slice(1).forEach(p => ctx.lineTo(p.x, p.y));
+      ctx.strokeStyle = 'rgba(200, 215, 240, 0.18)';
+      ctx.lineWidth   = 1.5;
+      ctx.setLineDash([3, 4]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Assessment dots
+      points.forEach((p, i) => {
+        const alpha = 0.18 + (i / (points.length - 1)) * 0.55;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(200, 215, 240, ${alpha.toFixed(2)})`;
+        ctx.fill();
+      });
+
+      // Labels
+      ctx.fillStyle    = 'rgba(200, 215, 240, 0.3)';
+      ctx.font         = '9px Segoe UI';
+      ctx.textAlign    = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText('−12mo', points[0].x, points[0].y - 5);
+
+      ctx.textBaseline = 'middle';
+      ctx.textAlign    = 'left';
+      ctx.fillText('Now', points[points.length - 1].x + 6, points[points.length - 1].y);
+    }
+
+    function drawBearingArrow(bearing, color) {
+      const tip = polarPoint(bearing, 0.84);
+      const a   = bearingToAngle(bearing);
+      const arrowLen = 14;
+
+      // Shaft
+      ctx.beginPath();
+      ctx.moveTo(CX, CY);
+      ctx.lineTo(tip.x, tip.y);
+      ctx.strokeStyle = color;
+      ctx.lineWidth   = 2.5;
+      ctx.shadowColor = color;
+      ctx.shadowBlur  = 8;
+      ctx.stroke();
+      ctx.shadowBlur  = 0;
+
+      // Arrowhead
+      ctx.beginPath();
+      ctx.moveTo(tip.x, tip.y);
+      ctx.lineTo(tip.x - arrowLen * Math.cos(a - 0.28), tip.y - arrowLen * Math.sin(a - 0.28));
+      ctx.lineTo(tip.x - arrowLen * Math.cos(a + 0.28), tip.y - arrowLen * Math.sin(a + 0.28));
+      ctx.closePath();
+      ctx.fillStyle  = color;
+      ctx.shadowColor = color;
+      ctx.shadowBlur  = 6;
+      ctx.fill();
+      ctx.shadowBlur  = 0;
+    }
+
+    function drawThreats(threats) {
+      threats.forEach(t => {
+        const p     = polarPoint(t.bearing, t.range);
+        const isOpp = t.type === 'opportunity';
+        const color = isOpp ? '#26a69a' : '#ef5350';
+        const glow  = isOpp ? 'rgba(38,166,154,0.25)' : 'rgba(239,83,80,0.25)';
+
+        // Glow halo
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, t.size * 0.7, 0, Math.PI * 2);
+        ctx.fillStyle = glow;
+        ctx.fill();
+
+        // Blip
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, t.size * 0.38, 0, Math.PI * 2);
+        ctx.fillStyle   = color;
+        ctx.shadowColor = color;
+        ctx.shadowBlur  = 6;
+        ctx.fill();
+        ctx.shadowBlur  = 0;
+
+        // Label
+        ctx.fillStyle    = 'rgba(220, 232, 248, 0.7)';
+        ctx.font         = '9px Segoe UI';
+        ctx.textAlign    = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(t.label, p.x, p.y - t.size * 0.42 - 3);
+      });
+    }
+
+    function drawOrigin() {
+      // Inner pulse rings
+      ctx.beginPath();
+      ctx.arc(CX, CY, 12, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(79, 195, 247, 0.2)';
+      ctx.lineWidth   = 1;
+      ctx.stroke();
+
+      // Centre dot
+      ctx.beginPath();
+      ctx.arc(CX, CY, 5, 0, Math.PI * 2);
+      ctx.fillStyle   = '#4fc3f7';
+      ctx.shadowColor = '#4fc3f7';
+      ctx.shadowBlur  = 10;
+      ctx.fill();
+      ctx.shadowBlur  = 0;
+    }
+
+    function drawBearingInfo(branch) {
+      const deg  = Math.round(branch.projectedBearing);
+      const absDeg = Math.abs(deg);
+      const dir  = deg === 0 ? 'True North' : deg > 0 ? `${absDeg}° east of True North` : `${absDeg}° west of True North`;
+
+      ctx.fillStyle    = branch.color;
+      ctx.font         = 'bold 11px Segoe UI';
+      ctx.textAlign    = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillText(`Bearing: ${dir}`, CX, CY + MAX_R + 14);
+    }
+
+    function drawScopeBorder() {
+      ctx.beginPath();
+      ctx.arc(CX, CY, MAX_R, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(79, 195, 247, 0.22)';
+      ctx.lineWidth   = 2;
+      ctx.stroke();
+    }
+
+    function renderRadar() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const scenario = SCENARIOS[activeScenario];
+      const branch   = scenario.branches[activeBranch];
+
+      drawBackground();
+      drawRangeRings();
+      drawCompassRose();
+      drawCone(branch);
+      drawTrackHistory(scenario);
+      drawThreats(scenario.threats);
+      drawBearingArrow(branch.projectedBearing, branch.color);
+      drawOrigin();
+      drawScopeBorder();
+      drawBearingInfo(branch);
+    }
+
+    // ─── Objectives Panel ─────────────────────────────────────────────────────
+
+    function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+    function dotColor(status)  { return STATUS_COLORS[status]; }
+
+    function renderObjectives() {
+      const scenario = SCENARIOS[activeScenario];
+      const branch   = scenario.branches[activeBranch];
+      const list     = document.getElementById('objectives-list');
+
+      // Preserve which items are open
+      const openIndexes = new Set(
+        [...document.querySelectorAll('.obj-children.open')].map(el => parseInt(el.dataset.index, 10))
+      );
+
+      list.innerHTML = '';
+
+      OBJECTIVES.forEach((obj, i) => {
+        const status = clamp(scenario.baseObjectiveStatus[i] + branch.objectiveImpact[i], 0, 3);
+        const color  = dotColor(status);
+        const label  = STATUS_LABELS[status];
+
+        const li = document.createElement('li');
+        li.className = 'obj-item';
+
+        const header = document.createElement('div');
+        header.className = 'obj-header';
+        if (openIndexes.has(i)) header.classList.add('expanded');
+
+        header.innerHTML = `
+          <div class="obj-dot" style="background:${color}${status === 3 ? ';box-shadow:0 0 5px ' + color : ''}"></div>
+          <span class="obj-name">${obj.name}</span>
+          <span class="obj-status" style="color:${color}">${label}</span>
+          <span class="obj-expand-icon">▼</span>
+        `;
+
+        const children = document.createElement('div');
+        children.className = 'obj-children';
+        children.dataset.index = i;
+        if (openIndexes.has(i)) children.classList.add('open');
+
+        obj.children.forEach((childName, j) => {
+          // Odd children get a slight nudge toward parent status to show variation
+          const childStatus = clamp(status + (j % 2 === 1 && branch.objectiveImpact[i] < 0 ? 1 : 0), 0, 3);
+          const cColor = dotColor(childStatus);
+          const cLabel = STATUS_LABELS[childStatus];
+
+          const child = document.createElement('div');
+          child.className = 'obj-child';
+          child.innerHTML = `
+            <div class="obj-child-dot" style="background:${cColor}"></div>
+            <span class="obj-child-name">${childName}</span>
+            <span class="obj-child-status" style="color:${cColor}">${cLabel}</span>
+          `;
+          children.appendChild(child);
+        });
+
+        header.addEventListener('click', () => {
+          const isOpen = children.classList.contains('open');
+          document.querySelectorAll('.obj-children.open').forEach(el => el.classList.remove('open'));
+          document.querySelectorAll('.obj-header.expanded').forEach(el => el.classList.remove('expanded'));
+          if (!isOpen) {
+            children.classList.add('open');
+            header.classList.add('expanded');
+          }
+        });
+
+        li.appendChild(header);
+        li.appendChild(children);
+        list.appendChild(li);
+      });
+    }
+
+    // ─── Interaction ──────────────────────────────────────────────────────────
+
+    function syncBranchButtons() {
+      const scenario = SCENARIOS[activeScenario];
+      document.querySelectorAll('.branch-btn').forEach(btn => {
+        const idx = parseInt(btn.dataset.branch, 10);
+        btn.textContent = scenario.branches[idx].label;
+        btn.classList.toggle('active', idx === activeBranch);
+      });
+    }
+
+    function setActiveScenario(key) {
+      activeScenario = key;
+      activeBranch   = 0;
+      document.querySelectorAll('.scenario-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.scenario === key);
+      });
+      syncBranchButtons();
+      renderRadar();
+      renderObjectives();
+    }
+
+    function setActiveBranch(index) {
+      activeBranch = index;
+      syncBranchButtons();
+      renderRadar();
+      renderObjectives();
+    }
+
+    document.querySelectorAll('.scenario-btn').forEach(btn => {
+      btn.addEventListener('click', () => setActiveScenario(btn.dataset.scenario));
+    });
+
+    document.querySelectorAll('.branch-btn').forEach(btn => {
+      btn.addEventListener('click', () => setActiveBranch(parseInt(btn.dataset.branch, 10)));
+    });
+
+    // ─── Responsive canvas ────────────────────────────────────────────────────
+
+    function resizeCanvas() {
+      const panel     = document.getElementById('radar-panel');
+      const available = Math.min(panel.clientWidth - 40, panel.clientHeight - 100);
+      const size      = Math.max(300, Math.min(700, available));
+      canvas.style.width  = size + 'px';
+      canvas.style.height = size + 'px';
+    }
+
+    window.addEventListener('resize', () => {
+      resizeCanvas();
+      renderRadar();
+    });
+
+    // ─── Boot ─────────────────────────────────────────────────────────────────
+    resizeCanvas();
+    syncBranchButtons();
+    renderRadar();
+    renderObjectives();
+  </script>
+</body>
+</html>
