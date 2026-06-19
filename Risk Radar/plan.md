@@ -579,6 +579,23 @@ The recursive structure — same visualisation from work package to group level 
 
 ---
 
+## Part 5: Next Prototype Experiment
+
+**The portfolio view** — the strategic radar with four or five programme blips, each with position, vector arrow (direction + length + weight), short track history trail, and individual cone. Plus an ERM blip. Plus the organisational bearing arrow as the weighted sum.
+
+**The experiment question:** Can a senior stakeholder, looking at that screen, immediately identify:
+- Which programme is the strategic engine?
+- Which is the dominant portfolio risk?
+- Whether the portfolio as a whole is correcting toward or drifting away from True North?
+
+Without being told.
+
+If yes, the commercial proposition is proven at the portfolio level — not just the UI metaphor.
+
+**The time horizon shift for construction:** The programme cone narrows as phase commitments are made (irreversible physical commitment), not just widens with time uncertainty. This is a distinct behaviour from the strategic cone and needs separate rendering logic.
+
+---
+
 ## Part 6: Concept Validity, Restated Claim, and AI Architecture
 
 This part captures the critical challenge session and the architectural decisions that emerged from it. All material post the last commit (30a7d68).
@@ -868,20 +885,3 @@ A subsidiary that is 8% of group revenue contributes its blip force at 8% weight
 | Tier 3 → Tier 2 | Shared UNCERTAINTY aggregation | Programme director validates themes | Identifies unlinked risks; surfaces CompoundRisk patterns |
 | Tier 2 → Tier 1 | Four alignment vectors (programme director assessment) | Programme director confirms blip position | Flags inconsistencies between blip position and Tier 2 data |
 | Tier 1 → Tier 0 | Materiality-weighted vector sum | Entity leadership confirms blip position | Shows dominant entity force; simulates correction scenarios |
-
----
-
-## Part 5: Next Prototype Experiment
-
-**The portfolio view** — the strategic radar with four or five programme blips, each with position, vector arrow (direction + length + weight), short track history trail, and individual cone. Plus an ERM blip. Plus the organisational bearing arrow as the weighted sum.
-
-**The experiment question:** Can a senior stakeholder, looking at that screen, immediately identify:
-- Which programme is the strategic engine?
-- Which is the dominant portfolio risk?
-- Whether the portfolio as a whole is correcting toward or drifting away from True North?
-
-Without being told.
-
-If yes, the commercial proposition is proven at the portfolio level — not just the UI metaphor.
-
-**The time horizon shift for construction:** The programme cone narrows as phase commitments are made (irreversible physical commitment), not just widens with time uncertainty. This is a distinct behaviour from the strategic cone and needs separate rendering logic.
