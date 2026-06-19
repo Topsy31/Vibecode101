@@ -281,7 +281,49 @@ This is the instrument-level behaviour that makes the metaphor earn its place. A
 
 ---
 
-## Part 4: Next Prototype Experiment
+## Part 4: Tier 0 — Group / Multinational Architecture
+
+The three-tier model extends upward without architectural change. A multinational organisation with separate legal or operational entities adds a fourth tier sitting above the existing structure:
+
+```
+Tier 0  — Group / Holding Company Radar
+Tier 1  — Subsidiary / Organisational Entity Radar
+Tier 2  — Programme Radar
+Tier 3  — Work Package Radar
+```
+
+### 4.1 Subsidiaries as Group Blips
+
+Each subsidiary entity appears on the Group radar as a blip, encoded using the same four dimensions as programme blips on the Tier 1 strategic radar:
+
+- **Position** — the subsidiary's current bearing relative to Group True North, which is set at holding-company level and is not negotiable by subsidiary management
+- **Vector arrow** — direction and velocity of the subsidiary's strategic drift: correcting toward Group north or diverging from it; thickness encodes the subsidiary's materiality (revenue, capital employed, headcount)
+- **Cone** — the subsidiary's uncertainty envelope propagated upward to group level
+- **Track history** — whether the subsidiary's alignment to Group north has been improving or deteriorating over time
+
+### 4.2 The Local True North Problem
+
+A multinational holding company may have subsidiaries operating in different sectors, geographies, and regulatory environments — each with a legitimately different local True North. The Group radar does not demand that all subsidiaries point in the same direction. It shows the weighted vector sum of where they are all going, and surfaces the subsidiaries whose trajectory is diverging from that aggregate.
+
+This is a materially different and more honest picture than a consolidated P&L, which flattens direction into magnitude.
+
+### 4.3 Three Group-Level Diagnostic Scenarios
+
+| Subsidiary Positions | Group Bearing Arrow | Reading |
+|---|---|---|
+| Clustered, pointing near Group north | Strong, on-bearing | Portfolio coherent — acquisition and disposal strategy working |
+| Widely dispersed bearings | Weak, near-centre | Conglomerate discount problem — no coherent group direction |
+| One subsidiary pointing sharply away | Group arrow deflected | Single entity is the dominant group risk — concentration exposure |
+
+### 4.4 Architectural Consistency
+
+The recursive structure — same visualisation from work package to group level — is a deliberate design principle. A board member who can read the Group radar already knows how to read the subsidiary radar. Drill-down navigation is conceptually consistent at every level. There is no new metaphor to learn as the user moves between tiers.
+
+**The navigational model scales accordingly:** Group radar is the permanent anchor for a group executive. Click a subsidiary blip to enter Tier 1. Click a programme blip within the subsidiary to enter Tier 2. At every level, the bearing relationship to the tier above remains visible — a programme director can always see how their bearing contribution flows upward to the subsidiary, and from the subsidiary upward to the group.
+
+---
+
+## Part 5: Next Prototype Experiment
 
 **The portfolio view** — the strategic radar with four or five programme blips, each with position, vector arrow (direction + length + weight), short track history trail, and individual cone. Plus an ERM blip. Plus the organisational bearing arrow as the weighted sum.
 
