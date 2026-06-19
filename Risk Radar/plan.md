@@ -579,6 +579,298 @@ The recursive structure — same visualisation from work package to group level 
 
 ---
 
+## Part 6: Concept Validity, Restated Claim, and AI Architecture
+
+This part captures the critical challenge session and the architectural decisions that emerged from it. All material post the last commit (30a7d68).
+
+---
+
+### 6.1 Critical Challenge — Five Attacks on the Plan
+
+The plan was subjected to a hostile validity review. The five challenges and their resolutions are recorded here because they define the boundaries of what Risk Radar can and cannot claim.
+
+---
+
+**Challenge 1: The Metaphor Implies Objectivity the Model Cannot Deliver**
+
+Bearing on a radar screen is a physical measurement. Bearing on a Risk Radar screen is a structured human judgement. Two assessors looking at the same organisation will produce different bearings — not because their instruments differ, but because bearing is not an observable property of an organisation.
+
+*Resolution:* The tool must make its reasoning visible at every level. The bearing arrow is not a measurement — it is a structured, evidence-backed, debatable judgement rendered in a form that a board can engage with directly. The rationale panel in the prototype is the correct instinct. Every bearing reading must be accompanied by the chain of reasoning that produced it, so a board member can challenge the inputs, not just the output. The tool is sold honestly as a structured dialogue instrument, not as a navigation instrument claiming objective precision.
+
+---
+
+**Challenge 2: The Qualitative Principle Breaks Under Aggregation**
+
+High / Medium / Low is sufficient at the individual risk level. The moment aggregation occurs — vector sums, weighted bearing arrows, cascade factors, portfolio-level blips — arithmetic is being performed on ordinal labels. The plan had not documented how this aggregation works.
+
+*Resolution:* The aggregation methodology must be explicit, consistent, and boardroom-explainable. It does not need to be academically rigorous. It needs to be directionally correct (increasing threat severity moves bearing away from north; increasing capability moves it back), consistent (same inputs always produce the same output), and explainable (the bearing rationale panel can name the two or three forces that dominate the current reading). The bearing arrow is an indicative direction for dialogue, confirmed by the chain of evidence behind it. The quality-weighted bearing model (section 6.3) is the specific resolution.
+
+---
+
+**Challenge 3: Three Tiers Plus Tier 0 Is Four Distinct Products**
+
+A work package delivery team and a multinational group board have nothing in common except that both face uncertainty. A tool that genuinely serves both is either too abstract to be useful to either, or requires deep customisation at each tier.
+
+*Resolution:* Risk Radar has one primary customer: the board and C-suite. That is Tier 0 and Tier 1. The expansion path is phased and sequenced upward from the strategic radar — not simultaneously across all tiers. Sequencing: Phase 1 is Tier 1 only (single-entity strategic radar — current prototype). Phase 2 adds programme blips propagating upward from Tier 2 (portfolio view — Part 5). Phase 3 adds Tier 0 group view. Phase 4 adds Tier 3 work package level feeding upward. This is one product with a defined expansion path, not four products with a shared visual metaphor.
+
+---
+
+**Challenge 4: Data Capture Has Been Treated as a Feature, Not the Product**
+
+The plan acknowledges data capture is the hardest problem, then proceeds to develop the visualisation, MCP layer, ontology, and four-tier architecture — all of which assume clean, structured, ontology-aligned data exists. It does not exist in any client organisation. Risk data in real organisations is held in inconsistent spreadsheets, narrative registers written by different people, half-completed action logs, and politically managed heat maps.
+
+*Resolution:* The data capture workflow and facilitation methodology are not peripheral. They are the product. The software makes the methodology scalable and the output visual. But the structured process for eliciting objectives, assumptions, capabilities, actions, and risks from a leadership team — and keeping those records evidenced and current — is what Risk Radar actually delivers. This is also its strongest differentiator: no current ERM tool ships with a board-level facilitation methodology baked into the product. Data owners are internal only — there is no external consultant risk manager role. The AI (Mode 1, section 6.4) replaces the external facilitator for data quality enforcement.
+
+---
+
+**Challenge 5: The MCP / AI Layer Assumes Data Quality That Cannot Be Guaranteed**
+
+An AI that answers bearing questions is only as reliable as the data behind it. Confident, fluent, wrong answers from an AI are more dangerous than hedged right answers from a human analyst — because a board is more likely to act on them.
+
+*Resolution:* The MCP layer is restructured as two distinct modes with a quality gate between them (section 6.4). Mode 1 operates upstream with data owners to maximise data quality. Mode 2 operates downstream with decision makers only after quality thresholds are met. The quality score modulates bearing contribution rather than acting as a binary pass/fail gate (section 6.3).
+
+---
+
+### 6.2 Restated Central Claim
+
+The plan's original framing implied Risk Radar is a navigation instrument that measures strategic bearing. That framing does not survive hostile scrutiny.
+
+The defensible and still distinctive claim is:
+
+> **Risk Radar is a board-level strategic dialogue instrument. It structures the conversation between senior decision makers about where the organisation is headed and what is pushing it off course, and renders that structured conversation in a form that makes the consequences of strategic assumptions visible, debatable, and actionable.**
+
+The radar is not the product. The structured conversation is the product. The radar makes it visible.
+
+The original intent — give senior decision makers the type of information they can use to influence strategic decisions — is fully served by this framing. Context is the most important part of the decision maker's toolkit. Risk Radar's job is to maximise the quality and relevance of that context.
+
+**What this framing changes:**
+- Bearing is a structured judgement, not a measurement — always shown with its reasoning chain
+- The facilitation methodology is a first-class deliverable, not a feature
+- The AI's primary role is maximising data quality and context, not replacing human judgement
+- The aggregation methodology must be explainable to a board, not academically defensible
+
+---
+
+### 6.3 Quality-Weighted Bearing Model
+
+The key architectural decision resolving Challenges 2, 4, and 5 simultaneously.
+
+**The principle:** Every risk, uncertainty, and capability record carries a completeness score. That score becomes a confidence multiplier on its bearing contribution. A risk with High impact but 40% data completeness contributes to bearing at 40% of its assessed weight. It still moves the needle — a significant but poorly evidenced threat is more honest than ignoring it — but less than a fully evidenced record of equivalent impact.
+
+This is not a binary gate (use / don't use). It is a continuous confidence weighting. Low quality but significant impact still carries weight. High quality but low impact remains appropriately minor.
+
+**Visual representation — the confidence band:**
+- The bearing arrow has a confidence band rendered around it: narrow when data quality is high, wide when it is low
+- The cone of possibilities has a secondary shading layer showing how the cone would narrow if completeness improved
+- Low data quality is visible to the board, not just to data owners — the instrument is honest about its own reliability
+
+---
+
+#### 6.3.1 Completeness Score — Per Record Type
+
+Each record type has a weighted completeness checklist. Score = (mandatory items satisfied ÷ total mandatory items) + bonus weighting for high-value items. Normalised to 0–100.
+
+**UNCERTAINTY record:**
+
+| Item | Weight |
+|---|---|
+| Name and description | Mandatory |
+| Subtype assigned (Threat / Vulnerability / Complexity / Volatility / Variation) | Mandatory |
+| Tier assigned (external / portfolio / programme / operational) | Mandatory |
+| At least one downstream RISK linked | Mandatory |
+| Synonyms / alternative labels | Optional |
+
+**RISK record:**
+
+| Item | Weight |
+|---|---|
+| Linked to parent UNCERTAINTY | Mandatory |
+| Linked to primary OBJECTIVE | Mandatory |
+| Likelihood rated (H/M/L) | Mandatory |
+| Impact rated (H/M/L) | Mandatory |
+| Bearing assigned (0–359°) | Mandatory |
+| Bearing rationale text | Mandatory |
+| Time horizon assigned | Mandatory |
+| Risk subtype assigned (Single / Recurring / Persistent / Compound) | Mandatory |
+| At least one KRI assigned | High value |
+| Capability rating recorded | High value |
+| Capability rating backed by at least one ACTION | High value |
+
+**CAPABILITY / ACTION record:**
+
+| Item | Weight |
+|---|---|
+| Approval status recorded | Mandatory |
+| Execution status recorded | Mandatory |
+| Outcome status recorded | Mandatory |
+| Owner named | Mandatory |
+| Last reviewed date | Mandatory |
+
+**OBJECTIVE ASSUMPTION record:**
+
+| Item | Weight |
+|---|---|
+| At least one ASSUMPTION subtype recorded per objective | High value |
+| Fragility rating per assumption | Optional |
+
+---
+
+#### 6.3.2 Gamification — Driving Data Quality Behaviour
+
+The completeness score is visible to data owners, creating competitive pressure without requiring external consultants.
+
+**Assessment Readiness Dashboard (Mode 1 home screen for internal data owners):**
+- Per-objective completeness bar — green above threshold, amber when partial, red below minimum
+- Overall assessment readiness score — weighted average across all records
+- AI-generated "what's missing" prompt list — the three highest-value completeness gaps surfaced by name: "Adding a KRI to Skills Gap would increase your assessment confidence by 8 points"
+
+**Confidence watermark on the radar (visible to board):**
+- Bearing arrow confidence band — narrow when quality is high, wide when low
+- Cone secondary shading showing how the cone narrows as completeness improves
+- Makes data quality visible to decision makers, not just data owners
+
+**KRI Coverage indicator (optional leaderboard):**
+- Across the risk register, which risks have complete KRI coverage and which do not
+- Risk owners see their completeness relative to peers — social pressure without hierarchy
+
+---
+
+### 6.4 MCP Dual-Mode AI Architecture
+
+The MCP layer operates in two distinct modes, separated by the quality-weighted bearing threshold. Data owners are internal only — no external consultant risk manager role.
+
+---
+
+**Mode 1: AI as Data Quality Coach (upstream — with internal data owners)**
+
+The AI reviews each record against the ontology structure and the completeness checklist. It does not fill in gaps — it asks the right questions to help the owner fill them. It escalates material gaps to the assessment owner before the board session.
+
+Primary tasks:
+- Surface missing or weak data against the ontology structure
+- Challenge capability ratings that lack action register evidence
+- Identify risks without upstream UNCERTAINTY records and prompt owners to make the linkage explicit
+- Flag ASSUMPTION subtypes not yet recorded against each objective
+- Prompt for KRI assignment — every risk should have at least one RiskIndicator
+- Validate ontology relationships: UNCERTAINTIEs → RISKs → OBJECTIVEs → ACTIONs
+- Produce completeness score per objective, per risk, and per assessment cycle
+
+Example AI prompts in Mode 1:
+- "You have rated Skills Gap as High impact but the bearing is unassigned. Which direction does this push the organisation relative to its Talent & Culture objective?"
+- "Your capability rating for this threat is Medium, but none of the three backing actions have confirmed outcome status. Based on current evidence, the effective capability is Low. Do you want to update the rating or add evidence?"
+- "You have 4 risks linked to the Digital Transformation objective but no ASSUMPTION records. What is this objective assuming about budget, regulatory environment, or technology availability?"
+
+---
+
+**Mode 2: AI as Board Navigator (downstream — with decision makers)**
+
+Activated once the assessment has passed the minimum completeness threshold. The AI answers questions about the bearing with full context and visible confidence weighting. Every answer carries three elements: context, confidence, and call to action.
+
+Primary tasks:
+- Answer natural language questions about bearing and its causes
+- Surface the chain of evidence behind any blip on the radar
+- Simulate decision branches and their bearing consequences
+- Identify UNCERTAINTY hub nodes — root causes with the most downstream risk dependents
+- Flag KRIs trending in the wrong direction since the last assessment
+- Contextualise across assessment cycles — surfacing when assumptions have not been reviewed since a key programme event
+
+Example AI responses in Mode 2:
+- "We are bearing 34° east of True North. The three dominant forces are Skills Gap (High impact, 62% data confidence), Regulatory Shift (Medium impact, 91% confidence), and Infrastructure Programme drift (High impact, 78% confidence). The Regulatory Shift reading is the most reliable — would you like to explore that first?"
+- "If you proceed with the capability investment decision, bearing improves by approximately 11° toward north. That estimate carries 71% confidence because the capability rating it depends on has two actions in execution but neither yet showing confirmed outcomes."
+- "Your Digital Transformation KRI — graduate hire retention rate — has been below threshold for two consecutive periods. This is the leading indicator for the Skills Gap threat. The action status has not been updated since last month."
+
+---
+
+### 6.5 Key Risk Indicators — Architecture
+
+KRIs are the monitoring layer connecting formal assessment cycles. Without them, the board sees a snapshot at each assessment but has no early warning system between sessions. In the ontology, KRIs are RiskIndicators — a subtype of INDICATOR, informed by OBSERVATION.
+
+**The KRI chain:**
+```
+UNCERTAINTY → causes → RISK → has → RiskIndicator (KRI)
+                                          │
+                                   monitored periodically
+                                   (manual, per MVP scope)
+                                          │
+                                   triggers OBSERVATION
+                                   (Signal, Issue, Incident)
+                                          │
+                                   informs INDICATOR
+                                          │
+                                   influences OBJECTIVE
+```
+
+**KRI record structure:**
+- Name and description
+- Parent RISK (mandatory)
+- What to monitor — the specific variable being tracked
+- Monitoring frequency — periodic (weekly / monthly / quarterly) for MVP
+- Threshold — the value or condition that triggers an OBSERVATION
+- Current status — above / at / below threshold
+- Last updated date and owner
+
+**MVP scope:** KRI monitoring is manual and periodic. A risk owner records an observation when the monitored variable changes materially or when the periodic review is due. Automated feed from external data sources is a post-MVP capability.
+
+**What KRIs enable:**
+- Early warning between formal assessment cycles — the board is notified of material threshold crossings without waiting for the next quarterly assessment
+- Continuous bearing refinement — KRI status updates feed into the completeness score and can trigger a bearing recalculation
+- Evidence for Mode 2 AI context — "this KRI has been below threshold for two consecutive periods" is a factual, evidenced statement the AI can make with full confidence
+
+Every risk on the radar must have at least one KRI to achieve full completeness score on the RISK record. The Mode 1 AI enforces this as a high-value completeness item.
+
+---
+
+### 6.6 Cross-Tier Bearing Calibration
+
+A work package risk does not have significant bearing on Tier 0 in isolation. Only in aggregation with other risks, and through the translation layers between tiers, does its contribution become visible. There is no single formula from work package to group bearing. There are three translation layers, each with a human validation step supported by the AI.
+
+---
+
+**Translation Layer 1: Tier 3 → Tier 2 (Shared UNCERTAINTY Aggregation)**
+
+Work package risks do not propagate individually. They aggregate via their shared parent UNCERTAINTY records.
+
+A ground conditions risk on Work Package A and a ground conditions risk on Work Package B both trace back to the same parent UNCERTAINTY: `GeologicalSurveyAssumption`. At Tier 2, the programme director does not see two independent risks — they see one UNCERTAINTY with two downstream materialised risks. This is qualitatively more serious than two unrelated risks of equivalent individual impact, and the bearing calculation reflects it via cascade amplification.
+
+Shared UNCERTAINTIEs with multiple downstream RISKs across work packages are identified as CompoundRisks at programme level. The Mode 1 AI's primary task at Tier 3 is identifying risks without parent UNCERTAINTY records and prompting owners to make the linkage explicit — because without those links, the Tier 2 aggregation cannot function correctly.
+
+**Human validation step:** The programme director reviews the aggregated UNCERTAINTY themes before the Tier 2 assessment is published upward.
+
+---
+
+**Translation Layer 2: Tier 2 → Tier 1 (Tier-Specific Recalculation)**
+
+Programme directors do not push individual programme risks to Tier 1. They assess the four strategic alignment vectors (financial, capability, reputation, strategic alignment) informed by the Tier 2 data, and those four vectors determine the programme blip's position on the Tier 1 strategic radar.
+
+The programme blip's position is the programme director's validated judgement about how this programme is affecting the organisation's strategic bearing — not a mechanical roll-up of programme risk scores. The Mode 2 AI supports this by showing how changes to the four alignment vectors would shift the blip position, and by flagging where the blip position appears inconsistent with the underlying Tier 2 data.
+
+**Human validation step:** The programme director confirms the blip position and the four alignment vector assessments before the Tier 1 board session.
+
+---
+
+**Translation Layer 3: Tier 1 → Tier 0 (Materiality-Weighted Recalculation)**
+
+Entity boards assess their subsidiary's blip position on the Group radar. The Group bearing arrow is the materiality-weighted vector sum of subsidiary blip positions — each subsidiary's contribution scaled by its proportional weight in the group (revenue, capital employed, or headcount, as configured).
+
+A subsidiary that is 8% of group revenue contributes its blip force at 8% weight. A subsidiary that is 45% of group revenue dominates the group bearing arrow — which is the correct behaviour: the group cannot be more strategically healthy than its most material entity.
+
+**Human validation step:** Entity leadership confirms their blip position on the Group radar. The Mode 2 AI at Group level can show which subsidiary is the dominant force on the group bearing arrow and what would need to change at entity level to correct it.
+
+---
+
+**The data quality score propagates upward through all translation layers.** If Tier 3 data is 45% complete, the programme blip at Tier 2 carries a wide confidence band. That confidence band propagates to the Tier 1 strategic radar and to the Tier 0 group radar. The board at every tier sees not just the bearing, but the reliability of the bearing — and can trace that reliability back to the completeness of the underlying data at the tier of origin.
+
+---
+
+**Summary of calibration approach:**
+
+| Translation | Method | Human role | AI role |
+|---|---|---|---|
+| Tier 3 → Tier 2 | Shared UNCERTAINTY aggregation | Programme director validates themes | Identifies unlinked risks; surfaces CompoundRisk patterns |
+| Tier 2 → Tier 1 | Four alignment vectors (programme director assessment) | Programme director confirms blip position | Flags inconsistencies between blip position and Tier 2 data |
+| Tier 1 → Tier 0 | Materiality-weighted vector sum | Entity leadership confirms blip position | Shows dominant entity force; simulates correction scenarios |
+
+---
+
 ## Part 5: Next Prototype Experiment
 
 **The portfolio view** — the strategic radar with four or five programme blips, each with position, vector arrow (direction + length + weight), short track history trail, and individual cone. Plus an ERM blip. Plus the organisational bearing arrow as the weighted sum.
