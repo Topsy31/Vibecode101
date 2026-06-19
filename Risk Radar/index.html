@@ -284,6 +284,140 @@
       border-radius: 50%;
       flex-shrink: 0;
     }
+
+    /* Hover tooltip */
+    #radar-tooltip {
+      position: fixed;
+      pointer-events: none;
+      z-index: 100;
+      width: 260px;
+      background: #0d1525;
+      border: 1px solid #2a3a55;
+      border-radius: 8px;
+      padding: 14px 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(79,195,247,0.08);
+      display: none;
+    }
+
+    #radar-tooltip.visible { display: block; }
+
+    .tt-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .tt-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .tt-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #e0e8f8;
+      flex: 1;
+    }
+
+    .tt-type {
+      font-size: 0.68rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      padding: 2px 7px;
+      border-radius: 10px;
+    }
+
+    .tt-type.threat      { background: rgba(239,83,80,0.15); color: #ef5350; border: 1px solid rgba(239,83,80,0.3); }
+    .tt-type.opportunity { background: rgba(38,166,154,0.15); color: #26a69a; border: 1px solid rgba(38,166,154,0.3); }
+
+    .tt-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .tt-cell {
+      background: #131e33;
+      border-radius: 5px;
+      padding: 6px 8px;
+      text-align: center;
+    }
+
+    .tt-cell-label {
+      font-size: 0.62rem;
+      color: #4a5a75;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 3px;
+    }
+
+    .tt-cell-value {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #c8d4e8;
+    }
+
+    .tt-cell-value.high     { color: #ef5350; }
+    .tt-cell-value.medium   { color: #ffa726; }
+    .tt-cell-value.low      { color: #26a69a; }
+
+    .tt-bearing {
+      font-size: 0.75rem;
+      color: #7986cb;
+      margin-bottom: 8px;
+      line-height: 1.4;
+      padding: 6px 8px;
+      background: rgba(121,134,203,0.08);
+      border-left: 2px solid #7986cb;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .tt-rationale {
+      font-size: 0.73rem;
+      color: #6a7a95;
+      line-height: 1.5;
+    }
+
+    .tt-objective {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid #1e2a40;
+      font-size: 0.72rem;
+      color: #4a5a75;
+    }
+
+    .tt-objective span { color: #8a9bb5; }
+
+    /* Bearing rationale panel */
+    #bearing-rationale {
+      margin-top: 10px;
+      padding: 10px 14px;
+      background: #0d1220;
+      border: 1px solid #1e2a40;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      color: #6a7a95;
+      line-height: 1.55;
+      max-width: 560px;
+      text-align: center;
+    }
+
+    #bearing-rationale strong {
+      display: block;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #4a5a75;
+      margin-bottom: 4px;
+    }
   </style>
 </head>
 <body>
@@ -306,7 +440,39 @@
           <button class="branch-btn" data-branch="2">Branch B</button>
           <button class="branch-btn" data-branch="3">Branch C</button>
         </div>
+        <div id="bearing-rationale">
+          <strong>Why this bearing?</strong>
+          <span id="bearing-rationale-text"></span>
+        </div>
       </section>
+
+      <div id="radar-tooltip">
+        <div class="tt-header">
+          <div class="tt-dot" id="tt-dot"></div>
+          <span class="tt-label" id="tt-label"></span>
+          <span class="tt-type" id="tt-type"></span>
+        </div>
+        <div class="tt-grid">
+          <div class="tt-cell">
+            <div class="tt-cell-label">Likelihood</div>
+            <div class="tt-cell-value" id="tt-likelihood"></div>
+          </div>
+          <div class="tt-cell">
+            <div class="tt-cell-label">Impact</div>
+            <div class="tt-cell-value" id="tt-impact"></div>
+          </div>
+          <div class="tt-cell">
+            <div class="tt-cell-label">Capability</div>
+            <div class="tt-cell-value" id="tt-capability"></div>
+          </div>
+        </div>
+        <div class="tt-bearing" id="tt-bearing"></div>
+        <div class="tt-rationale" id="tt-rationale"></div>
+        <div class="tt-objective">
+          Primary objective: <span id="tt-objective"></span>
+          &nbsp;·&nbsp; Horizon: <span id="tt-horizon"></span>
+        </div>
+      </div>
 
       <section id="objectives-panel">
         <h2>Strategic Objectives</h2>
@@ -346,11 +512,46 @@
           { bearing: 18,  month: -1  },
         ],
         threats: [
-          { label: 'Skills Gap',        bearing: 45,  range: 0.45, size: 14, type: 'threat'      },
-          { label: 'Regulatory Change', bearing: 320, range: 0.65, size: 11, type: 'threat'      },
-          { label: 'Competitor Move',   bearing: 80,  range: 0.70, size: 9,  type: 'threat'      },
-          { label: 'Market Expansion',  bearing: 10,  range: 0.50, size: 13, type: 'opportunity' },
-          { label: 'Tech Partnership',  bearing: 355, range: 0.60, size: 11, type: 'opportunity' },
+          {
+            label: 'Skills Gap', bearing: 45, range: 0.45, size: 14, type: 'threat',
+            horizon: '6–12 months',
+            likelihood: 'High', impact: 'High', capability: 'Low',
+            bearingEffect: 'Deflecting bearing 12° east — low internal capability to absorb this threat',
+            objective: 'Talent & Culture',
+            rationale: 'Insufficient mid-level technical talent is creating drag on delivery velocity. Because capability to respond is Low, this threat has outsized deflection on bearing.',
+          },
+          {
+            label: 'Regulatory Change', bearing: 320, range: 0.65, size: 11, type: 'threat',
+            horizon: '1–2 years',
+            likelihood: 'Medium', impact: 'High', capability: 'Medium',
+            bearingEffect: 'Deflecting bearing 8° west — partial capability to manage compliance',
+            objective: 'Regulatory Compliance',
+            rationale: 'Incoming data regulation will require significant compliance investment. Existing legal capability partially mitigates exposure, placing this west of north.',
+          },
+          {
+            label: 'Competitor Move', bearing: 80, range: 0.70, size: 9, type: 'threat',
+            horizon: '2–5 years',
+            likelihood: 'Medium', impact: 'Medium', capability: 'Medium',
+            bearingEffect: 'Deflecting bearing 6° east — moderate exposure, longer horizon reduces urgency',
+            objective: 'Market Positioning',
+            rationale: 'A well-funded competitor is investing in overlapping product capability. The long time horizon and moderate capability exposure limit near-term bearing impact.',
+          },
+          {
+            label: 'Market Expansion', bearing: 10, range: 0.50, size: 13, type: 'opportunity',
+            horizon: '1 year',
+            likelihood: 'High', impact: 'High', capability: 'High',
+            bearingEffect: 'Pulling bearing 14° toward north — strong capability alignment to capture this',
+            objective: 'Revenue Growth',
+            rationale: 'Adjacent market segment is underserved and aligns with existing product strengths. High capability to capture means this opportunity creates strong magnetic pull toward north.',
+          },
+          {
+            label: 'Tech Partnership', bearing: 355, range: 0.60, size: 11, type: 'opportunity',
+            horizon: '1–2 years',
+            likelihood: 'Medium', impact: 'High', capability: 'Medium',
+            bearingEffect: 'Pulling bearing 5° west of north — capability to execute partnership is developing',
+            objective: 'Strategic Partnerships',
+            rationale: 'A strategic technology partnership could accelerate platform capability. Partial internal capability to execute means pull is moderate, positioned slightly west of true north.',
+          },
         ],
         branches: [
           {
@@ -359,6 +560,7 @@
             coneHalfAngle: 22,
             color: '#4fc3f7',
             objectiveImpact: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            bearingRationale: 'Current trajectory reflects the net vector of active threats and opportunities. Skills Gap is the dominant eastward deflection force. Market Expansion opportunity is pulling toward north but insufficient to fully correct. Cone width of ±22° reflects moderate uncertainty in medium-term planning horizon.',
           },
           {
             label: 'Branch A: Invest in Capability',
@@ -366,6 +568,7 @@
             coneHalfAngle: 16,
             color: '#26a69a',
             objectiveImpact: [1, 1, 0, 1, 0, 0, -1, 0, 1, 0, 0, 1],
+            bearingRationale: 'Targeted investment in technical talent and platform capability neutralises the Skills Gap threat and strengthens the organisation\'s position to capture the Market Expansion opportunity. Bearing corrects to near True North. Cone narrows to ±16° as capability investment reduces uncertainty.',
           },
           {
             label: 'Branch B: Strategic Pivot',
@@ -373,6 +576,7 @@
             coneHalfAngle: 30,
             color: '#ffa726',
             objectiveImpact: [-1, 0, 1, -1, 1, 0, 0, -1, 0, 1, 0, -1],
+            bearingRationale: 'Pivoting toward an adjacent market moves the organisation further east of True North. The pivot trades Revenue Growth and Technology Capability for Customer Experience and Market Positioning gains. Cone widens to ±30° — strategic pivots introduce significant execution uncertainty.',
           },
           {
             label: 'Branch C: Consolidate',
@@ -380,6 +584,7 @@
             coneHalfAngle: 18,
             color: '#7986cb',
             objectiveImpact: [0, -1, 0, 0, -1, 1, 1, 0, 0, 0, 1, 0],
+            bearingRationale: 'Consolidation focuses resources on defending current position and improving regulatory and partnership standing. Bearing moves modestly toward north. Cone narrows slightly to ±18° as reduced strategic ambition lowers uncertainty, but Revenue Growth opportunity cost is not recaptured.',
           },
         ],
         baseObjectiveStatus: [0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1],
@@ -402,11 +607,46 @@
           { bearing: 42, month: -1  },
         ],
         threats: [
-          { label: 'Talent Flight',    bearing: 55,  range: 0.35, size: 16, type: 'threat'      },
-          { label: 'Tech Disruption',  bearing: 30,  range: 0.55, size: 14, type: 'threat'      },
-          { label: 'Cash Constraint',  bearing: 100, range: 0.40, size: 12, type: 'threat'      },
-          { label: 'Regulatory Risk',  bearing: 340, range: 0.60, size: 10, type: 'threat'      },
-          { label: 'Niche Opportunity',bearing: 5,   range: 0.75, size: 9,  type: 'opportunity' },
+          {
+            label: 'Talent Flight', bearing: 55, range: 0.35, size: 16, type: 'threat',
+            horizon: '0–6 months',
+            likelihood: 'High', impact: 'High', capability: 'Low',
+            bearingEffect: 'Deflecting bearing 18° east — largest single contributor to bearing drift',
+            objective: 'Talent & Culture',
+            rationale: 'Senior technical staff attrition is accelerating. Near-term horizon and critically low capability to retain talent makes this the dominant bearing deflection force.',
+          },
+          {
+            label: 'Tech Disruption', bearing: 30, range: 0.55, size: 14, type: 'threat',
+            horizon: '1–2 years',
+            likelihood: 'High', impact: 'High', capability: 'Low',
+            bearingEffect: 'Deflecting bearing 14° east — emerging platform shift with low response capability',
+            objective: 'Technology Capability',
+            rationale: 'A new technology platform is gaining market adoption rapidly. Current tech stack has limited adaptability, and investment in capability has been deferred, compounding exposure.',
+          },
+          {
+            label: 'Cash Constraint', bearing: 100, range: 0.40, size: 12, type: 'threat',
+            horizon: '6–12 months',
+            likelihood: 'High', impact: 'Medium', capability: 'Low',
+            bearingEffect: 'Deflecting bearing 10° east — limits options across multiple strategic responses',
+            objective: 'Financial Resilience',
+            rationale: 'Runway at current burn is under 12 months. This constrains the ability to respond to other threats and limits investment in strategic opportunities, amplifying overall bearing drift.',
+          },
+          {
+            label: 'Regulatory Risk', bearing: 340, range: 0.60, size: 10, type: 'threat',
+            horizon: '1–2 years',
+            likelihood: 'Medium', impact: 'High', capability: 'Low',
+            bearingEffect: 'Deflecting bearing 6° west — capability gap means this could worsen',
+            objective: 'Regulatory Compliance',
+            rationale: 'Data protection regulation changes will require significant compliance programme. Low legal and compliance capability means this sits west as an undermanaged exposure.',
+          },
+          {
+            label: 'Niche Opportunity', bearing: 5, range: 0.75, size: 9, type: 'opportunity',
+            horizon: '2–5 years',
+            likelihood: 'Low', impact: 'High', capability: 'Low',
+            bearingEffect: 'Minimal pull toward north — too distant and capability too low to capture',
+            objective: 'Revenue Growth',
+            rationale: 'A niche market segment exists near true north, but the time horizon is long and current capability to capture is critically low. Magnetic pull exists but is too weak to correct current bearing drift.',
+          },
         ],
         branches: [
           {
@@ -415,6 +655,7 @@
             coneHalfAngle: 45,
             color: '#4fc3f7',
             objectiveImpact: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            bearingRationale: 'Current trajectory is significantly off True North and deteriorating. Talent Flight is the dominant deflection force at 18° east. Tech Disruption and Cash Constraint compound the drift. The single Niche Opportunity is too distant and capability too low to correct course. Cone width of ±45° reflects high strategic uncertainty.',
           },
           {
             label: 'Branch A: Invest in Capability',
@@ -422,6 +663,7 @@
             coneHalfAngle: 35,
             color: '#26a69a',
             objectiveImpact: [1, 0, 1, 0, 1, -1, 0, 1, 0, 0, 1, 0],
+            bearingRationale: 'Emergency capability investment in talent retention and technology stabilisation begins to correct the dominant Talent Flight deflection. Bearing moves from 42° to 28° east of True North — meaningful improvement but significant drift remains. Cone narrows to ±35° as intervention reduces uncertainty.',
           },
           {
             label: 'Branch B: Strategic Pivot',
@@ -429,6 +671,7 @@
             coneHalfAngle: 55,
             color: '#ffa726',
             objectiveImpact: [-1, -1, 0, -1, 0, 0, -1, 0, -1, 0, 0, -2],
+            bearingRationale: 'A strategic pivot under these conditions worsens bearing significantly — moving from 42° to 58° east of True North. Attempting a pivot while Talent Flight and Cash Constraint are active consumes resources needed to stabilise, amplifying all existing deflections. Cone widens to ±55° — critically high uncertainty.',
           },
           {
             label: 'Branch C: Consolidate',
@@ -436,6 +679,7 @@
             coneHalfAngle: 38,
             color: '#7986cb',
             objectiveImpact: [0, 1, 0, 1, -1, 1, 0, 0, 1, -1, 0, 1],
+            bearingRationale: 'Consolidation — reducing operational scope and protecting cash runway — provides modest bearing correction to 35° east of True North. It does not resolve the Talent Flight or Tech Disruption threats but prevents further drift by stabilising Financial Resilience. Cone narrows slightly to ±38°.',
           },
         ],
         baseObjectiveStatus: [1, 2, 1, 2, 3, 1, 2, 1, 3, 1, 2, 2],
@@ -872,6 +1116,8 @@
       syncBranchButtons();
       renderRadar();
       renderObjectives();
+      renderBearingRationale();
+      hideTooltip();
     }
 
     function setActiveBranch(index) {
@@ -879,6 +1125,7 @@
       syncBranchButtons();
       renderRadar();
       renderObjectives();
+      renderBearingRationale();
     }
 
     document.querySelectorAll('.scenario-btn').forEach(btn => {
@@ -904,11 +1151,118 @@
       renderRadar();
     });
 
+    // ─── Tooltip ─────────────────────────────────────────────────────────────
+
+    const tooltip = document.getElementById('radar-tooltip');
+
+    function valueClass(v) {
+      if (v === 'High')   return 'high';
+      if (v === 'Medium') return 'medium';
+      if (v === 'Low')    return 'low';
+      return '';
+    }
+
+    // Returns canvas-space coordinates of a blip given the current CSS display size
+    function canvasCoords(clientX, clientY) {
+      const rect  = canvas.getBoundingClientRect();
+      const scaleX = canvas.width  / rect.width;
+      const scaleY = canvas.height / rect.height;
+      return {
+        x: (clientX - rect.left) * scaleX,
+        y: (clientY - rect.top)  * scaleY,
+      };
+    }
+
+    function hitTestThreats(cx, cy) {
+      const scenario = SCENARIOS[activeScenario];
+      for (const t of scenario.threats) {
+        const p       = polarPoint(t.bearing, t.range);
+        const hitR    = Math.max(t.size * 0.7, 16); // generous hit area
+        const dx      = cx - p.x;
+        const dy      = cy - p.y;
+        if (dx * dx + dy * dy <= hitR * hitR) return t;
+      }
+      return null;
+    }
+
+    function showTooltip(t, mouseX, mouseY) {
+      const isOpp  = t.type === 'opportunity';
+      const color  = isOpp ? '#26a69a' : '#ef5350';
+
+      document.getElementById('tt-dot').style.background = color;
+      document.getElementById('tt-label').textContent    = t.label;
+
+      const typeEl = document.getElementById('tt-type');
+      typeEl.textContent  = isOpp ? 'Opportunity' : 'Threat';
+      typeEl.className    = `tt-type ${t.type}`;
+
+      const lhEl = document.getElementById('tt-likelihood');
+      lhEl.textContent  = t.likelihood;
+      lhEl.className    = `tt-cell-value ${valueClass(t.likelihood)}`;
+
+      const impEl = document.getElementById('tt-impact');
+      impEl.textContent = t.impact;
+      impEl.className   = `tt-cell-value ${valueClass(t.impact)}`;
+
+      // Capability: for threats, low capability = high risk = red; invert the colour scale
+      const capInvert = { High: 'Low', Medium: 'Medium', Low: 'High' };
+      const capEl = document.getElementById('tt-capability');
+      capEl.textContent = t.capability;
+      capEl.className   = `tt-cell-value ${isOpp ? valueClass(t.capability) : valueClass(capInvert[t.capability])}`;
+
+      document.getElementById('tt-bearing').textContent   = t.bearingEffect;
+      document.getElementById('tt-rationale').textContent = t.rationale;
+      document.getElementById('tt-objective').textContent = t.objective;
+      document.getElementById('tt-horizon').textContent   = t.horizon;
+
+      // Position tooltip: prefer right of cursor, flip left if near right edge
+      const TW = 280;
+      const TH = 220;
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      let left = mouseX + 16;
+      let top  = mouseY - 20;
+      if (left + TW > vw - 12) left = mouseX - TW - 12;
+      if (top  + TH > vh - 12) top  = vh - TH - 12;
+      if (top < 8)              top  = 8;
+
+      tooltip.style.left = left + 'px';
+      tooltip.style.top  = top  + 'px';
+      tooltip.classList.add('visible');
+    }
+
+    function hideTooltip() {
+      tooltip.classList.remove('visible');
+    }
+
+    canvas.addEventListener('mousemove', e => {
+      const { x, y } = canvasCoords(e.clientX, e.clientY);
+      const hit = hitTestThreats(x, y);
+      if (hit) {
+        canvas.style.cursor = 'pointer';
+        showTooltip(hit, e.clientX, e.clientY);
+      } else {
+        canvas.style.cursor = '';
+        hideTooltip();
+      }
+    });
+
+    canvas.addEventListener('mouseleave', hideTooltip);
+
+    // ─── Bearing rationale ────────────────────────────────────────────────────
+
+    function renderBearingRationale() {
+      const scenario = SCENARIOS[activeScenario];
+      const branch   = scenario.branches[activeBranch];
+      document.getElementById('bearing-rationale-text').textContent = branch.bearingRationale;
+    }
+
     // ─── Boot ─────────────────────────────────────────────────────────────────
     resizeCanvas();
     syncBranchButtons();
     renderRadar();
     renderObjectives();
+    renderBearingRationale();
   </script>
 </body>
 </html>
