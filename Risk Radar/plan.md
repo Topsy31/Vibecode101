@@ -62,6 +62,76 @@ These topics emerged from conversation and must inform the v2 architecture. None
 
 ---
 
+### 2.0 RiskLeap Risk Ontology — Alignment and Implications
+
+The RiskLeap Risk Ontology (Loopnut Consultoria Ltda, updated March 2026) provides a formal concept model that partially validates and partially challenges the Risk Radar data model. Source: riskleap.com/riskontology.
+
+**Core concepts (ontology primitives):**
+
+| Concept | Definition |
+|---|---|
+| UNCERTAINTY | Lack of knowledge about future state. The root cause layer. Synonyms: Risk driver, Risk Factor, Risk source, Cause |
+| ASSUMPTION | A proposition accepted as true without proof. The logical underpinning of objectives. Can also express risk appetite |
+| RISK | An effect of one or more uncertainties on an objective. Consequences arising from deviations from assumptions |
+| OBSERVATION | The result of proactive attention to relevant evidence. A reality check on system consistency |
+| INDICATOR | A consolidation of observations with contextual interpretation. Compares current state to desired/forecasted state |
+| ACTION | The practical implementation of a decision. Dependent on resources, technical viability, cultural acceptance |
+| DECISION | A resolution on whether to take an action, based on prior inputs |
+| POLICY | Specification of how a decision should be made, including constraints and criteria |
+| OBJECTIVE | Long-term goal tied to mission and vision, driving overall direction |
+
+**Risk subtypes with direct radar implications:**
+
+| Subtype | Definition | Risk Radar rendering |
+|---|---|---|
+| SingleEventRisk | Discrete, countable event | Point blip at a specific time horizon range ring |
+| RecurringRisk | Chronic condition repeatedly triggering discrete loss events; unresolved underlying cause | Persistent blip — the target is the UNCERTAINTY, not the event |
+| PersistentRisk | Structural condition continuously generating adverse outcomes; no discrete triggering events. Synonym: Systemic | Not a blip — a permanent directional drag on bearing; rendered as cone shading rather than a discrete point |
+| CompoundRisk | Statistical aggregation of individual singular risks; not a risk per se | Hub node in the graph; blip size reflects aggregate but decomposition to constituents is the real work |
+
+**Control subtypes:**
+- **FrequencyControl** — reduces or increases likelihood of events (maps to our capability modifier on likelihood)
+- **ImpactControl** — reduces or increases consequence of events (maps to our capability modifier on impact)
+
+#### 2.0.1 The UNCERTAINTY / RISK Distinction
+
+The ontology correctly separates UNCERTAINTY (the cause layer — the condition that exists) from RISK (the effect on an objective — what that condition does to bearing). The current prototype conflates these as a single record.
+
+In the full data model they must be separate:
+- `Skills Gap` is an UNCERTAINTY — a structural condition that exists
+- "Skills Gap causes 12° eastward bearing deflection on the Talent & Culture objective" is a RISK — the effect of that uncertainty on a specific objective
+
+**Graph network implication:** UNCERTAINTY nodes are root causes. RISK nodes are their objective-specific effects. Edges represent the "causes" relationship. A single UNCERTAINTY can produce multiple RISKs across different objectives — this is where cascade amplification originates.
+
+#### 2.0.2 PersistentRisk Requires Different Rendering
+
+A PersistentRisk (systemic structural condition) is not an event with a time horizon. It is a permanent drag vector on bearing — a constant crosswind on the compass needle. Rendering it as a conventional blip with a range ring misrepresents its nature.
+
+**Proposed rendering:** PersistentRisk appears as directional shading within the cone rather than a discrete blip. The shading colour and intensity encode the drag direction and magnitude. It is always visible — it has no time horizon to expire.
+
+**Example:** Chronic underfunding of capability development in a mega construction organisation is a PersistentRisk. It doesn't trigger at 12 months or 2 years. It continuously deflects bearing westward for as long as the structural condition exists.
+
+#### 2.0.3 ASSUMPTION as Cone-Width Driver
+
+The ontology defines ASSUMPTION as the logical underpinning of objectives — noting that Budget and Requirement are subtypes of ASSUMPTION. This is the missing link between True North and the risk register.
+
+Strategic objectives rest on assumptions. When an assumption is violated, the objective is at risk from internal logical failure, not external threat. This means cone width has a second driver currently absent from the model:
+
+- **External driver:** threats and uncertainties in the environment
+- **Internal driver:** fragility of the assumptions underlying the objectives themselves
+
+An objective built on two explicit assumptions is more robust than one built on five implicit ones. Assumption fragility is a cone-widening force. The data model needs an `assumptions` register per objective, with an explicit fragility rating.
+
+#### 2.0.4 The Ontology's Causal Direction vs. Risk Radar's Bearing Direction
+
+The ontology runs left-to-right: UNCERTAINTY → RISK → consequence → ACTION. This is the conventional ERM causal chain.
+
+Risk Radar runs right-to-left: OBJECTIVE (True North) → which RISKs deflect bearing away from it → which UNCERTAINTIEs cause those risks → which ACTIONs address those uncertainties.
+
+Both are correct framings. The MCP translation layer traverses the ontology's causal chain in reverse to answer the bearing question: "which uncertainties are producing risks that deflect bearing away from this specific objective?" This reverse traversal is precisely what makes the AI interrogation non-trivial and the output defensible.
+
+---
+
 ### 2.1 Capability Assessment — the Missing ERM Variable
 
 The capability rating is the most important variable in the model and the one that differentiates Risk Radar from a conventional risk register.
