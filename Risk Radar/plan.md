@@ -62,73 +62,259 @@ These topics emerged from conversation and must inform the v2 architecture. None
 
 ---
 
-### 2.0 RiskLeap Risk Ontology — Alignment and Implications
+### 2.0 RiskLeap Risk Ontology — Full Content and Alignment
 
-The RiskLeap Risk Ontology (Loopnut Consultoria Ltda, updated March 2026) provides a formal concept model that partially validates and partially challenges the Risk Radar data model. Source: riskleap.com/riskontology.
+Source: riskleap.com/riskontology — Loopnut Consultoria Ltda, updated 8 March 2026. Full ontology JSON stored at [assets/risk_ontology.json](assets/risk_ontology.json).
 
-**Core concepts (ontology primitives):**
+---
 
-| Concept | Definition |
-|---|---|
-| UNCERTAINTY | Lack of knowledge about future state. The root cause layer. Synonyms: Risk driver, Risk Factor, Risk source, Cause |
-| ASSUMPTION | A proposition accepted as true without proof. The logical underpinning of objectives. Can also express risk appetite |
-| RISK | An effect of one or more uncertainties on an objective. Consequences arising from deviations from assumptions |
-| OBSERVATION | The result of proactive attention to relevant evidence. A reality check on system consistency |
-| INDICATOR | A consolidation of observations with contextual interpretation. Compares current state to desired/forecasted state |
-| ACTION | The practical implementation of a decision. Dependent on resources, technical viability, cultural acceptance |
-| DECISION | A resolution on whether to take an action, based on prior inputs |
-| POLICY | Specification of how a decision should be made, including constraints and criteria |
-| OBJECTIVE | Long-term goal tied to mission and vision, driving overall direction |
+#### 2.0.0 Complete Term Inventory
 
-**Risk subtypes with direct radar implications:**
+The ontology distinguishes two node types: **concepts** (the core primitives, yellow nodes) and **terms** (specialisations, subtypes, and contextual entities).
 
-| Subtype | Definition | Risk Radar rendering |
+**Core Concepts — the non-negotiable vocabulary:**
+
+| Name | Definition | Synonyms |
 |---|---|---|
-| SingleEventRisk | Discrete, countable event | Point blip at a specific time horizon range ring |
-| RecurringRisk | Chronic condition repeatedly triggering discrete loss events; unresolved underlying cause | Persistent blip — the target is the UNCERTAINTY, not the event |
-| PersistentRisk | Structural condition continuously generating adverse outcomes; no discrete triggering events. Synonym: Systemic | Not a blip — a permanent directional drag on bearing; rendered as cone shading rather than a discrete point |
-| CompoundRisk | Statistical aggregation of individual singular risks; not a risk per se | Hub node in the graph; blip size reflects aggregate but decomposition to constituents is the real work |
+| UNCERTAINTY | Lack of knowledge or certainty about the future state of the variables that produce an outcome. Not all uncertainties cause risk — some may create opportunities instead. | Risk driver, Risk Factor, Risk source, Cause |
+| ASSUMPTION | A proposition accepted as true or as certain to occur, without proof. It serves as a logical underpinning of the organisation's objectives, though not necessarily in a direct or obvious manner. It may also function as an expression of risk appetite. | — |
+| RISK | An effect of one or more uncertainties on an objective. It is a set of possible consequences arising from deviations from, or violations of, assumptions. | — |
+| OBSERVATION | The result of proactive attention to relevant evidence and its subsequent recording. It serves as a reality check and confirmation of consistency within a system. | — |
+| INDICATOR | A consolidation of observations, ideally complemented by contextual interpretation. It provides information useful for comparing the current state of a relevant variable with its desired or forecasted state. It may function just for monitoring, or as a warning or an insight. | — |
+| ACTION | The practical implementation of a decision. It is dependent on resources, technical viability, and cultural acceptance. | Mitigation, Corrective action, Action Plan, Contingency, Risk treatment |
+| DECISION | A resolution on whether to take an action, based on prior inputs. | — |
+| POLICY | Specification of how a decision should be made, including constraints and criteria. | — |
+| OBJECTIVE | Long-term goal tied to the organisation's mission and vision, driving overall direction. | — |
 
-**Control subtypes:**
-- **FrequencyControl** — reduces or increases likelihood of events (maps to our capability modifier on likelihood)
-- **ImpactControl** — reduces or increases consequence of events (maps to our capability modifier on impact)
+**Terms — Subtypes of UNCERTAINTY:**
 
-#### 2.0.1 The UNCERTAINTY / RISK Distinction
+| Name | Definition | Synonyms |
+|---|---|---|
+| Threat | A type of uncertainty with negative potential effect on an objective. | — |
+| Vulnerability | A type of uncertainty representing internal exposure or fragility. | Fragility |
+| Complexity | A type of uncertainty arising from the number and interdependence of system elements. | — |
+| Volatility | A type of uncertainty arising from the rate and unpredictability of change. | — |
+| Variation | A type of uncertainty arising from natural deviation within a process or system. | — |
 
-The ontology correctly separates UNCERTAINTY (the cause layer — the condition that exists) from RISK (the effect on an objective — what that condition does to bearing). The current prototype conflates these as a single record.
+**Terms — Subtypes of RISK:**
 
-In the full data model they must be separate:
-- `Skills Gap` is an UNCERTAINTY — a structural condition that exists
-- "Skills Gap causes 12° eastward bearing deflection on the Talent & Culture objective" is a RISK — the effect of that uncertainty on a specific objective
+| Name | Definition | Synonyms |
+|---|---|---|
+| SingleEventRisk | A risk characterised by a single discrete triggering event. | — |
+| RecurringRisk | A risk characterized by a chronic condition that repeatedly triggers discrete loss events over time. The events are distinguishable and countable, but their recurrence is systematic, indicating an unresolved underlying cause. | — |
+| PersistentRisk | A risk characterized by a structural condition that continuously generates adverse outcomes without discrete triggering events. The harm is not episodic but inherent to the condition itself, enduring as long as the condition remains unaddressed. | Systemic |
+| CompoundRisk | Not a risk per se, but a statistical aggregation of individual singular risks. CompoundRisk is caused by a high-level Uncertainty. An alternative representation is to indicate the risks that aggregate to it. | — |
 
-**Graph network implication:** UNCERTAINTY nodes are root causes. RISK nodes are their objective-specific effects. Edges represent the "causes" relationship. A single UNCERTAINTY can produce multiple RISKs across different objectives — this is where cascade amplification originates.
+**Terms — Subtypes of OBJECTIVE:**
 
-#### 2.0.2 PersistentRisk Requires Different Rendering
+| Name | Definition |
+|---|---|
+| Target | A type of objective — a measurable, specific target within a broader objective. |
+| KeyResult | A type of objective — OKR-aligned: a measurable outcome that signals an objective has been achieved. |
 
-A PersistentRisk (systemic structural condition) is not an event with a time horizon. It is a permanent drag vector on bearing — a constant crosswind on the compass needle. Rendering it as a conventional blip with a range ring misrepresents its nature.
+**Terms — Subtypes of ASSUMPTION:**
 
-**Proposed rendering:** PersistentRisk appears as directional shading within the cone rather than a discrete blip. The shading colour and intensity encode the drag direction and magnitude. It is always visible — it has no time horizon to expire.
+| Name | Definition |
+|---|---|
+| Budget | A financial assumption — the financial envelope accepted as a constraint on the plan. |
+| Requirement | An aspect of a law, regulation or internal norm that must be followed. It may be qualitative or quantitative. |
+| Forecast | A forward-looking assumption about future state accepted as a planning input. |
+| Threshold | A boundary condition — a point in a continuum where the system transitions from one state to another. It is positional and discrete in its effect: you are either below it or above it, and crossing it triggers a qualitative change. It describes the structure of the decision space, not the disposition of the agent. Thresholds are often externally defined — by regulators, physics, or design. |
+| Tolerance | An acceptance envelope — the range of deviation from a desired state that a system or agent is willing to absorb without initiating a response. It encodes a relational stance: how much imperfection or uncertainty the agent will bear before acting. Tolerance is inherently normative and often internally defined — it reflects values, risk appetite, or resource constraints. |
+| Plan | A type of assumption — an approved plan is accepted as a basis for action until evidence contradicts it. |
 
-**Example:** Chronic underfunding of capability development in a mega construction organisation is a PersistentRisk. It doesn't trigger at 12 months or 2 years. It continuously deflects bearing westward for as long as the structural condition exists.
+**Terms — Subtypes of OBSERVATION:**
 
-#### 2.0.3 ASSUMPTION as Cone-Width Driver
+| Name | Definition |
+|---|---|
+| Signal | A type of observation indicating an early or weak indicator of change. |
+| Issue | A type of observation — a condition already materialised that requires management attention. |
+| Incident | A type of observation — an event that has occurred and been recorded. |
+| Finding | A type of observation — typically from an audit, review, or assessment. |
+| Claim | A type of observation — an assertion made by a party, requiring verification. |
+| ControlBehavior | A type of observation — direct observation of how a control is actually functioning. |
 
-The ontology defines ASSUMPTION as the logical underpinning of objectives — noting that Budget and Requirement are subtypes of ASSUMPTION. This is the missing link between True North and the risk register.
+**Terms — Subtypes of INDICATOR:**
 
-Strategic objectives rest on assumptions. When an assumption is violated, the objective is at risk from internal logical failure, not external threat. This means cone width has a second driver currently absent from the model:
+| Name | Definition |
+|---|---|
+| RiskIndicator | A type of indicator specifically tracking risk-related variables (KRI — Key Risk Indicator). |
+| PerfIndicator | A type of indicator tracking performance variables (KPI — Key Performance Indicator). |
+| ControlIndicator | A type of indicator tracking control effectiveness. |
 
-- **External driver:** threats and uncertainties in the environment
-- **Internal driver:** fragility of the assumptions underlying the objectives themselves
+**Terms — Controls (adjacent subclasses, noted as outside the core model):**
 
-An objective built on two explicit assumptions is more robust than one built on five implicit ones. Assumption fragility is a cone-widening force. The data model needs an `assumptions` register per objective, with an explicit fragility rating.
+| Name | Definition |
+|---|---|
+| Control | An intervention or measure applied to modify risk. |
+| FrequencyControl | An intervention that aims to reduce (or increase) the frequency of events. Adjacent subclass of Control. |
+| ImpactControl | An intervention that aims to reduce (or increase) the consequence of events. Adjacent subclass of Control. |
 
-#### 2.0.4 The Ontology's Causal Direction vs. Risk Radar's Bearing Direction
+**Terms — Value Chain Entities (teal nodes — contextual anchors for risk):**
 
-The ontology runs left-to-right: UNCERTAINTY → RISK → consequence → ACTION. This is the conventional ERM causal chain.
+| Name | Notes |
+|---|---|
+| Asset | Something of value that can be affected by risk. |
+| Product | A delivered output that carries risk exposure. |
+| Customer | An external party whose interests and expectations are a source of risk and opportunity. |
+| Supplier | An external party in the supply chain whose performance creates risk. |
+| Contract | A formal agreement that creates obligations and risk exposure on both sides. |
 
-Risk Radar runs right-to-left: OBJECTIVE (True North) → which RISKs deflect bearing away from it → which UNCERTAINTIEs cause those risks → which ACTIONs address those uncertainties.
+---
 
-Both are correct framings. The MCP translation layer traverses the ontology's causal chain in reverse to answer the bearing question: "which uncertainties are producing risks that deflect bearing away from this specific objective?" This reverse traversal is precisely what makes the AI interrogation non-trivial and the output defensible.
+#### 2.0.1 Complete Relation Inventory
+
+The ontology defines relations of four types: **Generalization** (is-a subtype), **Attributive** (has, carries an attribute), **Other** (named functional relations).
+
+**Generalization relations — "X is a subtype of Y":**
+
+| Source | Target |
+|---|---|
+| Threat | UNCERTAINTY |
+| Vulnerability | UNCERTAINTY |
+| Complexity | UNCERTAINTY |
+| Volatility | UNCERTAINTY |
+| Variation | UNCERTAINTY |
+| SingleEventRisk | RISK |
+| RecurringRisk | RISK |
+| PersistentRisk | RISK |
+| CompoundRisk | RISK |
+| Target | OBJECTIVE |
+| KeyResult | OBJECTIVE |
+| Budget | ASSUMPTION |
+| Requirement | ASSUMPTION |
+| Forecast | ASSUMPTION |
+| Threshold | ASSUMPTION |
+| Tolerance | ASSUMPTION |
+| Plan | ASSUMPTION |
+| Signal | OBSERVATION |
+| Issue | OBSERVATION |
+| Incident | OBSERVATION |
+| Finding | OBSERVATION |
+| Claim | OBSERVATION |
+| ControlBehavior | OBSERVATION |
+| RiskIndicator | INDICATOR |
+| PerfIndicator | INDICATOR |
+| ControlIndicator | INDICATOR |
+| FrequencyControl | Control (dashed — adjacent model) |
+| ImpactControl | Control (dashed — adjacent model) |
+
+**Attributive relations — structural ownership:**
+
+| Source | Relation | Target | Meaning |
+|---|---|---|---|
+| OBJECTIVE | has | ASSUMPTION | Objectives carry assumptions — the plan rests on propositions accepted as true |
+| ASSUMPTION | has | UNCERTAINTY | Assumptions carry uncertainty — when an assumption is wrong, uncertainty is introduced |
+
+**Functional relations — causal and operational links:**
+
+| Source | Relation | Target | Meaning |
+|---|---|---|---|
+| UNCERTAINTY | causes | RISK | Uncertainty is the root cause of risk |
+| RISK | informs | DECISION | Risk information drives decision-making |
+| DECISION | triggers | ACTION | A decision to act produces an action |
+| ACTION | triggers | OBSERVATION | An action in execution is observed and recorded |
+| OBSERVATION | informs | INDICATOR | Observations aggregate into indicators |
+| INDICATOR | influences | OBJECTIVE | Indicators signal whether objectives are being achieved |
+| OBJECTIVE | influences | POLICY | Objectives shape the policies governing decisions |
+| POLICY | frames | DECISION | Policy sets the constraints within which a decision is made |
+| FrequencyControl | modifies | UNCERTAINTY | A frequency control changes the likelihood dimension of the uncertainty |
+| ImpactControl | modifies | RISK | An impact control changes the consequence dimension of the risk |
+
+---
+
+#### 2.0.2 The Ontology's Causal Chain — Complete Flow
+
+Reading the functional relations in sequence reveals the full causal loop:
+
+```
+OBJECTIVE
+  └─ has ─► ASSUMPTION ─► has ─► UNCERTAINTY ─► causes ─► RISK
+                                                              │
+                                                          informs
+                                                              │
+                                                              ▼
+                                                          DECISION ◄─── frames ─── POLICY
+                                                              │              ▲
+                                                          triggers      influences
+                                                              │              │
+                                                              ▼          OBJECTIVE
+                                                           ACTION
+                                                              │
+                                                          triggers
+                                                              │
+                                                              ▼
+                                                        OBSERVATION ─► informs ─► INDICATOR
+                                                        (Signal, Issue,                │
+                                                         Incident, Finding,        influences
+                                                         Claim, ControlBehavior)       │
+                                                                                       ▼
+                                                                                   OBJECTIVE
+```
+
+The loop is closed: INDICATOR influences OBJECTIVE, which has ASSUMPTION, which carries UNCERTAINTY, which causes RISK. This is a feedback system, not a linear chain.
+
+**Controls act at two points in the chain:**
+- FrequencyControl modifies UNCERTAINTY (reduces the likelihood of the uncertainty producing a risk event)
+- ImpactControl modifies RISK (reduces the consequence once the risk has materialised)
+
+---
+
+#### 2.0.3 Risk Radar Alignment — Where the Ontology Fits
+
+**Adopted without change:**
+- The nine core concepts as the vocabulary for all data capture
+- The four RISK subtypes (Single, Recurring, Persistent, Compound) — each renders differently on the radar
+- The ASSUMPTION subtypes (Budget, Requirement, Forecast, Threshold, Tolerance) as the cone-width drivers per objective
+- The OBSERVATION subtypes (Signal, Issue, Incident, Finding, Claim, ControlBehavior) as the evidence base for capability ratings and the action register
+- The INDICATOR subtypes (RiskIndicator, PerfIndicator, ControlIndicator) as the monitoring layer feeding the bearing calculation
+
+**Adopted with extension:**
+- UNCERTAINTY — extended with tier-awareness (external / portfolio / programme / operational source)
+- OBJECTIVE — extended with tier assignment (Group / Entity / Programme) and conflict relationships between tiers
+- RISK — extended with BearingForce (direction 0–359° relative to True North, magnitude, force type: propulsive / drag / lateral / magnetic)
+
+**Not present in the ontology — added by Risk Radar:**
+- BearingForce — the directional encoding that transforms a consequence model into a navigation instrument
+- Propagation — cross-tier cascade mechanism (upward and downward), with mechanism type (financial / reputational / capability / strategic alignment)
+- CommitmentCone — the narrowing cone for programme-level irreversibility (inverted from foresight cone logic)
+- OrganisationalBearingArrow — the weighted vector sum of all blip forces as a single directional output
+
+**The ontology's causal direction vs. Risk Radar's bearing direction:**
+The ontology runs left-to-right: UNCERTAINTY → RISK → consequence → ACTION. Risk Radar traverses right-to-left: OBJECTIVE (True North) → which RISKs deflect bearing → which UNCERTAINTIEs cause those risks → which ACTIONs address the root uncertainties. The MCP translation layer performs this reverse traversal to answer the bearing question.
+
+---
+
+#### 2.0.4 Risk Subtypes — Radar Rendering Rules
+
+| Subtype | Radar rendering |
+|---|---|
+| SingleEventRisk | Point blip at its assigned time horizon range ring. Standard treatment. |
+| RecurringRisk | Persistent blip with a recurrence marker. The real intervention target is the upstream UNCERTAINTY, not the event. Tooltip surfaces the root UNCERTAINTY. |
+| PersistentRisk | Not a blip. Rendered as directional shading within the cone — a permanent drag vector on bearing. Colour and intensity encode direction and magnitude. No time horizon to expire. |
+| CompoundRisk | Hub node in the graph. Blip size encodes aggregate impact. Decomposition to constituent risks is surfaced on drill-down. Cascade factor derived from downstream connection count. |
+
+---
+
+#### 2.0.5 UNCERTAINTY / RISK Distinction — Data Model Implication
+
+The ontology correctly separates UNCERTAINTY (the condition that exists) from RISK (the effect of that condition on a specific objective). The current prototype conflates these as a single record. In the full data model they must be separate entities:
+
+- `Skills Gap` is an UNCERTAINTY
+- "Skills Gap causes 12° eastward bearing deflection on the Talent & Culture objective" is a RISK — the objective-specific effect
+
+A single UNCERTAINTY can produce multiple RISKs across different objectives. This is where cascade amplification originates. The graph network has UNCERTAINTY nodes as root causes, RISK nodes as their objective-specific effects, and "causes" edges between them.
+
+---
+
+#### 2.0.6 ASSUMPTION Subtypes as Cone-Width Drivers
+
+The ontology's ASSUMPTION subtypes (Budget, Requirement, Forecast, Threshold, Tolerance, Plan) are the internal cone-width drivers currently missing from the model. Cone width has two distinct sources:
+
+- **External driver:** threats and uncertainties in the environment (already modelled)
+- **Internal driver:** fragility of the assumptions underlying the objectives themselves (not yet modelled)
+
+An objective resting on an unapproved budget assumption, an unratified regulatory requirement, or a market forecast with low confidence has a wider cone than one resting on confirmed, evidenced assumptions. The data model needs an `assumptions` register per objective, with each assumption carrying a fragility rating derived from its confidence and evidential basis.
 
 ---
 
