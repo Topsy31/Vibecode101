@@ -175,6 +175,57 @@ The market gap is genuine. The components of Risk Radar exist separately:
 
 No existing tool integrates SWOT-based capability assessment, cone of possibilities scenario planning, and ERM risk data into a unified directional instrument with a board-level visual output.
 
-The alignment with COSO ERM 2017 and ISO 31000:2018 provides both regulatory relevance and methodological foundation. Both frameworks were updated specifically to connect risk management to strategic objectives — and both have been widely adopted while widely criticised for failing to achieve that connection in practice. Risk Radar provides the practical instrument both frameworks demand but neither provides.
+### 10.1 Standards Alignment
 
-The commercial positioning is consequently distinctive: this is not another risk register competing with Archer or LogicGate. It is the missing front-end instrument for the strategic decision lifecycle — the point where option space is still open, assumptions are still challengeable, and the most consequential decisions are made with the least structured support.
+The standards landscape confirms both the need and the gap. A survey of more than twenty international standards, governance codes, and frameworks reveals a consistent pattern: multiple frameworks require boards to govern risk relative to strategic objectives; none provide a practical instrument for doing so.
+
+**Explicitly objective-led standards — Risk Radar operationalises what these mandate:**
+
+| Standard | Issuing Body | Relevant Requirement |
+|---|---|---|
+| COSO ERM 2017 | COSO | Risk as "effect of uncertainty on the achievement of strategy and business objectives" |
+| ISO 31000:2018 | ISO | Risk as "effect of uncertainty on objectives" — the definitional foundation |
+| King IV / King V (2026) | IoDSA | Board must "govern risk in a way that supports the organisation in setting and achieving its strategic objectives" |
+| OECD Principles of Corporate Governance (2023) | OECD/G20 | Board must provide strategic guidance and align risk management to corporate objectives |
+| Basel III Governance Guidelines | BCBS | Risk Appetite Statement must link acceptable risk to strategic direction and performance objectives |
+| ISO 55000 (Asset Management) | ISO | Strategic Asset Management Plan must bridge business strategy to asset-level decisions |
+| Balanced Scorecard | Kaplan/Norton | Risk management integrated with strategic objectives across four performance perspectives |
+
+King IV and King V are the most directly analogous to Risk Radar's position. King IV explicitly frames risk governance as support for strategic objective achievement — language that maps precisely onto True North and bearing. King V (effective for financial years beginning January 2026) extends the governance mandate to AI and cyber risk, which is directly relevant to Risk Radar's AI architecture.
+
+The Basel III Risk Appetite Statement is the closest existing concept to True North in any governance standard. Boards in regulated financial institutions already understand the principle of defining acceptable risk bounds relative to strategic direction. Risk Radar generalises this concept across all sectors and makes it visual.
+
+**Disclosure-led standards — boards are obligated to govern these risks but have no instrument for doing so:**
+
+| Standard | Issuing Body | Board-Level Obligation |
+|---|---|---|
+| UK Corporate Governance Code 2024, Provision 29 | FRC | Board must monitor, manage, and report on risk management effectiveness |
+| TCFD | Financial Stability Board | Board oversight of climate-related risks and opportunities; strategy disclosure |
+| TNFD | TNFD Global | Board oversight of nature-related dependencies, impacts, risks and opportunities |
+| IFRS S1 / S2 | ISSB | Governance processes for sustainability and climate-related risks disclosed in annual reports |
+| CSRD | European Commission | Governance disclosure for ~49,000 European companies; board roles in sustainability oversight |
+| GRI Standards (GRI 2) | GRI | Disclosure of board oversight of sustainability impacts |
+
+These standards create a board obligation without providing a methodology. TCFD, TNFD, IFRS S1/S2, and CSRD all require boards to demonstrate governance of material risks — but each treats its category of risk (climate, nature, sustainability) in isolation. Risk Radar's integrated bearing model allows boards to show how these risks interact with financial, operational, and strategic forces to affect their overall direction of travel. It turns disclosure compliance into strategic insight rather than compliance theatre.
+
+UK Corporate Governance Code 2024 Provision 29 is a specific and recent driver. It expanded the FRC's expectations for how boards demonstrate understanding and oversight of risk through monitoring, management, and reporting. It creates an explicit obligation that no existing ERM platform addresses at the level of strategic direction.
+
+### 10.2 The Consistent Gap
+
+Across all frameworks surveyed, five gaps appear consistently:
+
+1. **No unified visual framework.** Governance codes mandate oversight but prescribe no instrument. Boards are left to assemble their own patchwork.
+
+2. **No dynamic bearing assessment.** Standards operate on annual review and compliance cycles. Boards need continuous visibility into whether conditions since the last board meeting have shifted their strategic bearing.
+
+3. **No objective-relative risk prioritisation.** Risk materiality is assessed in the abstract — against size, probability, and impact in general. A risk that is highly material to one strategic objective may be irrelevant to another. No standard addresses this.
+
+4. **No operationalised cone of possibilities.** Shell scenario planning and horizon scanning exist, but they are workshop-based and periodic. No framework provides continuous, dynamically updated scenario bounds.
+
+5. **No SWOT-to-bearing translation.** SWOT analysis is universally taught and widely used at board level, but it is never formally integrated with ERM. The result is that boards do two separate exercises — SWOT for strategy, risk register for governance — with no mechanism connecting them.
+
+### 10.3 Commercial Positioning
+
+Risk Radar is not another risk register competing with Archer, LogicGate, or Riskonnect. Those platforms are compliance documentation systems. Risk Radar is the missing front-end instrument for the strategic decision lifecycle — the point where option space is still open, assumptions are still challengeable, and the most consequential decisions are made with the least structured support.
+
+The commercial entry point is boards and executive teams operating under one or more of the above disclosure obligations who need to demonstrate governance, not just document it. The standards create the demand. Risk Radar is the instrument that fulfils it.
