@@ -224,6 +224,26 @@
     .bearing-label { font-size: 0.72rem; color: #6a7a95; }
     .bearing-value { font-size: 1.1rem; font-weight: 700; color: #4fc3f7; }
 
+    .divergence-box {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 4px;
+      border-left: 3px solid;
+      font-size: 0.73rem;
+      line-height: 1.55;
+    }
+    .divergence-box.wef-worse {
+      border-color: #ff9800;
+      background: rgba(255,152,0,0.08);
+      color: #ffcc80;
+    }
+    .divergence-box.sdg-worse {
+      border-color: #ef5350;
+      background: rgba(239,83,80,0.08);
+      color: #ef9a9a;
+    }
+    .divergence-box strong { display: block; margin-bottom: 4px; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.07em; }
+
     .risk-list { list-style: none; }
     .risk-list li {
       display: flex;
@@ -2211,6 +2231,29 @@ function renderAnalysis() {
         <span class="bearing-value" style="font-size:0.9rem;color:#ef5350">+${sdg.coneP80}°</span>
       </div>
       <div class="info-body" style="margin-top:8px">${sdg.headline}</div>
+      ${(()=>{
+        const hist = sdg.history||[];
+        const entry2025 = hist.find(h=>h.year===2025);
+        if(!entry2025) return '';
+        const delta = sdg.bearing - entry2025.bearing;
+        const THRESHOLD = 8;
+        if(Math.abs(delta) < THRESHOLD) return '';
+        if(delta < 0) {
+          // WEF bearing is better than UN trajectory implies
+          return `<div class="divergence-box wef-worse">
+            <strong>Bearing divergence — WEF vs UN SDG data</strong>
+            WEF-derived bearing (${sdg.bearing > 0 ? '+' : ''}${sdg.bearing}°) is less severe than the UN SDG trajectory implies (${entry2025.bearing > 0 ? '+' : ''}${entry2025.bearing}°, ${entry2025.status}).
+            This may indicate UN progress reporting is lagging the structural risk environment, or that near-term capability factors are partially offsetting threat pressure. Treat as a point of analytical interest rather than confirmed progress.
+          </div>`;
+        } else {
+          // WEF bearing is worse than UN trajectory implies
+          return `<div class="divergence-box sdg-worse">
+            <strong>Bearing divergence — WEF vs UN SDG data</strong>
+            WEF-derived bearing (${sdg.bearing > 0 ? '+' : ''}${sdg.bearing}°) is more severe than the UN SDG trajectory implies (${entry2025.bearing > 0 ? '+' : ''}${entry2025.bearing}°, ${entry2025.status}).
+            The WEF threat composition suggests the risk environment has worsened beyond what UN progress metrics currently capture. The UN figure may be a lagging indicator.
+          </div>`;
+        }
+      })()}
     </div>`;
 
   if(issues.length>0) {
