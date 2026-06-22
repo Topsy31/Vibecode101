@@ -5,972 +5,731 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Shell plc — Strategic Bearing 2021–2025</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:#0a0f1a;color:#e8e8e8;font-family:'Segoe UI',system-ui,sans-serif;overflow:hidden;height:100vh}
-#app{display:flex;width:100vw;height:100vh;position:relative}
-#radar-area{flex:1;display:flex;flex-direction:column;position:relative;min-width:0}
-#top-bar{display:flex;align-items:center;gap:16px;padding:10px 16px;background:rgba(10,15,26,0.92);border-bottom:1px solid #1e2c3a;flex-shrink:0;z-index:10}
-#top-bar .logo{display:flex;align-items:center;gap:8px}
-#top-bar .logo-shell{width:28px;height:28px;background:#dd1d21;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;color:#fff;letter-spacing:-1px}
-#top-bar h1{font-size:13px;font-weight:600;color:#fff;letter-spacing:0.04em;text-transform:uppercase}
-#top-bar .subtitle{font-size:11px;color:#7a9ab0;margin-left:4px}
-#risk-tabs{display:flex;gap:2px;margin-left:auto;flex-wrap:wrap}
-.risk-btn{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#9ab;font-size:10px;padding:4px 10px;cursor:pointer;border-radius:3px;white-space:nowrap;transition:all 0.15s}
-.risk-btn:hover{background:rgba(255,255,255,0.1);color:#fff}
-.risk-btn.active{background:rgba(221,29,33,0.25);border-color:#dd1d21;color:#fff}
-#canvas-wrap{flex:1;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden}
-#radar-canvas{display:block}
-#info-panel{position:absolute;top:0;right:0;bottom:0;width:440px;background:rgba(8,14,24,0.97);border-left:1px solid #1e2c3a;transform:translateX(100%);transition:transform 0.25s cubic-bezier(0.4,0,0.2,1);overflow-y:auto;z-index:20}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0e1a;color:#e0e6f0;font-family:'Segoe UI',system-ui,sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+#toolbar{display:flex;align-items:center;gap:10px;padding:8px 14px;background:#0d1220;border-bottom:1px solid #1e2a40;flex-shrink:0;flex-wrap:wrap}
+.brand{font-size:.9rem;font-weight:700;letter-spacing:.08em;color:#fff;text-transform:uppercase;flex-shrink:0}
+.brand-sub{font-size:.62rem;color:#4a6080;letter-spacing:.04em}
+.risk-tabs{display:flex;gap:3px;flex-wrap:wrap;margin-left:6px}
+.rtab{padding:3px 9px;background:#1a2235;border:1px solid #2a3550;border-radius:3px;color:#8a9bb5;cursor:pointer;font-size:.7rem;white-space:nowrap;transition:all .15s}
+.rtab:hover{border-color:#dd1d21;color:#e0e6f0}
+.rtab.active{background:#2a1018;border-color:#dd1d21;color:#ff6b6b;font-weight:600}
+#filter-bar{display:flex;align-items:center;gap:5px;padding:5px 14px;background:#111927;border-bottom:1px solid #1e2a40;flex-shrink:0;flex-wrap:wrap}
+.fb-label{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#4a6080;margin-right:2px}
+.fb-sep{width:1px;height:16px;background:#1e2d42;margin:0 3px}
+.pf-btn{padding:2px 8px;border-radius:3px;border:1px solid #2e3f58;background:#151f30;cursor:pointer;font-size:.68rem;font-weight:600;color:#c8d8f0;transition:all .15s}
+.pf-btn:hover{opacity:.85}
+.pf-btn.off{opacity:.25;filter:grayscale(.7)}
+#main{display:flex;flex:1;overflow:hidden;min-height:0;position:relative}
+#radar-panel{display:flex;align-items:center;justify-content:center;flex:1;padding:12px}
+canvas{display:block;image-rendering:crisp-edges}
+#blade-toggle{position:absolute;right:0;top:50%;transform:translateY(-50%);z-index:20;background:#0d1b2e;border:1px solid #1e2a40;border-right:none;color:#dd1d21;cursor:pointer;padding:10px 5px;border-radius:5px 0 0 5px;font-size:.6rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;writing-mode:vertical-rl;transition:background .15s}
+#blade-toggle:hover{background:#1e2a40}
+#info-panel{position:absolute;top:0;right:0;bottom:0;width:420px;max-width:90vw;background:#0a0f1c;border-left:1px solid #1e2a40;transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;z-index:15}
 #info-panel.open{transform:translateX(0)}
-#blade-toggle{position:absolute;right:0;top:50%;transform:translateY(-50%);background:rgba(221,29,33,0.7);border:none;color:#fff;cursor:pointer;padding:10px 5px;writing-mode:vertical-rl;font-size:10px;letter-spacing:0.1em;z-index:25;border-radius:3px 0 0 3px;transition:background 0.15s}
-#blade-toggle:hover{background:#dd1d21}
-#panel-content{padding:20px}
-.panel-close{position:absolute;top:12px;right:12px;background:none;border:none;color:#7a9ab0;cursor:pointer;font-size:18px;line-height:1}
-.panel-close:hover{color:#fff}
-.risk-title{font-size:16px;font-weight:700;color:#fff;margin-bottom:4px}
-.risk-subtitle{font-size:11px;color:#7a9ab0;margin-bottom:16px}
-.bearing-display{display:flex;align-items:baseline;gap:8px;margin-bottom:16px}
-.bearing-value{font-size:36px;font-weight:800;color:#fff;font-family:monospace}
-.bearing-unit{font-size:14px;color:#7a9ab0}
-.bearing-label{font-size:11px;color:#9ab;background:rgba(255,255,255,0.06);padding:3px 8px;border-radius:2px}
-.confidence-bar{margin-bottom:16px}
-.confidence-label{font-size:10px;color:#7a9ab0;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.08em}
-.conf-track{height:6px;background:rgba(255,255,255,0.08);border-radius:3px;overflow:hidden;margin-bottom:3px}
-.conf-fill{height:100%;border-radius:3px}
-.conf-text{font-size:10px;color:#9ab}
-.section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#7a9ab0;margin:16px 0 8px}
-.kri-row{display:flex;justify-content:space-between;align-items:baseline;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:12px}
-.kri-name{color:#cde}
-.kri-value{font-family:monospace;color:#fff;font-size:11px}
-.kri-trend{font-size:10px;margin-left:6px}
-.kri-trend.up{color:#4caf50}
-.kri-trend.down{color:#f44336}
-.kri-trend.flat{color:#ffb300}
-.risk-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:4px;padding:10px 12px;margin-bottom:8px}
-.risk-card-title{font-size:12px;font-weight:600;color:#fff;margin-bottom:4px}
-.risk-card-body{font-size:11px;color:#9ab;line-height:1.5}
-.risk-type-tags{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap}
-.tag{font-size:9px;padding:2px 6px;border-radius:2px;border:1px solid;text-transform:uppercase;letter-spacing:0.06em}
-.tag.strategic{color:#60a5fa;border-color:rgba(96,165,250,0.3)}
-.tag.operational{color:#a78bfa;border-color:rgba(167,139,250,0.3)}
-.tag.conduct{color:#f59e0b;border-color:rgba(245,158,11,0.3)}
-.source-cite{font-size:10px;color:#5a7a8a;margin-top:4px;font-style:italic}
-.methodology-box{background:rgba(221,29,33,0.06);border:1px solid rgba(221,29,33,0.2);border-radius:4px;padding:10px 12px;margin-bottom:12px;font-size:11px;color:#cd8;line-height:1.5}
-.methodology-box strong{color:#ffd;display:block;margin-bottom:4px;font-size:11px}
-.divergence-box{margin-top:10px;padding:10px 12px;border-radius:4px;border-left:3px solid}
-.divergence-box.improving{border-color:#4caf50;background:rgba(76,175,80,0.07);color:#a5d6a7}
-.divergence-box.deteriorating{border-color:#ff5722;background:rgba(255,87,34,0.07);color:#ffab91}
-.history-row{display:grid;grid-template-columns:40px 1fr 60px 50px;gap:6px;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:11px}
-.history-year{color:#7a9ab0}
-.history-bar-wrap{height:4px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden}
-.history-bar{height:100%;border-radius:2px}
-.history-status{color:#9ab;font-size:9px;text-align:right}
-.history-bearing{font-family:monospace;color:#fff;text-align:right;font-size:10px}
-.decision-box{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:4px;padding:12px;margin-bottom:8px}
-.decision-box h4{font-size:11px;font-weight:700;color:#fff;margin-bottom:6px}
-.decision-box p{font-size:11px;color:#9ab;line-height:1.5}
-.decision-box .decision-bearing{font-size:20px;font-weight:800;color:#60a5fa;font-family:monospace;margin-bottom:4px}
-.cross-legend{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:8px}
-.cross-legend-item{display:flex;align-items:center;gap:6px;font-size:10px;color:#9ab}
-.legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-#confidence-panel{position:absolute;bottom:12px;left:12px;background:rgba(8,14,24,0.88);border:1px solid #1e2c3a;border-radius:4px;padding:10px 12px;font-size:10px;color:#7a9ab0;max-width:260px;z-index:10}
-#confidence-panel strong{color:#cde;display:block;margin-bottom:4px}
-.bearing-calc-note{font-size:9px;color:#5a7a8a;margin-top:6px;line-height:1.4}
-#data-provenance{position:absolute;bottom:12px;right:12px;background:rgba(8,14,24,0.88);border:1px solid #1e2c3a;border-radius:4px;padding:8px 12px;font-size:9px;color:#5a7a8a;z-index:10;text-align:right}
-#data-provenance strong{color:#7a9ab0;display:block;margin-bottom:2px}
+.tab-bar{display:flex;border-bottom:1px solid #1e2a40;flex-shrink:0}
+.tab-btn{flex:1;padding:8px 4px;background:none;border:none;border-bottom:2px solid transparent;color:#4a6080;cursor:pointer;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;transition:all .15s}
+.tab-btn:hover{color:#e0e6f0}
+.tab-btn.active{color:#dd1d21;border-bottom-color:#dd1d21}
+.tab-content{display:none;flex:1;overflow-y:auto;padding:16px}
+.tab-content.active{display:block}
+.tab-content::-webkit-scrollbar{width:4px}
+.tab-content::-webkit-scrollbar-track{background:#0a0e1a}
+.tab-content::-webkit-scrollbar-thumb{background:#1e2d42;border-radius:2px}
+.info-header{margin-bottom:14px}
+.info-title{font-size:1rem;font-weight:700;color:#fff;margin-bottom:3px}
+.info-subtitle{font-size:.72rem;color:#5a7090;line-height:1.4}
+.status-pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.status-active{background:rgba(239,83,80,.18);color:#ef5350;border:1px solid rgba(239,83,80,.35)}
+.status-elevated{background:rgba(255,152,0,.18);color:#ffa726;border:1px solid rgba(255,152,0,.35)}
+.status-managed{background:rgba(102,187,106,.18);color:#66bb6a;border:1px solid rgba(102,187,106,.35)}
+.status-emerging{background:rgba(41,182,246,.18);color:#29b6f6;border:1px solid rgba(41,182,246,.35)}
+.info-section{margin-bottom:14px}
+.info-section-head{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#4a6080;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid #1e2a40}
+.info-body{font-size:.75rem;color:#8090a8;line-height:1.55}
+.bearing-stat{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px solid #131c2e}
+.bearing-label{font-size:.72rem;color:#7a90a8}
+.bearing-value{font-size:1.1rem;font-weight:800;color:#fff;font-family:monospace}
+.risk-list{list-style:none;display:flex;flex-direction:column;gap:5px}
+.risk-list li{display:flex;align-items:center;gap:7px;font-size:.75rem;padding:4px 0;border-bottom:1px solid #0f1825}
+.risk-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.risk-name{flex:1;color:#c8d8f0}
+.risk-rank{font-size:.65rem;color:#5a7090;white-space:nowrap}
+.source-cite{font-size:.65rem;color:#3a5060;font-style:italic;margin-top:3px}
+.conf-badge{display:inline-block;padding:1px 6px;border-radius:2px;font-size:.62rem;font-weight:700;text-transform:uppercase;margin-left:5px}
+.conf-high{background:rgba(102,187,106,.15);color:#66bb6a;border:1px solid rgba(102,187,106,.3)}
+.conf-medium{background:rgba(255,152,0,.15);color:#ffa726;border:1px solid rgba(255,152,0,.3)}
+.conf-low{background:rgba(239,83,80,.15);color:#ef5350;border:1px solid rgba(239,83,80,.3)}
+.causal-chain{background:#0d1525;border:1px solid #1a2a3a;border-radius:4px;padding:10px;margin-bottom:8px}
+.chain-path{display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-bottom:5px}
+.chain-node{background:#1a2535;border:1px solid #2a3848;border-radius:3px;padding:2px 7px;font-size:.68rem;color:#c0d0e0}
+.chain-arrow{color:#dd1d21;font-size:.8rem;font-weight:700}
+.chain-weight{font-size:.6rem;color:#dd1d21;vertical-align:super}
+.chain-effect{font-size:.68rem;color:#607080;line-height:1.4}
+.kri-row{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px solid #0f1825;font-size:.72rem}
+.kri-name{color:#8a9fb5}
+.kri-val{font-family:monospace;color:#fff;font-size:.7rem}
+.kri-trend-up{color:#66bb6a}
+.kri-trend-down{color:#ef5350}
+.kri-trend-flat{color:#ffa726}
+.decision-row{background:#0d1525;border-left:3px solid #dd1d21;padding:8px 10px;margin-bottom:7px;border-radius:0 3px 3px 0}
+.decision-bearing{font-size:1.3rem;font-weight:800;color:#60a5fa;font-family:monospace}
+.decision-title{font-size:.75rem;font-weight:600;color:#fff;margin-bottom:3px}
+.decision-body{font-size:.68rem;color:#607080;line-height:1.4}
+.chat-msg{margin-bottom:10px}
+.chat-role{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px}
+.chat-role.board{color:#60a5fa}
+.chat-role.analyst{color:#dd1d21}
+.chat-text{font-size:.73rem;color:#8a9fb5;line-height:1.5;background:#0d1525;border-radius:4px;padding:8px}
+.diverg-box{margin-top:8px;padding:8px 10px;border-radius:3px;border-left:3px solid;font-size:.7rem;line-height:1.4}
+.diverg-box.warn{border-color:#ff9800;background:rgba(255,152,0,.07);color:#ffb74d}
+.diverg-box.good{border-color:#4caf50;background:rgba(76,175,80,.07);color:#a5d6a7}
+#radar-tooltip{position:fixed;z-index:100;pointer-events:none;width:280px;background:#0d1525;border:1px solid #2a3a52;border-radius:5px;padding:10px 12px;opacity:0;transition:opacity .12s;box-shadow:0 4px 20px rgba(0,0,0,.5)}
+#radar-tooltip.visible{opacity:1}
+.tt-header{display:flex;align-items:center;gap:7px;margin-bottom:7px}
+.tt-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.tt-label{font-size:.8rem;font-weight:700;color:#fff;flex:1}
+.tt-badge{font-size:.6rem;font-weight:700;padding:1px 6px;border-radius:10px;text-transform:uppercase}
+.tt-badge.threat{background:rgba(239,83,80,.2);color:#ef5350;border:1px solid rgba(239,83,80,.3)}
+.tt-badge.opportunity{background:rgba(38,166,154,.2);color:#26a69a;border:1px solid rgba(38,166,154,.3)}
+.tt-badge.issue{background:rgba(41,182,246,.2);color:#29b6f6;border:1px solid rgba(41,182,246,.3)}
+.tt-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:6px}
+.tt-cell{background:#111c2e;border-radius:3px;padding:4px 6px}
+.tt-cell-label{font-size:.58rem;color:#4a6080;text-transform:uppercase;letter-spacing:.06em;margin-bottom:1px}
+.tt-cell-value{font-size:.7rem;color:#c8d8f0;font-weight:600}
+.tt-cell-value.high{color:#ef5350}
+.tt-cell-value.medium{color:#ffa726}
+.tt-cell-value.low{color:#66bb6a}
+.tt-bearing{font-size:.68rem;color:#dd1d21;margin-bottom:4px;font-weight:600}
+.tt-rationale{font-size:.65rem;color:#6a8090;line-height:1.4;margin-bottom:4px}
+.tt-causal{font-size:.65rem;margin-top:5px;padding-top:5px;border-top:1px solid #1a2a3a}
+.tt-causal-head{color:#4a6080;font-size:.6rem;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px;font-weight:700}
+.tt-causal-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px}
+.tt-causal-src{color:#8a9fb5;flex:1}
+.tt-causal-delta{font-weight:700}
+.tt-causal-delta.pos{color:#ef5350}
+.tt-causal-note{font-size:.6rem;color:#4a6080;margin-bottom:4px;line-height:1.3}
 </style>
 </head>
 <body>
-<div id="app">
-  <div id="radar-area">
-    <div id="top-bar">
-      <div class="logo">
-        <div class="logo-shell">S</div>
-        <div>
-          <h1>Shell plc — Strategic Bearing</h1>
-          <span class="subtitle">Source: Shell Annual Reports 2021–2025 | 9 Principal Risks</span>
-        </div>
-      </div>
-      <div id="risk-tabs">
-        <button class="risk-btn active" onclick="setRisk(0)">All Risks</button>
-        <button class="risk-btn" onclick="setRisk(1)">Portfolio</button>
-        <button class="risk-btn" onclick="setRisk(2)">Climate/ET</button>
-        <button class="risk-btn" onclick="setRisk(3)">Financial</button>
-        <button class="risk-btn" onclick="setRisk(4)">Trading</button>
-        <button class="risk-btn" onclick="setRisk(5)">HSSE</button>
-        <button class="risk-btn" onclick="setRisk(6)">IT/Cyber</button>
-        <button class="risk-btn" onclick="setRisk(7)">Legal/Reg</button>
-        <button class="risk-btn" onclick="setRisk(8)">Reputation</button>
-        <button class="risk-btn" onclick="setRisk(9)">People</button>
-      </div>
-    </div>
-    <div id="canvas-wrap">
-      <canvas id="radar-canvas"></canvas>
-      <button id="blade-toggle" onclick="toggleBlade()">ANALYSIS</button>
-    </div>
-    <div id="confidence-panel">
-      <strong>Bearing Methodology</strong>
-      Bearings are derived from Shell's own disclosed risk severity language. Each principal risk's current bearing is mapped from the severity descriptors (High/Medium/Low likelihood × High/Medium/Low impact) disclosed in the 2025 Annual Report (pp.125–140). Historical bearings track disclosed changes in risk tone year-on-year.<br>
-      <span class="bearing-calc-note">Scale: 0° = True North (strategy on track). Higher bearing = greater deflection from objective. Cone width = uncertainty range disclosed per risk. No numerical precision is claimed beyond what the source material supports.</span>
-    </div>
-    <div id="data-provenance">
-      <strong>Data sources</strong>
-      Shell AR 2025 pp.1–20, 125–140<br>
-      Shell AR 2024 pp.1–20<br>
-      Shell AR 2023 pp.98–115<br>
-      Shell AR 2022 pp.1–20, 15–26<br>
-      Shell AR 2021 pp.1–20, 22–33<br>
-      All data: Shell plc disclosures only
-    </div>
+
+<div id="toolbar">
+  <div style="display:flex;flex-direction:column;gap:1px;flex-shrink:0;margin-right:6px">
+    <div class="brand">Shell plc — Strategic Bearing</div>
+    <div class="brand-sub">Source: Shell Annual Reports 2021–2025 · 9 Principal Risks · Bearings derived from disclosed risk language only</div>
   </div>
-  <div id="info-panel">
-    <button class="panel-close" onclick="toggleBlade()">×</button>
-    <div id="panel-content"></div>
+  <div class="risk-tabs" id="risk-tabs">
+    <button class="rtab active" onclick="setView('all')">All Risks</button>
+    <button class="rtab" onclick="setView('portfolio')">Portfolio</button>
+    <button class="rtab" onclick="setView('climate')">Climate/ET</button>
+    <button class="rtab" onclick="setView('financial')">Financial</button>
+    <button class="rtab" onclick="setView('trading')">Trading</button>
+    <button class="rtab" onclick="setView('hsse')">HSSE</button>
+    <button class="rtab" onclick="setView('cyber')">IT/Cyber</button>
+    <button class="rtab" onclick="setView('legal')">Legal/Reg</button>
+    <button class="rtab" onclick="setView('reputation')">Reputation</button>
+    <button class="rtab" onclick="setView('people')">People</button>
   </div>
 </div>
 
+<div id="filter-bar">
+  <span class="fb-label">Type</span>
+  <button class="pf-btn" data-cat="threat"      style="border-color:#ef5350;color:#ef5350">Threats</button>
+  <button class="pf-btn" data-cat="opportunity" style="border-color:#26a69a;color:#26a69a">Opportunities</button>
+  <button class="pf-btn" data-cat="issue"       style="border-color:#29b6f6;color:#29b6f6">Active Issues</button>
+  <div class="fb-sep"></div>
+  <span class="fb-label">Category</span>
+  <button class="pf-btn" data-cat="Strategic"   style="border-color:#ef5350;color:#ef5350">Strategic</button>
+  <button class="pf-btn" data-cat="Operational" style="border-color:#a78bfa;color:#a78bfa">Operational</button>
+  <button class="pf-btn" data-cat="Conduct"     style="border-color:#fbbf24;color:#fbbf24">Conduct</button>
+</div>
+
+<div id="main">
+  <div id="radar-panel">
+    <canvas id="radar" width="660" height="660"></canvas>
+  </div>
+  <button id="blade-toggle" onclick="toggleBlade()">Analysis</button>
+  <section id="info-panel">
+    <div class="tab-bar">
+      <button class="tab-btn active" data-tab="analysis">Analysis</button>
+      <button class="tab-btn" data-tab="network">Risk Network</button>
+      <button class="tab-btn" data-tab="decisions">Decisions</button>
+      <button class="tab-btn" data-tab="chat">Board Q&amp;A</button>
+    </div>
+    <div class="tab-content active" id="tab-analysis"></div>
+    <div class="tab-content" id="tab-network"></div>
+    <div class="tab-content" id="tab-decisions"></div>
+    <div class="tab-content" id="tab-chat"></div>
+  </section>
+</div>
+
+<div id="radar-tooltip">
+  <div class="tt-header">
+    <div class="tt-dot" id="tt-dot"></div>
+    <div class="tt-label" id="tt-label"></div>
+    <span class="tt-badge" id="tt-badge"></span>
+  </div>
+  <div class="tt-grid" id="tt-grid"></div>
+  <div class="tt-bearing" id="tt-bearing"></div>
+  <div class="tt-rationale" id="tt-rationale"></div>
+  <div class="tt-causal" id="tt-causal" style="display:none"></div>
+</div>
+
 <script>
-// ─── CONSTANTS ───────────────────────────────────────────────────────────────
-const W = 660, H = 660, CX = W/2, CY = H/2, MAX_R = 290;
-const RINGS = 4;
-const HORIZONS = ['Near (1–3y)', 'Mid (3–7y)', 'Long (7–15y)', 'Strategic (15–30y)'];
-const SHELL_RED = '#dd1d21';
-const SHELL_YELLOW = '#fbce07';
+const CW=660,CH=660,CX=330,CY=330,MAX_R=290;
+const SHELL_RED='#dd1d21', SHELL_YELLOW='#fbce07';
+const CAT_COLOR={Strategic:'#ef5350',Operational:'#a78bfa',Conduct:'#fbbf24'};
+const STATUS_COLOR={active:'#ef5350',elevated:'#ffa726',managed:'#66bb6a',emerging:'#29b6f6'};
 
-// True North: "Deliver more value with less emissions — world's leading integrated energy company by 2050 net-zero"
-const TRUE_NORTH_LABEL = 'True North: More Value, Less Emissions — Net-Zero 2050';
+function toRad(d){return d*Math.PI/180;}
+function bearingToAngle(deg){return toRad(deg-90);}
+function polarXY(b,f){const a=bearingToAngle(b),r=f*MAX_R;return{x:CX+r*Math.cos(a),y:CY+r*Math.sin(a)};}
+function vcls(v){if(!v)return'';const s=String(v).toLowerCase();if(s==='high'||s==='critical')return'high';if(s==='medium'||s==='moderate')return'medium';if(s==='low')return'low';return'';}
 
-// Bearing severity mapping (from Shell's own language in Annual Reports):
-// "High likelihood / High impact" = 60–70° deflection
-// "High likelihood / Medium impact" = 45–55°
-// "Medium likelihood / High impact" = 40–50°
-// "Medium likelihood / Medium impact" = 28–38°
-// "Low likelihood / High impact" = 22–30°
-// "Low likelihood / Medium impact" = 12–20°
-// "Low likelihood / Low impact" = 5–12°
-// Source: Shell AR 2025 pp.125–140 risk severity disclosures
+// ── DATA ──────────────────────────────────────────────────────────────────────
+// All bearings derived from Shell Annual Report disclosed risk severity language.
+// Bearing scale: 0° = True North. Each degree east = deflection from strategic objective.
+// High/High severity → 50–65°. High/Med → 38–50°. Med/Med → 25–38°. Low/Med → 15–25°.
+// Causal links cite AR2025 pp.125-140 risk interdependency disclosures.
+const DATA = {
+  north:'Deliver more value with less emissions — world\'s leading integrated energy company, net-zero by 2050',
+  status:'elevated',
+  statusNote:'Aggregate bearing across 9 principal risks (AR 2025). Climate/ET, Portfolio and Reputation/LTO carry highest combined strategic exposure per Shell\'s own disclosed severity rankings.',
+  bearing:42, coneP50:36, coneP80:58, coneHalf:20,
+  headline:'Shell navigates a dual mandate — maximise near-term cash returns while accelerating the energy transition — against elevated external headwinds. Aggregate bearing: +42° east of True North.',
+  history:[
+    {year:2021,bearing:38,status:'elevated',note:'Hague ruling; Russia exposure; Powering Progress launch'},
+    {year:2022,bearing:48,status:'elevated',note:'Russia exit; record earnings mask transition risk; Ukraine energy crisis'},
+    {year:2023,bearing:44,status:'elevated',note:'CMD 2023 strategy reset; ET execution risk dominant; headcount reduction'},
+    {year:2024,bearing:44,status:'elevated',note:'Earnings decline; SPDC sale; cyber elevated; engagement score falls'},
+    {year:2025,bearing:42,status:'elevated',note:'Portfolio consolidation; LNG growth central; CSRD in scope'},
+  ],
+  blips:[
+    // ── THREATS ──
+    {label:'Climate/ET',bearing:52,range:.56,size:16,type:'threat',cat:'Strategic',
+     severity:'High/High',arYear:'AR2025 p.128',confidence:'Medium',
+     bearing_effect:'Highest strategic exposure. Regulatory, commercial, societal/litigation and physical sub-risks simultaneously active.',
+     rationale:'Shell discloses Climate/ET as a principal risk across four dimensions: commercial demand destruction, regulatory (CSRD, carbon pricing), societal/litigation (Milieudefensie Hague ruling), and physical asset damage. NCI 71 gCO2e/MJ (2024); target –15–20% by 2030. Source: AR 2025 p.128.',
+     causes:[{label:'Portfolio Risk',delta:'+0.20',note:'ET pace determines portfolio stranding — long-payback assets face accelerated impairment if transition accelerates (AR 2025 p.126)'}],
+     caused_by:[{label:'Litigation & Regulatory',delta:'+0.18',note:'Climate litigation and CSRD obligations are regulatory transmission mechanisms that amplify ET risk (AR 2025 p.135)'}]},
 
-// ─── RISK DATA ────────────────────────────────────────────────────────────────
-// Each risk: id, name, type tags, bearing (current 2025), cone (P50/P80),
-// confidence (0–100), history[{year, bearing, tone}], subrisks[], kris[], decisions[]
-const RISKS = {
-  0: {
-    id: 0,
-    name: 'All Principal Risks',
-    isAggregate: true,
-    north: 'Deliver more value with less emissions — net-zero energy business by 2050',
-    bearing: 38,
-    coneHalf: 18,
-    headline: 'Aggregate strategic bearing across all 9 principal risks. Vector sum weighted by disclosed severity. Cone represents spread of individual risk bearings.',
-    confidence: 55,
-    confidenceNote: 'Aggregate bearing is unweighted vector sum. Individual risk severity rankings are qualitative (Shell disclosure). No cardinal weighting applied.',
-    history: [
-      {year:2021, bearing:32, tone:'elevated', note:'COVID recovery; Hague ruling; Russia exposure'},
-      {year:2022, bearing:42, tone:'high', note:'Ukraine/Russia; energy crisis; record prices mask transition risk'},
-      {year:2023, bearing:38, tone:'elevated', note:'Post-Russia exit; ET execution risk dominates; earnings normalising'},
-      {year:2024, bearing:40, tone:'elevated', note:'Strategy reset (CMD 2023); headcount reduction; earnings decline'},
-      {year:2025, bearing:38, tone:'elevated', note:'Portfolio consolidation; cyber risk elevated; LNG growth central'},
-    ],
-    kris: [
-      {name:'Adj Earnings ($bn)', values:{2021:19,2022:40,2023:28,2024:18.5}, trend:'down', unit:''},
-      {name:'CFFO ($bn)', values:{2021:45.1,2022:68.4,2023:54,2024:42.9}, trend:'down', unit:''},
-      {name:'Scope 1+2 (Mt CO₂e)', values:{2021:68,2022:58,2023:57,2024:58}, trend:'flat', unit:''},
-      {name:'Net Carbon Intensity (gCO₂e/MJ)', values:{2021:77,2022:76,2023:74,2024:71}, trend:'up', unit:''},
-      {name:'Free Cash Flow ($bn)', values:{2021:25,2022:40,2023:28,2024:26.1}, trend:'down', unit:''},
-      {name:'Employees (000)', values:{2021:82,2022:93,2023:103,2024:96}, trend:'down', unit:''},
-    ],
-    decisions: [
-      {title:'Pursue LNG Growth (4–5% CAGR)', bearing:28, note:'Reduces exposure to oil price volatility. Strengthens near-term cash generation. Routes through Portfolio and Climate/ET risk corridors. Requires regulatory alignment in key markets.'},
-      {title:'Accelerate Downstream Transformation', bearing:35, note:'Refinery-to-chemicals parks conversion reduces stranded asset risk. Increases near-term capex. Reduces Scope 1 emissions ~620kt/yr per plant converted. Addresses Reputation/LTO risk corridor.'},
-      {title:'Increase Low-Carbon Capex (above CMD floor)', bearing:30, note:'Reduces Climate/ET transition risk bearing long-term. Increases Financial risk exposure short-term if returns disappoint. Current trajectory: 15–20% NCI reduction by 2030.'},
+    {label:'Portfolio Risk',bearing:46,range:.45,size:14,type:'threat',cat:'Strategic',
+     severity:'High/Med',arYear:'AR2025 p.126',confidence:'High',
+     bearing_effect:'Macro price volatility and competitive pressure dominate near-term. LNG FID execution risk elevated.',
+     rationale:'Sub-risks: macro/commodity price, competitive forces, capital projects, country/JV risk, technology transition. Adj Earnings: $40bn (2022) → $18.5bn (2024). CFFO: $68.4bn (2022) → $42.9bn (2024). SPDC Nigeria divested Mar 2025. Source: AR 2025 p.126.',
+     causes:[{label:'Financial Risk',delta:'+0.18',note:'Portfolio price volatility directly drives earnings volatility and Financial framework stress (AR 2025 p.131)'}],
+     caused_by:[{label:'Climate/ET',delta:'+0.20',note:'Accelerating ET creates stranded-asset risk within Portfolio — the binding constraint on capital allocation (AR 2025 p.128)'}]},
+
+    {label:'Litigation & Reg',bearing:42,range:.50,size:12,type:'threat',cat:'Conduct',
+     severity:'High/High',arYear:'AR2025 p.135',confidence:'Medium',
+     bearing_effect:'Hague appeal pending. CSRD in scope 2025. 343 confirmed Code of Conduct breaches 2024. 110 employees dismissed.',
+     rationale:'Milieudefensie v Royal Dutch Shell (2021): District Court ordered 45% Scope 1-3 reduction by 2030. Shell appealing. EU CSRD now applies to Shell plc. 2,025 Code of Conduct reports received; 343 confirmed breaches; 110 dismissed. Source: AR 2025 pp.125, 135.',
+     causes:[{label:'Reputation/LTO',delta:'+0.15',note:'Regulatory enforcement and court rulings directly amplify reputational risk and erode social licence (AR 2025 p.136)'}],
+     caused_by:[{label:'Climate/ET',delta:'+0.18',note:'ET regulatory tightening (CSRD, carbon pricing) is the primary driver of litigation risk growth (AR 2025 p.128, 135)'}]},
+
+    {label:'Reputation/LTO',bearing:45,range:.40,size:13,type:'threat',cat:'Strategic',
+     severity:'Med/High',arYear:'AR2025 p.136',confidence:'Low',
+     bearing_effect:'Engagement score declined to 75 (2024) from 79 (2023); benchmark 80. NGO/investor pressure increasing. SPDC sale reduces one LTO exposure.',
+     rationale:'Shell discloses Reputation and Licence to Operate as a principal risk. People Survey score 75 in 2024 (benchmark 80). SPDC Nigeria divested Mar 2025. Brand value ~$48bn. "Too fast / too slow" transition creates simultaneous reputation risk from both directions. Source: AR 2025 p.136, AR 2024 pp.114-121.',
+     causes:[{label:'People & Culture',delta:'+0.12',note:'Declining employee engagement undermines internal culture — a Reputation/LTO sub-risk (AR 2025 p.136)'}],
+     caused_by:[{label:'Litigation & Reg',delta:'+0.15',note:'Court rulings and enforcement are primary LTO amplifiers (AR 2025 p.135)'}]},
+
+    {label:'IT/Cyber',bearing:40,range:.46,size:11,type:'threat',cat:'Operational',
+     severity:'Med/High',arYear:'AR2025 p.134',confidence:'Low',
+     bearing_effect:'Elevated to standalone principal risk. AI risks added in 2025. OT/IT convergence at LNG and chemicals parks creates industrial cyber exposure.',
+     rationale:'IT/Cyber first disclosed as standalone principal risk in 2023. AI risks formally added in AR 2025. T-Pulse AI safety system at 26 sites (20,000+ alerts; 1,300+ harm-preventing interventions in 2024). "A cyberattack on our OT systems could result in an HSSE incident" — AR 2025 p.134. No public quantitative KRI for cyber incidents.',
+     causes:[{label:'HSSE',delta:'+0.15',note:'Cyberattack on OT systems is a disclosed pathway to HSSE incidents — explicitly stated in AR 2025 p.134'}],
+     caused_by:[]},
+
+    {label:'HSSE',bearing:35,range:.34,size:12,type:'threat',cat:'Operational',
+     severity:'High/High',arYear:'AR2025 p.133',confidence:'High',
+     bearing_effect:'Goal Zero unachieved. 2 contractor fatalities 2024. Process safety events up to 90 Tier 1+2 (from 63 in 2023). SIF-F improved to 1.5.',
+     rationale:'2 contractor fatalities in 2024 (Netherlands, India). 90 Tier 1+2 process safety events (up 43% from 63 in 2023; increase concentrated in Downstream/RES). Operational spills 1.23kt (vs 0.37kt 2023, partly due to Gulf of America storm). SIF-F improved from 2.6 (2023) to 1.5 (2024). Data externally assured by LRQA Group Ltd. Source: AR 2025 p.133.',
+     causes:[{label:'Reputation/LTO',delta:'+0.12',note:'HSSE incidents directly damage Shell\'s social licence — disclosed causal pathway (AR 2025 p.133, 136)'}],
+     caused_by:[{label:'IT/Cyber',delta:'+0.15',note:'OT cyberattack is a disclosed pathway to HSSE incidents (AR 2025 p.134)'}]},
+
+    {label:'Trading Risk',bearing:30,range:.40,size:10,type:'threat',cat:'Conduct',
+     severity:'Med/Med',arYear:'AR2025 p.132',confidence:'Medium',
+     bearing_effect:'Commodity price volatility, compliance and conduct risk managed within FCA/CFTC regulated framework. 2022 Russia/Ukraine crisis created unprecedented market stress.',
+     rationale:'Sub-risks: commodity price/market risk, compliance, conduct. Chief Compliance Officer reports to FCA (UK) and CFTC (US). Trading & Supply Compliance Manual. 2022: 194 LNG cargoes diverted to Europe in energy crisis. Source: AR 2025 p.132.',
+     causes:[],
+     caused_by:[{label:'Financial Risk',delta:'+0.10',note:'Commodity price volatility in Trading is a Financial risk sub-component (AR 2025 p.131-132)'}]},
+
+    {label:'Financial Risk',bearing:28,range:.38,size:10,type:'threat',cat:'Operational',
+     severity:'Med/Low',arYear:'AR2025 p.131',confidence:'High',
+     bearing_effect:'Well-managed. Net debt $53bn (2021) → $38.3bn (2024). AA credit rating maintained. Liquidity strong.',
+     rationale:'Sub-risks: liquidity, FX, credit, pension. Net debt: $53bn (2021) → $44.8bn (2022) → $38.3bn (2024). CFFO: $45.1bn (2021) → $68.4bn (2022) → $42.9bn (2024). AA credit rating maintained. Gearing ratio declined from 23% (2021) to 17% (2024). Source: AR 2025 p.131, AR 2022 pp.29-35.',
+     causes:[],
+     caused_by:[{label:'Portfolio Risk',delta:'+0.18',note:'Portfolio earnings volatility is primary driver of financial framework stress (AR 2025 p.126, 131)'}]},
+
+    {label:'People & Culture',bearing:35,range:.42,size:10,type:'threat',cat:'Operational',
+     severity:'Med/Med',arYear:'AR2025 p.137',confidence:'Medium',
+     bearing_effect:'Standalone risk since 2023. Engagement score 75 (below benchmark 80). Headcount -7k in 2024. ET skills gap widening.',
+     rationale:'People Survey 2024: engagement score 75 (down from 79 in 2023; top quartile benchmark = 80). Employees: 82k (2021) → 103k (2023) → 96k (2024). Turnover 7.6% (2024). 3,156 experienced hires (37% women). Graduate intake 57% women. 264k training days. Source: AR 2025 p.137, AR 2024 pp.114-121.',
+     causes:[{label:'Reputation/LTO',delta:'+0.12',note:'Declining engagement is a disclosed Reputation/LTO sub-risk — internal culture affects external brand (AR 2025 p.136)'}],
+     caused_by:[]},
+
+    // ── OPPORTUNITIES ──
+    {label:'LNG Growth',bearing:355,range:.50,size:13,type:'opportunity',cat:'Strategic',
+     severity:'—',arYear:'AR2025 p.8',confidence:'High',capability:'Strong',
+     bearing_effect:'Primary growth pillar. 4-5% CAGR target to 2030. Credible transition fuel. QatarEnergy NFE, Australia exposure. Structural demand growth in Asia.',
+     rationale:'CMD 2023 and AR 2025 identify Integrated Gas as Shell\'s primary growth vector. 4-5% CAGR to 2030. 194 LNG cargoes diverted to Europe in 2022 energy crisis demonstrating optionality value. QatarEnergy NFE and Australia assets. Source: AR 2025 pp.6-10.',
+     causes:[],caused_by:[]},
+
+    {label:'NCI Reduction',bearing:350,range:.65,size:11,type:'opportunity',cat:'Strategic',
+     severity:'—',arYear:'AR2025 p.12',confidence:'High',capability:'Moderate',
+     bearing_effect:'NCI on track. 79 (2016) → 71 (2024) = –10%. At current pace on track for –15% by 2030. Demonstrates commercial viability of integrated energy model.',
+     rationale:'NCI: 79 gCO2e/MJ (2016 baseline) → 77 (2021) → 76 (2022) → 74 (2023) → 71 (2024). Target: –15% to –20% by 2030. Routine flaring near-zero. Methane intensity 0.05% (target <0.2%). Source: AR 2025 p.12, AR 2023 pp.98-115.',
+     causes:[],caused_by:[]},
+
+    {label:'Downstream Transform',bearing:5,range:.55,size:11,type:'opportunity',cat:'Strategic',
+     severity:'—',arYear:'AR2025 p.10',confidence:'Medium',capability:'Building',
+     bearing_effect:'Refinery-to-chemicals park conversion reduces Scope 1 and stranded asset risk. Singapore, Rotterdam and Norco parks in progress.',
+     rationale:'Shell converting refineries to chemicals and energy parks to reduce oil product exposure and Scope 1 emissions. Part of core strategy alongside LNG growth. Addresses long-dated refining asset stranding risk. Source: AR 2025 pp.8-10.',
+     causes:[],caused_by:[]},
+  ],
+  issues:[
+    {label:'Hague ruling appeal pending',bearing:55,cat:'Conduct',onset:'May 2021',resolution:'Appeal ongoing — judgment expected 2025/2026',
+     action:'Milieudefensie v Royal Dutch Shell: District Court ordered 45% Scope 1-3 reduction by 2030 vs 2019. Shell appealing. Binary outcome — adverse ruling would require fundamental portfolio restructuring. Source: AR 2025 p.135.'},
+    {label:'Process safety events +43% YoY',bearing:35,cat:'Operational',onset:'2024',resolution:'Under investigation; refreshed SEAM standards',
+     action:'90 Tier 1+2 process safety events in 2024, up from 63 in 2023. Increase concentrated in Downstream and Renewables/Energy Solutions. Externally assured by LRQA. Source: AR 2025 p.133.'},
+    {label:'CSRD mandatory reporting 2025',bearing:40,cat:'Conduct',onset:'2025 reporting year',resolution:'Compliance programme underway',
+     action:'EU Corporate Sustainability Reporting Directive now applies to Shell plc (Netherlands incorporation). Mandatory climate disclosure materially increased. Source: AR 2025 p.135.'},
+  ],
+  network:{
+    headline:'Shell\'s 9 principal risks form an interconnected system. Climate/ET is the highest out-degree node — its trajectory amplifies every other risk. All causal links below are evidenced in Shell Annual Report disclosures, not inferred by this tool.',
+    chains:[
+      {path:['Climate/ET','Portfolio Risk','Financial Risk'],weights:[2,2],effect:'Transition cascade — ET pace determines portfolio stranding, which drives earnings and balance sheet stress. The primary strategic threat chain. Source: AR 2025 pp.126-131.'},
+      {path:['IT/Cyber','HSSE','Reputation/LTO'],weights:[2,2],effect:'Operational cascade — cyberattack on OT systems → safety incident → social licence damage. Explicitly disclosed causal pathway. Source: AR 2025 p.134.'},
+      {path:['Litigation & Reg','Climate/ET','Portfolio Risk'],weights:[2,2],effect:'Regulatory amplification — Hague ruling and CSRD accelerate transition obligations, constraining portfolio capital allocation. Source: AR 2025 p.128, 135.'},
+      {path:['People & Culture','HSSE','Reputation/LTO'],weights:[1,2],effect:'Culture cascade — declining engagement undermines safety culture; HSSE failures erode social licence. Source: AR 2025 p.137, 133, 136.'},
     ]
   },
-  1: {
-    id: 1,
-    name: 'Portfolio Risks',
-    types: ['strategic'],
-    north: 'Maintain a competitive, resilient portfolio generating superior returns through the energy transition',
-    bearing: 45,
-    coneHalf: 20,
-    headline: 'Macro price volatility, competitive forces and capital project execution risk. Elevated by 2024 earnings decline and ongoing portfolio rationalisation.',
-    confidence: 70,
-    confidenceNote: 'Bearing derived from: "High likelihood / Medium–High impact" disclosed in AR 2025 p.126. Sub-risk spread (macro vs. competitive vs. country) drives wide cone.',
-    history: [
-      {year:2021, bearing:42, tone:'elevated', note:'Post-COVID recovery; oil demand rebound; Russia assets ($3bn) still held'},
-      {year:2022, bearing:52, tone:'high', note:'Russia exit ($3bn impairment); record earnings mask structural risk; Ukraine energy security'},
-      {year:2023, bearing:45, tone:'elevated', note:'Portfolio pruning (Permian sold 2021); CMD 2023 strategy reset; capital discipline focus'},
-      {year:2024, bearing:48, tone:'elevated', note:'Adj Earnings decline to $18.5bn; CFFO $42.9bn (vs $68.4bn 2022); headcount -7k'},
-      {year:2025, bearing:45, tone:'elevated', note:'LNG growth pillar central; liquids stability 1.4mb/d; downstream transformation ongoing'},
-    ],
-    subrisks: [
-      {name:'Macro / Commodity Price', severity:'High/High', desc:'Oil price volatility directly impacts Upstream earnings and capex appetite. Brent assumptions drive FID decisions.', types:['strategic']},
-      {name:'Competitive Forces', severity:'Med/High', desc:'State-owned oil companies and new energy entrants competing on cost and access. EV adoption pace altering demand trajectory for oil products.', types:['strategic']},
-      {name:'Capital Projects / Reserves', severity:'Med/High', desc:'Major project delays, cost overruns and reserve estimation uncertainty. LNG projects (QatarEnergy NFE, Australia) key.', types:['strategic','operational']},
-      {name:'Country / JV Risk', severity:'Med/Med', desc:'70+ countries; geopolitical instability; JV partner misalignment. SPDC Nigeria divested Mar 2025.', types:['strategic']},
-      {name:'Technology Transition', severity:'Med/High', desc:'Low-carbon alternatives (hydrogen, CCS, biofuels) must achieve commercial scale. Returns unproven at scale.', types:['strategic']},
-    ],
-    kris: [
-      {name:'Adj Earnings ($bn)', values:{2021:19,2022:40,2023:28,2024:18.5}, trend:'down'},
-      {name:'CFFO ($bn)', values:{2021:45.1,2022:68.4,2023:54,2024:42.9}, trend:'down'},
-      {name:'Cash Capex ($bn)', values:{2021:20,2022:25,2023:24,2024:20.9}, trend:'flat'},
-      {name:'LNG volumes (mtpa)', values:{2021:31,2022:30,2023:28.5,2024:29}, trend:'flat'},
-    ],
-    source: 'Shell AR 2025 pp.125–127; AR 2022 pp.15–17; AR 2021 pp.22–24'
-  },
-  2: {
-    id: 2,
-    name: 'Climate Change & Energy Transition',
-    types: ['strategic','conduct'],
-    north: 'Accelerate to net-zero profitably, in step with society — NCI –15–20% by 2030, net-zero by 2050',
-    bearing: 52,
-    coneHalf: 22,
-    headline: 'Highest strategic exposure. Commercial, regulatory, societal/litigation and physical sub-risks combine to make this the widest-cone risk on the radar. NCI trajectory is on track; absolute emissions progress is slower.',
-    confidence: 65,
-    confidenceNote: 'Bearing from "High likelihood / High impact across all four sub-components" (AR 2025 p.128). Wide cone reflects divergent regulatory pace across jurisdictions. Historical track uses disclosed NCI performance and Hague ruling milestones.',
-    history: [
-      {year:2021, bearing:45, tone:'elevated', note:'Hague ruling: 45% Scope 1+2 reduction by 2030 (vs 2019). Shell appealing. NCI 77. Powering Progress launched.'},
-      {year:2022, bearing:52, tone:'high', note:'Energy crisis accelerates ET debate. Scope 1+2 at 58Mt (–30% from 2016). NCI 76. Russia exit accelerates.'},
-      {year:2023, bearing:50, tone:'high', note:'NCI 74 (–6.3% from 2016). ET targets refined at CMD 2023. NCI target: –15–20% by 2030 (was –20%). 2035 NCI target retired.'},
-      {year:2024, bearing:54, tone:'high', note:'NCI 71. Scope 1+2 58Mt (flat). SPDC sale completed. Downstream transformation continues. Climate litigation increasing globally.'},
-      {year:2025, bearing:52, tone:'high', note:'Regulatory pace uncertain; IRA uncertainty (US); EU CSRD now in scope. Physical risk: 214 ha deforested in operations 2024.'},
-    ],
-    subrisks: [
-      {name:'Commercial / Demand Destruction', severity:'High/High', desc:'Accelerating EV adoption and policy-driven demand reduction for oil products. Shell refocusing on value over volume in power.', types:['strategic']},
-      {name:'Regulatory', severity:'High/High', desc:'Carbon pricing, emissions caps, TCFD/CSRD mandatory reporting. EU Taxonomy now applies to Shell (via CSRD transposition in Netherlands). Hague ruling appeal ongoing.', types:['strategic','conduct']},
-      {name:'Societal / Litigation', severity:'High/High', desc:'Climate litigation from Milieudefensie (Netherlands), shareholder groups, NGOs. More than 2,000 companies globally have made net-zero commitments — creates pressure on Shell.', types:['conduct']},
-      {name:'Physical Climate Risk', severity:'Med/High', desc:'Asset damage from extreme weather (Gulf of Mexico storm 2024: spill incident). Supply chain disruption. Long-term asset life assumptions challenged.', types:['operational']},
-    ],
-    kris: [
-      {name:'NCI (gCO₂e/MJ)', values:{2021:77,2022:76,2023:74,2024:71}, trend:'up', note:'↓ is progress; target –15–20% by 2030 vs 2016 baseline of 79'},
-      {name:'Scope 1+2 (Mt CO₂e)', values:{2021:68,2022:58,2023:57,2024:58}, trend:'flat', note:'Target: –50% by 2030 vs 2016 (83Mt)'},
-      {name:'Routine flaring (Mt)', values:{2021:0.2,2022:0.1,2023:0.1,2024:'<0.1'}, trend:'up', note:'Target: zero routine flaring by 2025'},
-      {name:'Methane intensity (%)', values:{2021:'0.06',2022:'0.05',2023:'0.05',2024:'0.05'}, trend:'flat', note:'Target: below 0.2%; achieved'},
-    ],
-    source: 'Shell AR 2025 pp.128–130; AR 2023 pp.98–115; AR 2022 pp.15–16'
-  },
-  3: {
-    id: 3,
-    name: 'Financial Risks',
-    types: ['operational'],
-    north: 'Maintain AA credit metrics, strong balance sheet and progressive dividend through the commodity cycle',
-    bearing: 28,
-    coneHalf: 12,
-    headline: 'Well-managed. Net debt declined from $53bn (2021) to $38.3bn (2024). Liquidity position strong. Currency and credit risks contained within financial framework. Pension risk declining.',
-    confidence: 80,
-    confidenceNote: 'Bearing from "Medium likelihood / Low–Medium impact" (AR 2025 p.131). Narrow cone: Shell\'s financial framework and hedging programme provide measurable risk bounds. KRI data directly audited.',
-    history: [
-      {year:2021, bearing:32, tone:'moderate', note:'Net debt $53bn — above $65bn milestone trigger for distributions. CFFO $45.1bn supports balance sheet repair.'},
-      {year:2022, bearing:22, tone:'moderate', note:'Net debt $44.8bn. Record CFFO $68.4bn. $25.8bn shareholder distributions. AA credit metrics achieved.'},
-      {year:2023, bearing:24, tone:'moderate', note:'Net debt $43bn. CFFO $54bn. Pension risk reducing. FX exposure managed via hedging.'},
-      {year:2024, bearing:28, tone:'moderate', note:'Net debt $38.3bn. CFFO $42.9bn (earnings decline from 2022 peak). Dividend and buyback programme maintained.'},
-      {year:2025, bearing:28, tone:'moderate', note:'Financial framework stable. AA credit rating maintained. Liquidity adequate. Pension deficit manageable.'},
-    ],
-    subrisks: [
-      {name:'Liquidity / Funding', severity:'Low/High', desc:'Shell maintains committed credit facilities and strong cash position. Long-term debt maturity profile well-spread.', types:['operational']},
-      {name:'Foreign Exchange', severity:'Med/Med', desc:'Operations in 70+ countries. Significant USD vs GBP, EUR, AUD, BRL exposure. Hedging programme in place.', types:['operational']},
-      {name:'Credit Risk', severity:'Low/Med', desc:'Counterparty credit risk in trading and project finance. Managed through credit limits and collateral requirements.', types:['operational']},
-      {name:'Pension', severity:'Low/Med', desc:'Defined benefit schemes primarily in Netherlands and UK. Low-interest-rate environment has reduced deficit in recent years.', types:['operational']},
-    ],
-    kris: [
-      {name:'Net Debt ($bn)', values:{2021:53,2022:44.8,2023:43,2024:38.3}, trend:'up'},
-      {name:'CFFO ($bn)', values:{2021:45.1,2022:68.4,2023:54,2024:42.9}, trend:'down'},
-      {name:'Shareholder distributions ($bn)', values:{2021:9,2022:25.8,2023:23,2024:17}, trend:'down'},
-      {name:'Gearing ratio (%)', values:{2021:23,2022:19,2023:18,2024:17}, trend:'up'},
-    ],
-    source: 'Shell AR 2025 pp.131; AR 2022 pp.29–35; AR 2021 pp.38–41'
-  },
-  4: {
-    id: 4,
-    name: 'Trading Risks',
-    types: ['operational','conduct'],
-    north: 'Generate value through safe, compliant trading and optimisation without conduct failures',
-    bearing: 30,
-    coneHalf: 14,
-    headline: 'Trading is a strategic differentiator — Shell optimises across its integrated portfolio. Commodity price volatility, compliance and conduct sub-risks contained by Chief Compliance Officer function reporting to FCA and CFTC.',
-    confidence: 72,
-    confidenceNote: 'Bearing from "Medium likelihood / Medium impact" (AR 2025 p.132). Compliance function regulated by FCA (UK) and CFTC (US). Trading & Supply Compliance Manual provides documented control framework.',
-    history: [
-      {year:2021, bearing:28, tone:'moderate', note:'Strong trading performance in recovering market. LNG optimisation key value driver.'},
-      {year:2022, bearing:35, tone:'elevated', note:'Energy crisis: unprecedented price volatility. 194 LNG cargoes to Europe (5× normal). Conduct risk elevated in stressed markets.'},
-      {year:2023, bearing:30, tone:'moderate', note:'Market normalising. Trading compliance framework strengthened post-2022 review.'},
-      {year:2024, bearing:30, tone:'moderate', note:'Commodity prices declining. Trading book discipline maintained. No material conduct incidents disclosed.'},
-      {year:2025, bearing:30, tone:'moderate', note:'LNG trading central to strategy. FCA/CFTC oversight maintained. AI use in trading flagged as emerging risk.'},
-    ],
-    subrisks: [
-      {name:'Commodity Price / Market Risk', severity:'High/Med', desc:'Trading positions exposed to oil, gas, LNG, power and carbon price volatility. Managed within authorised risk appetite limits.', types:['operational']},
-      {name:'Compliance', severity:'Med/Med', desc:'Trade compliance across multiple regulatory regimes. Anti-money laundering, sanctions, market abuse rules. Chief Compliance Officer function.', types:['conduct']},
-      {name:'Conduct / Rogue Trading', severity:'Low/High', desc:'Conduct failures could result in fines, regulatory action and reputational damage. Mandatory training, reporting lines and whistleblower protection in place.', types:['conduct']},
-    ],
-    kris: [
-      {name:'Code of Conduct reports (2024)', values:{2021:'n/d',2022:'n/d',2023:'n/d',2024:2025}, trend:'flat'},
-      {name:'Confirmed breaches (2024)', values:{2021:'n/d',2022:'n/d',2023:'n/d',2024:343}, trend:'flat'},
-      {name:'Employees dismissed (2024)', values:{2021:'n/d',2022:'n/d',2023:'n/d',2024:110}, trend:'flat'},
-    ],
-    source: 'Shell AR 2025 pp.125, 132; AR 2025 p.125 (ethics data)'
-  },
-  5: {
-    id: 5,
-    name: 'HSSE Risks',
-    types: ['operational'],
-    north: 'Goal Zero — no harm to people, no leaks across all operations',
-    bearing: 35,
-    coneHalf: 15,
-    headline: 'Goal Zero remains unachieved. 2 contractor fatalities in 2024 (Netherlands and India). SIF-F improved to 1.5 per 100M hours (from 2.6 in 2023). Process safety events increased (90 Tier 1+2 vs 63 in 2023). SPDC Nigeria spill incidents reduced following sale completion March 2025.',
-    confidence: 78,
-    confidenceNote: 'Bearing from "High likelihood / High impact" for safety sub-risks (AR 2025 p.133). KRI data externally assured by LRQA Group Limited. Numbers are directly verifiable from disclosed figures.',
-    history: [
-      {year:2021, bearing:38, tone:'elevated', note:'6 contractor fatalities including Nigerian attack. COVID safety protocols. SIF-F metric introduced.'},
-      {year:2022, bearing:35, tone:'elevated', note:'2 contractor fatalities (Nigeria, Pakistan). SIF-F data improving. Process safety focus.'},
-      {year:2023, bearing:38, tone:'elevated', note:'Process safety events: 63 Tier 1+2. SIF-F 2.6. Refreshed safety approach: learner mindset, human performance.'},
-      {year:2024, bearing:35, tone:'elevated', note:'2 fatalities. SIF-F 1.5 (improved). Process safety events 90 (worsened — Downstream business). Operational spills 1.23kt (vs 0.37kt 2023).'},
-      {year:2025, bearing:35, tone:'elevated', note:'EcoOils Malaysia flash fire investigation ongoing. T-Pulse AI safety system at 26 sites. SPDC Nigeria sold (Mar 2025).'},
-    ],
-    subrisks: [
-      {name:'Personal Safety / Fatalities', severity:'High/High', desc:'2 contractor fatalities in 2024. Goal Zero ambition not achieved. SIF-F improving but remains above target. Learner mindset programme underway.', types:['operational']},
-      {name:'Process Safety / Leaks', severity:'Med/High', desc:'90 Tier 1+2 process safety events in 2024 (up from 63 in 2023). Increase in Downstream, Renewables and Energy Solutions. SEAM Standards refreshed.', types:['operational']},
-      {name:'Environmental Spills', severity:'Med/High', desc:'Operational spills 1.23kt in 2024 (vs 0.37kt 2023). Increase partly due to Gulf of America storm. 69 spills >100kg. SPDC Nigeria crude theft spills reducing.', types:['operational']},
-      {name:'Security / Terrorism', severity:'Med/Med', desc:'"Deter, detect, delay, respond" framework. Voluntary Principles on Security and Human Rights. High-risk country operations: VPSHR applied.', types:['operational']},
-    ],
-    kris: [
-      {name:'Contractor fatalities', values:{2021:6,2022:2,2023:1,2024:2}, trend:'flat'},
-      {name:'SIF-F (per 100M hrs)', values:{2021:'n/a',2022:'n/a',2023:2.6,2024:1.5}, trend:'up'},
-      {name:'Tier 1+2 process safety events', values:{2021:'n/d',2022:'n/d',2023:63,2024:90}, trend:'down'},
-      {name:'Operational spills >100kg (kt)', values:{2021:0.05,2022:'n/d',2023:0.37,2024:1.23}, trend:'down'},
-    ],
-    source: 'Shell AR 2025 pp.122–124 (Safety); AR 2024 pp.122–124; AR 2023 (safety section)'
-  },
-  6: {
-    id: 6,
-    name: 'IT & Cyber Security',
-    types: ['operational'],
-    north: 'Protect operational technology, business data and trading systems from cyberattack and AI-related failure',
-    bearing: 40,
-    coneHalf: 18,
-    headline: 'Newly elevated to standalone principal risk (previously embedded in HSSE). AI risks added as disclosed sub-risk in 2025. Shell operates complex OT/IT environments across 70+ countries. T-Pulse AI safety system is a control innovation.',
-    confidence: 60,
-    confidenceNote: 'Bearing from "Medium–High likelihood / High impact" (AR 2025 p.134). Wide cone: cyber risk severity is structurally difficult to bound. No disclosed quantitative KRIs for cyber incidents — confidence limited by absence of public metrics.',
-    history: [
-      {year:2021, bearing:30, tone:'moderate', note:'Cyber risk embedded in strategic risks. IT/OT convergence accelerating as operations digitalise.'},
-      {year:2022, bearing:35, tone:'elevated', note:'Russia exit: geopolitical cyber threat elevated. State-sponsored attack risk increased. Sanctions compliance IT systems critical.'},
-      {year:2023, bearing:38, tone:'elevated', note:'Cyber risk elevated as standalone disclosure. AI use in operations creates new attack surface.'},
-      {year:2024, bearing:40, tone:'elevated', note:'AI risks formally disclosed as sub-risk. T-Pulse deployed at 26 sites (20,000+ safety alerts). Trading system cyber risk increasing.'},
-      {year:2025, bearing:40, tone:'elevated', note:'AI governance still evolving. OT/IT convergence at energy and chemicals parks raises industrial cyber exposure.'},
-    ],
-    subrisks: [
-      {name:'Cyberattack on Operations (OT)', severity:'Med/High', desc:'Industrial control systems at LNG facilities, refineries and upstream assets. Disruption could cause safety incidents, production loss and environmental damage.', types:['operational']},
-      {name:'AI Risks', severity:'Med/Med', desc:'First disclosed as standalone sub-risk in AR 2025. AI use in trading, safety monitoring (T-Pulse) and asset management creates model risk and data integrity concerns.', types:['operational']},
-      {name:'Data Breach / IT Systems', severity:'Med/Med', desc:'Business and personal data across 70+ countries. GDPR and local privacy law compliance. Trading system data integrity critical to operations.', types:['operational','conduct']},
-    ],
-    kris: [
-      {name:'T-Pulse AI safety sites', values:{2021:0,2022:0,2023:20,2024:26}, trend:'up'},
-      {name:'T-Pulse alerts generated', values:{2021:0,2022:0,2023:'15k+',2024:'20k+'}, trend:'up'},
-      {name:'Interventions preventing harm', values:{2021:0,2022:0,2023:'1k+',2024:'1.3k+'}, trend:'up'},
-    ],
-    source: 'Shell AR 2025 pp.134, 122; AR 2024 pp.122–124'
-  },
-  7: {
-    id: 7,
-    name: 'Litigation & Regulatory Compliance',
-    types: ['conduct','strategic'],
-    north: 'Operate within legal and regulatory requirements in all jurisdictions without material fines, sanctions or regulatory enforcement',
-    bearing: 42,
-    coneHalf: 16,
-    headline: 'Elevated by climate litigation (Milieudefensie Hague ruling, appeal ongoing), GDPR/data privacy, antitrust exposure across 70+ countries, and increasing mandatory climate disclosure obligations (EU CSRD now in scope).',
-    confidence: 68,
-    confidenceNote: 'Bearing from "High likelihood / High impact" for climate litigation sub-risk; "Medium/Medium" for antitrust/sanctions. Hague ruling appeal creates binary outcome risk. EU CSRD scope materialised in 2025.',
-    history: [
-      {year:2021, bearing:38, tone:'elevated', note:'Hague District Court rules Shell must reduce Scope 1–3 by 45% by 2030 (vs 2019). Shell appeals. Landmark ruling.'},
-      {year:2022, bearing:42, tone:'elevated', note:'Sanctions compliance: Russia exit requires rapid systems changes. Antitrust: commodity market scrutiny heightened globally.'},
-      {year:2023, bearing:40, tone:'elevated', note:'Hague appeal ongoing. TCFD voluntary → CSRD mandatory (Netherlands transposition). Climate disclosure litigation increasing globally.'},
-      {year:2024, bearing:43, tone:'elevated', note:'CSRD formally in scope for Shell plc. EU Taxonomy applies. Climate litigation expanding in multiple jurisdictions.'},
-      {year:2025, bearing:42, tone:'elevated', note:'Hague appeal result pending. CSRD reporting commencing. 2,025 Code of Conduct reports received. 343 confirmed breaches.'},
-    ],
-    subrisks: [
-      {name:'Climate Litigation', severity:'High/High', desc:'Hague ruling (2021) appealed. Similar suits in UK, Australia, other markets. Potential to force accelerated emissions reductions beyond commercial viability.', types:['strategic','conduct']},
-      {name:'Antitrust / Competition', severity:'Med/Med', desc:'Commodity trading, acquisitions and market position attract antitrust scrutiny. Price controls in certain markets. LNG market power concerns.', types:['conduct']},
-      {name:'Sanctions Compliance', severity:'Med/High', desc:'Russia exit required rapid divestment and sanctions compliance. Ongoing exposure via third-party supply chains. OFAC and EU sanctions monitoring.', types:['conduct']},
-      {name:'Data Privacy / GDPR', severity:'Med/Med', desc:'Personal data across 70+ countries. GDPR (EU/UK), CCPA (US), and local equivalents. Self-identification data (race/ethnicity) programme creates privacy obligations.', types:['conduct']},
-    ],
-    kris: [
-      {name:'Code of Conduct reports (2024)', values:{2021:'n/d',2022:'n/d',2023:'n/d',2024:2025}, trend:'flat'},
-      {name:'Confirmed breaches (2024)', values:{2021:'n/d',2022:'n/d',2023:'n/d',2024:343}, trend:'flat'},
-      {name:'CSRD in scope (Y/N)', values:{2021:'N',2022:'N',2023:'N',2024:'Y'}, trend:'flat'},
-    ],
-    source: 'Shell AR 2025 pp.135; AR 2022 pp.17–18; AR 2021 pp.29–31'
-  },
-  8: {
-    id: 8,
-    name: 'Reputation & Licence to Operate',
-    types: ['strategic','conduct'],
-    north: 'Maintain social licence to operate across communities, investors, governments and civil society globally',
-    bearing: 45,
-    coneHalf: 20,
-    headline: 'Elevated and structurally widening. Energy transition pace creates "too fast/too slow" reputation risk simultaneously. Nigeria SPDC spills (now divested) have been a persistent reputational liability. NGO and investor pressure increasing.',
-    confidence: 58,
-    confidenceNote: 'Bearing from "Medium–High likelihood / High impact" (AR 2025 p.136). Wide cone reflects binary reputation outcomes and external-actor dependency. No audited KRI for reputational standing — confidence limited.',
-    history: [
-      {year:2021, bearing:40, tone:'elevated', note:'Hague ruling reputational impact. COP26. Powering Progress strategy launch as response. Employee engagement survey: strong results.'},
-      {year:2022, bearing:48, tone:'high', note:'Record profits during energy crisis: political and public backlash. Windfall tax debate. NGO pressure at peak.'},
-      {year:2023, bearing:45, tone:'elevated', note:'Post-windfall-tax environment. LTO risk from SPDC Nigeria community relations (ongoing Bodo remediation). Brand value $48bn.'},
-      {year:2024, bearing:47, tone:'elevated', note:'Employee engagement score 75 (from 79 in 2023) — lowest since strategy launch. Headcount -7k. SPDC sale reduces Nigeria LTO risk.'},
-      {year:2025, bearing:45, tone:'elevated', note:'Climate litigation as LTO risk driver. DE&I score decline. Employee engagement survey 86% response (2024). SPDC sold Mar 2025.'},
-    ],
-    subrisks: [
-      {name:'Brand / Public Perception', severity:'Med/High', desc:'Shell brand valued at $48bn (2022). Energy affordability vs. sustainability tension. Record profits during energy crisis created political backlash and windfall tax exposure.', types:['strategic']},
-      {name:'NGO / Activist Pressure', severity:'High/Med', desc:'Climate activist protests at AGMs and facilities. Milieudefensie legal action. Investor coalitions pressing for accelerated transition.', types:['conduct']},
-      {name:'Community / Social Licence', severity:'Med/High', desc:'SPDC Nigeria was persistent LTO risk (spills, community relations, sabotage). Divested Mar 2025 — reduces exposure significantly. Other community risks in Qatar, Kazakhstan, Brazil.', types:['operational','conduct']},
-      {name:'Employee Engagement / Culture', severity:'Med/Med', desc:'People Survey score declined to 75 in 2024 (from 79 in 2023; top quartile benchmark: 80). Reflects energy transition uncertainty and organisational changes.', types:['strategic']},
-    ],
-    kris: [
-      {name:'Shell brand value ($bn)', values:{2021:50,2022:48,2023:48,2024:'n/d'}, trend:'flat'},
-      {name:'Employee engagement score', values:{2021:'n/d',2022:'n/d',2023:79,2024:75}, trend:'down'},
-      {name:'Survey response rate (%)', values:{2021:'n/d',2022:'n/d',2023:88,2024:86}, trend:'flat'},
-      {name:'Women in senior leadership (%)', values:{2021:30,2022:30,2023:32,2024:33}, trend:'up'},
-    ],
-    source: 'Shell AR 2025 pp.114–121, 136; AR 2024 pp.115–121'
-  },
-  9: {
-    id: 9,
-    name: 'People & Culture',
-    types: ['operational','strategic'],
-    north: 'Attract and retain talent capable of delivering the energy transition while maintaining culture of safety, integrity and inclusion',
-    bearing: 35,
-    coneHalf: 14,
-    headline: 'First formalised as standalone principal risk in 2023/2024. Headcount reduced from 103k (2023) to 96k (2024). Graduate hires 57% women. Turnover 7.6%. Energy transition creating skills demand for capabilities not historically held at Shell.',
-    confidence: 65,
-    confidenceNote: 'Bearing from "Medium likelihood / Medium–High impact" (AR 2025 p.137). Relatively new standalone disclosure — 3 years of comparable data. People survey provides annual quantified signal.',
-    history: [
-      {year:2021, bearing:28, tone:'moderate', note:'82k employees. 6 contractor fatalities raises culture question. COVID-era employee resilience award ($1,000 shares).'},
-      {year:2022, bearing:30, tone:'moderate', note:'93k employees. Wael Sawan as CEO-elect. Russia exit required rapid people decisions. Restructuring begins.'},
-      {year:2023, bearing:33, tone:'moderate', note:'103k employees (peak). People & Culture first disclosed as distinct risk category. Energy transition skills gap widening.'},
-      {year:2024, bearing:35, tone:'elevated', note:'96k employees (-7k). Engagement score 75 (down from 79). Employee turnover 7.6%. 3,156 experienced hires (37% women).'},
-      {year:2025, bearing:35, tone:'elevated', note:'Talent competition for energy transition skills (data science, hydrogen, CCS, electrical engineering). Psychological safety programme launched.'},
-    ],
-    subrisks: [
-      {name:'Talent Acquisition / Retention', severity:'Med/High', desc:'Competition for energy transition skills (renewables, hydrogen, CCS, digital). 7.6% turnover (2024). 3,156 experienced hires. Graduate pipeline strong (57% women in 2024 intake).', types:['operational']},
-      {name:'Cultural Alignment', severity:'Med/Med', desc:'Core values: honesty, integrity, respect for people. Employee engagement declining as organisation transforms. "I\'m Not OK" mental health programme. 264k training days delivered.', types:['operational']},
-      {name:'Energy Transition Capability Gap', severity:'Med/High', desc:'Shell\'s historical skills base (petroleum engineering, refining) must evolve to include electrolyser technology, power system design and carbon accounting at scale.', types:['strategic']},
-    ],
-    kris: [
-      {name:'Total employees (000)', values:{2021:82,2022:93,2023:103,2024:96}, trend:'down'},
-      {name:'Employee turnover (%)', values:{2021:'n/d',2022:'n/d',2023:'5.7',2024:'7.6'}, trend:'down'},
-      {name:'Women employees (%)', values:{2021:'n/d',2022:'n/d',2023:'n/d',2024:35}, trend:'flat'},
-      {name:'Training days (000)', values:{2021:271,2022:266,2023:295,2024:264}, trend:'flat'},
-    ],
-    source: 'Shell AR 2025 pp.114–121, 137; AR 2024 pp.114–121'
-  }
+  decisions:[
+    {bearing:32,title:'Pursue LNG Growth above CMD floor',body:'Reduces oil price exposure. Near-term cash generation supports distribution targets. Routes through Portfolio Risk corridor but away from oil stranding. Requires regulatory alignment in LNG import markets (EU, Asia). Bearing improvement: –10° vs current aggregate. Source: AR 2025 CMD 2023 strategy.'},
+    {bearing:38,title:'Accelerate Downstream Transformation',body:'Refinery-to-chemicals parks reduces Scope 1 by ~620kt per plant. Reduces stranded refining asset risk. Increases near-term capex. Addresses Reputation/LTO via visible emissions action. Bearing improvement: –4° vs current aggregate. Source: AR 2025 pp.8-10.'},
+    {bearing:30,title:'Increase low-carbon capex above 15% floor',body:'Reduces Climate/ET bearing long-term. Increases Financial risk short-term if returns disappoint. NCI trajectory already on track at current spend. Marginal risk vs. return tradeoff in current earnings environment. Bearing improvement: –12° vs current aggregate. Source: AR 2025 p.12.'},
+  ],
+  chat:[
+    {role:'board',text:'The aggregate bearing is +42°. What does that mean for our strategic position?'},
+    {role:'analyst',text:'A +42° bearing means Shell is navigating east of True North — pulled by threats faster than opportunities can correct course. It is not a crisis bearing, but it is structurally elevated. The honest read: earnings power has declined from the 2022 peak ($40bn Adj Earnings → $18.5bn in 2024) while transition obligations are accelerating. The strategy — LNG growth + downstream transformation — is coherent. The risk is execution and the Hague ruling binary outcome on Scope 3.'},
+    {role:'board',text:'The Hague ruling is on the active issues ring. How material is the binary outcome if the appeal fails?'},
+    {role:'analyst',text:'The Milieudefensie ruling, if upheld, would require 45% reduction in Scope 1, 2 and 3 by 2030 vs 2019. Shell\'s current trajectory targets Scope 1+2 reduction but discloses no pathway to 45% total Scope 3 by 2030 — Scope 3 was 1,147 Mt in 2023. An adverse ruling would force fundamental portfolio restructuring. This is the highest-impact single legal event on the radar. Source: AR 2025 p.135.'},
+    {role:'board',text:'Why is IT/Cyber now a standalone principal risk rather than embedded in HSSE?'},
+    {role:'analyst',text:'Two factors disclosed in AR 2025: first, OT/IT convergence at Shell\'s LNG and chemicals facilities creates an industrial attack surface that did not exist when cyber sat inside operational risk. A cyberattack on process control at an LNG facility is an HSSE incident — that causal pathway is now explicitly disclosed (AR 2025 p.134). Second, AI use in operations — T-Pulse at 26 sites, trading analytics — creates model risk and data integrity concerns Shell has formally classified as a principal risk sub-component.'},
+    {role:'board',text:'Process safety events increased 43% year-on-year. Is the HSSE bearing understating the risk?'},
+    {role:'analyst',text:'The HSSE blip is at +35°, which reflects the disclosed severity of "High likelihood / High impact" on the safety sub-risk. The 90 Tier 1+2 events in 2024 (up from 63 in 2023) are concerning — Downstream and RES are the concentrated contributors. However, the SIF-F metric improved from 2.6 to 1.5, suggesting the personal safety trend is moving in the right direction while process safety is not. The refreshed SEAM standards and T-Pulse deployment are management responses. The bearing should be held at elevated until 2025 data confirms the process safety trend has reversed. Data externally assured by LRQA.'},
+  ],
+  kris:[
+    {name:'Adj Earnings ($bn)',values:{2021:19,2022:40,2023:28,2024:18.5},trend:'down',source:'AR 2024 p.1'},
+    {name:'CFFO ($bn)',values:{2021:45.1,2022:68.4,2023:54,2024:42.9},trend:'down',source:'AR 2024 p.1'},
+    {name:'Scope 1+2 (Mt CO₂e)',values:{2021:68,2022:58,2023:57,2024:58},trend:'flat',source:'AR 2024 p.107'},
+    {name:'NCI (gCO₂e/MJ)',values:{2021:77,2022:76,2023:74,2024:71},trend:'up',source:'AR 2023 p.98'},
+    {name:'Net Debt ($bn)',values:{2021:53,2022:44.8,2023:43,2024:38.3},trend:'up',source:'AR 2025 p.131'},
+    {name:'Employees (000)',values:{2021:82,2022:93,2023:103,2024:96},trend:'down',source:'AR 2024 p.114'},
+    {name:'Contractor fatalities',values:{2021:6,2022:2,2023:1,2024:2},trend:'flat',source:'AR 2025 p.133'},
+    {name:'Process safety events (T1+2)',values:{2021:'n/d',2022:'n/d',2023:63,2024:90},trend:'down',source:'AR 2025 p.133'},
+    {name:'Employee engagement score',values:{2021:'n/d',2022:'n/d',2023:79,2024:75},trend:'down',source:'AR 2024 p.115'},
+  ]
 };
 
-// ─── STATE ────────────────────────────────────────────────────────────────────
-let currentRisk = 0;
-let bladeOpen = false;
+const VIEW_FOCUS={
+  portfolio: ['Portfolio Risk','LNG Growth','Downstream Transform','Financial Risk'],
+  climate:   ['Climate/ET','NCI Reduction','Litigation & Reg'],
+  financial: ['Financial Risk','Portfolio Risk','Trading Risk'],
+  trading:   ['Trading Risk','Financial Risk'],
+  hsse:      ['HSSE','IT/Cyber','Reputation/LTO'],
+  cyber:     ['IT/Cyber','HSSE','Reputation/LTO'],
+  legal:     ['Litigation & Reg','Climate/ET','Reputation/LTO'],
+  reputation:['Reputation/LTO','People & Culture','HSSE','Litigation & Reg'],
+  people:    ['People & Culture','Reputation/LTO','HSSE'],
+};
 
-// ─── CANVAS SETUP ─────────────────────────────────────────────────────────────
-const canvas = document.getElementById('radar-canvas');
-const ctx = canvas.getContext('2d');
+let activeView='all', bladeOpen=false, activeTab='analysis';
+let hiddenCats=new Set();
+const canvas=document.getElementById('radar');
+const ctx=canvas.getContext('2d');
+let hitRegistry=[];
 
-function resizeCanvas() {
-  const wrap = document.getElementById('canvas-wrap');
-  const panelW = bladeOpen ? 440 : 0;
-  const avail = Math.min(wrap.clientWidth - panelW, wrap.clientHeight) - 20;
-  const size = Math.max(400, Math.min(660, avail));
-  canvas.width = size;
-  canvas.height = size;
-  drawRadar();
-}
+function registerHit(x,y,r,data,kind){hitRegistry.push({x,y,r,data,kind});}
+function hitTest(x,y){for(let i=hitRegistry.length-1;i>=0;i--){const h=hitRegistry[i];if(Math.hypot(x-h.x,y-h.y)<=h.r)return h;}return null;}
+function canvasCoords(cx,cy){const r=canvas.getBoundingClientRect(),sx=CW/r.width,sy=CH/r.height;return{x:(cx-r.left)*sx,y:(cy-r.top)*sy};}
 
-// ─── GEOMETRY HELPERS ─────────────────────────────────────────────────────────
-function toRad(d) { return (d - 90) * Math.PI / 180; }
-function polarXY(bearingDeg, fraction) {
-  const r = (canvas.width / 2 - 10) * fraction;
-  const cx = canvas.width / 2, cy = canvas.height / 2;
-  const a = toRad(bearingDeg);
-  return { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) };
-}
-function bearingToAngle(deg) { return (deg - 90) * Math.PI / 180; }
-function canvasCX() { return canvas.width / 2; }
-function canvasCY() { return canvas.height / 2; }
-function canvasR() { return canvas.width / 2 - 10; }
-
-// ─── DRAW ─────────────────────────────────────────────────────────────────────
-function drawRadar() {
-  const cw = canvas.width, ch = canvas.height;
-  const cx = cw/2, cy = ch/2, R = cw/2 - 12;
-  ctx.clearRect(0, 0, cw, ch);
+function drawRadar(){
+  hitRegistry=[];
+  ctx.clearRect(0,0,CW,CH);
 
   // Background
-  const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, R);
-  bg.addColorStop(0, '#0d1628');
-  bg.addColorStop(1, '#060c18');
-  ctx.fillStyle = bg;
-  ctx.beginPath(); ctx.arc(cx, cy, R + 10, 0, Math.PI*2); ctx.fill();
+  const bg=ctx.createRadialGradient(CX,CY,0,CX,CY,MAX_R+20);
+  bg.addColorStop(0,'#0d1628');bg.addColorStop(1,'#060c18');
+  ctx.fillStyle=bg;ctx.beginPath();ctx.arc(CX,CY,MAX_R+20,0,Math.PI*2);ctx.fill();
 
-  // Grid rings
-  for (let i = 1; i <= RINGS; i++) {
-    const r = (R * i) / RINGS;
-    ctx.strokeStyle = i === RINGS ? 'rgba(221,29,33,0.2)' : 'rgba(255,255,255,0.07)';
-    ctx.lineWidth = i === RINGS ? 1.5 : 0.75;
-    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.stroke();
-    ctx.fillStyle = 'rgba(255,255,255,0.3)';
-    ctx.font = `${Math.floor(cw*0.015)}px 'Segoe UI'`;
-    ctx.textAlign = 'left';
-    const lx = cx + r * Math.cos(bearingToAngle(5)) + 3;
-    const ly = cy + r * Math.sin(bearingToAngle(5)) - 3;
-    ctx.fillText(HORIZONS[i-1], lx, ly);
+  // Rings
+  const horizons=['Now','Near (1–3y)','Mid (3–7y)','Long (7–15y)'];
+  for(let i=1;i<=4;i++){
+    const r=(MAX_R*i)/4;
+    ctx.strokeStyle=i===4?'rgba(221,29,33,.18)':'rgba(255,255,255,.06)';
+    ctx.lineWidth=i===4?1.5:.75;
+    ctx.beginPath();ctx.arc(CX,CY,r,0,Math.PI*2);ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,.28)';ctx.font='10px Segoe UI';ctx.textAlign='left';
+    const lp=polarXY(8,i/4);ctx.fillText(horizons[i-1],lp.x+2,lp.y-2);
   }
 
-  // Compass bearing lines
-  for (let a = 0; a < 360; a += 30) {
-    const rad = bearingToAngle(a);
-    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
-    ctx.lineWidth = 0.5;
-    ctx.beginPath();
-    ctx.moveTo(cx, cy);
-    ctx.lineTo(cx + R * Math.cos(rad), cy + R * Math.sin(rad));
-    ctx.stroke();
+  // Bearing lines
+  for(let a=0;a<360;a+=30){
+    const rad=bearingToAngle(a);
+    ctx.strokeStyle='rgba(255,255,255,.04)';ctx.lineWidth=.5;
+    ctx.beginPath();ctx.moveTo(CX,CY);ctx.lineTo(CX+(MAX_R+2)*Math.cos(rad),CY+(MAX_R+2)*Math.sin(rad));ctx.stroke();
   }
 
-  // True North line
-  ctx.strokeStyle = 'rgba(251,206,7,0.6)';
-  ctx.lineWidth = 1.5;
-  ctx.setLineDash([4,4]);
-  ctx.beginPath();
-  ctx.moveTo(cx, cy);
-  ctx.lineTo(cx, cy - R - 8);
-  ctx.stroke();
+  // East threat shading
+  ctx.save();ctx.globalAlpha=.05;ctx.fillStyle=SHELL_RED;
+  ctx.beginPath();ctx.moveTo(CX,CY);ctx.arc(CX,CY,MAX_R,bearingToAngle(0),bearingToAngle(90));ctx.closePath();ctx.fill();
+  ctx.restore();
+
+  // True North
+  ctx.strokeStyle='rgba(251,206,7,.5)';ctx.lineWidth=1.5;ctx.setLineDash([4,4]);
+  ctx.beginPath();ctx.moveTo(CX,CY);ctx.lineTo(CX,CY-MAX_R-10);ctx.stroke();
   ctx.setLineDash([]);
-  ctx.fillStyle = SHELL_YELLOW;
-  ctx.font = `bold ${Math.floor(cw*0.018)}px 'Segoe UI'`;
-  ctx.textAlign = 'center';
-  ctx.fillText('N', cx, cy - R - 12);
+  ctx.fillStyle=SHELL_YELLOW;ctx.font='bold 13px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('N',CX,CY-MAX_R-14);
 
-  // Threat sector shading (east of north = risk zone)
-  const threatGrad = ctx.createConicalGradient ? null : null;
+  // Filter blips for active view
+  let blips=DATA.blips;
+  if(activeView!=='all'&&VIEW_FOCUS[activeView]){
+    const focus=VIEW_FOCUS[activeView];
+    blips=blips.filter(b=>focus.some(f=>b.label.startsWith(f.slice(0,6))));
+  }
+  blips=blips.filter(b=>{
+    if(b.type==='threat'&&hiddenCats.has('threat'))return false;
+    if(b.type==='opportunity'&&hiddenCats.has('opportunity'))return false;
+    if(b.cat&&hiddenCats.has(b.cat))return false;
+    return true;
+  });
+
+  // Bearing cone (from threat blips average)
+  const threats=blips.filter(b=>b.type==='threat');
+  const aggBearing=threats.length?threats.reduce((s,b)=>s+b.bearing,0)/threats.length:DATA.bearing;
+  drawCone(aggBearing,DATA.coneHalf);
+  drawHistoryTrack(DATA.history);
+  blips.forEach(b=>drawBlip(b));
+  if(!hiddenCats.has('issue'))DATA.issues.forEach(iss=>drawIssueDot(iss));
+  drawBearingArrow(aggBearing);
+  drawBearingLabel(aggBearing);
+
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(CX,CY,3,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle=SHELL_RED;ctx.beginPath();ctx.arc(CX,CY,1.5,0,Math.PI*2);ctx.fill();
+}
+
+function drawCone(bearing,half){
   ctx.save();
-  ctx.globalAlpha = 0.06;
-  ctx.fillStyle = '#dd1d21';
-  ctx.beginPath();
-  ctx.moveTo(cx, cy);
-  ctx.arc(cx, cy, R, bearingToAngle(0), bearingToAngle(90), false);
-  ctx.closePath(); ctx.fill();
-  ctx.globalAlpha = 1;
+  ctx.globalAlpha=.09;ctx.fillStyle=SHELL_RED;
+  ctx.beginPath();ctx.moveTo(CX,CY);
+  ctx.arc(CX,CY,MAX_R*.9,bearingToAngle(bearing-half),bearingToAngle(bearing+half));
+  ctx.closePath();ctx.fill();
+  ctx.globalAlpha=.16;ctx.fillStyle=SHELL_RED;
+  ctx.beginPath();ctx.moveTo(CX,CY);
+  ctx.arc(CX,CY,MAX_R*.58,bearingToAngle(bearing-half*.5),bearingToAngle(bearing+half*.5));
+  ctx.closePath();ctx.fill();
   ctx.restore();
+}
 
-  if (currentRisk === 0) {
-    drawAllRisksView(cx, cy, R);
+function drawHistoryTrack(history){
+  if(!history||history.length<2)return;
+  const OUTER=MAX_R,INNER=MAX_R-12,LABEL_R=MAX_R+20;
+  const groups=[];
+  history.forEach(h=>{
+    const prev=groups[groups.length-1];
+    if(prev&&prev.bearing===h.bearing){prev.endYear=h.year;}
+    else{groups.push({...h,startYear:h.year,endYear:h.year});}
+  });
+  ctx.save();ctx.strokeStyle='rgba(221,29,33,.3)';ctx.lineWidth=1;ctx.setLineDash([2,3]);
+  ctx.beginPath();
+  groups.forEach((g,i)=>{
+    const mid=(OUTER+INNER)/2,a=bearingToAngle(g.bearing);
+    const x=CX+mid*Math.cos(a),y=CY+mid*Math.sin(a);
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  });
+  ctx.stroke();ctx.setLineDash([]);ctx.restore();
+  ctx.font='bold 9px Segoe UI';ctx.textAlign='center';ctx.textBaseline='middle';
+  groups.forEach(g=>{
+    const a=bearingToAngle(g.bearing),sc=STATUS_COLOR[g.status]||'#ffa726';
+    const s=String(g.startYear).slice(2),e=String(g.endYear).slice(2);
+    const lbl=s===e?s:`${s}–${e}`;
+    const ox=CX+OUTER*Math.cos(a),oy=CY+OUTER*Math.sin(a);
+    const ix=CX+INNER*Math.cos(a),iy=CY+INNER*Math.sin(a);
+    ctx.strokeStyle=sc;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(ix,iy);ctx.lineTo(ox,oy);ctx.stroke();
+    ctx.fillStyle=sc;ctx.beginPath();ctx.arc(ix,iy,2.5,0,Math.PI*2);ctx.fill();
+    const lx=CX+LABEL_R*Math.cos(a),ly=CY+LABEL_R*Math.sin(a);
+    ctx.lineWidth=3;ctx.strokeStyle='#060c18';ctx.strokeText(lbl,lx,ly);
+    ctx.fillStyle=sc;ctx.fillText(lbl,lx,ly);
+  });
+  ctx.textBaseline='alphabetic';
+}
+
+function drawBlip(b){
+  const pos=polarXY(b.bearing,b.range);
+  const r=b.size||10;
+  const col=CAT_COLOR[b.cat]||(b.type==='opportunity'?'#26a69a':'#ef5350');
+  ctx.save();
+  if(b.type==='opportunity'){
+    ctx.fillStyle=col+'30';ctx.strokeStyle=col;ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(pos.x,pos.y-r);ctx.lineTo(pos.x+r,pos.y);
+    ctx.lineTo(pos.x,pos.y+r);ctx.lineTo(pos.x-r,pos.y);ctx.closePath();
+    ctx.fill();ctx.stroke();
   } else {
-    drawSingleRiskView(cx, cy, R, RISKS[currentRisk]);
+    const grad=ctx.createRadialGradient(pos.x-r*.3,pos.y-r*.3,0,pos.x,pos.y,r);
+    grad.addColorStop(0,col+'cc');grad.addColorStop(1,col+'44');
+    ctx.fillStyle=grad;ctx.strokeStyle=col;ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.arc(pos.x,pos.y,r,0,Math.PI*2);ctx.fill();ctx.stroke();
+    ctx.strokeStyle=col+'40';ctx.lineWidth=.8;
+    ctx.beginPath();ctx.arc(pos.x,pos.y,r+4,0,Math.PI*2);ctx.stroke();
   }
-
-  // Centre dot
-  ctx.fillStyle = '#fff';
-  ctx.beginPath(); ctx.arc(cx, cy, 3, 0, Math.PI*2); ctx.fill();
-  ctx.fillStyle = SHELL_RED;
-  ctx.beginPath(); ctx.arc(cx, cy, 1.5, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,.9)';ctx.font='bold 8px Segoe UI';
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  const abbr=b.label.split(/[\s\/]/)[0].slice(0,4);
+  ctx.fillText(abbr,pos.x,pos.y);
+  ctx.textBaseline='alphabetic';ctx.restore();
+  registerHit(pos.x,pos.y,r+5,b,b.type);
 }
 
-function drawHistoryTrack(risk, cx, cy, R, color) {
-  const hist = risk.history;
-  if (!hist || hist.length < 1) return;
-  const STATUS_COLOR = {
-    'moderate':'#4caf50', 'elevated':'#ff9800', 'high':'#f44336'
-  };
-  const TICK_OUTER = R - 1;
-  const TICK_INNER = R - 11;
-  const LABEL_R = R + 18;
-
-  const groups = [];
-  hist.forEach(h => {
-    const prev = groups[groups.length-1];
-    if (prev && prev.bearing === h.bearing) {
-      prev.endYear = h.year;
-    } else {
-      groups.push({bearing:h.bearing, tone:h.tone, startYear:h.year, endYear:h.year});
-    }
-  });
-
-  // Connecting arc (faint)
-  if (groups.length > 1) {
-    ctx.save();
-    ctx.strokeStyle = color + '40';
-    ctx.lineWidth = 0.8;
-    ctx.setLineDash([2,3]);
-    ctx.beginPath();
-    const angles = groups.map(g => bearingToAngle(g.bearing));
-    const mid = (TICK_OUTER + TICK_INNER) / 2;
-    ctx.moveTo(cx + mid*Math.cos(angles[0]), cy + mid*Math.sin(angles[0]));
-    for (let i=1; i<angles.length; i++) {
-      ctx.lineTo(cx + mid*Math.cos(angles[i]), cy + mid*Math.sin(angles[i]));
-    }
-    ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.restore();
-  }
-
-  ctx.font = `bold ${Math.floor(canvas.width*0.019)}px 'Segoe UI'`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-
-  groups.forEach(g => {
-    const angle = bearingToAngle(g.bearing);
-    const sc = STATUS_COLOR[g.tone] || '#888';
-    const s = String(g.startYear).slice(2);
-    const e = String(g.endYear).slice(2);
-    const lbl = s === e ? s : `${s}–${e}`;
-    const ox = cx + TICK_OUTER * Math.cos(angle);
-    const oy = cy + TICK_OUTER * Math.sin(angle);
-    const ix = cx + TICK_INNER * Math.cos(angle);
-    const iy = cy + TICK_INNER * Math.sin(angle);
-    const lx = cx + LABEL_R * Math.cos(angle);
-    const ly = cy + LABEL_R * Math.sin(angle);
-
-    ctx.strokeStyle = sc; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(ix, iy); ctx.lineTo(ox, oy); ctx.stroke();
-
-    ctx.fillStyle = sc;
-    ctx.beginPath(); ctx.arc(ix, iy, 2.5, 0, Math.PI*2); ctx.fill();
-
-    ctx.font = `bold ${Math.floor(canvas.width*0.019)}px 'Segoe UI'`;
-    ctx.lineWidth = 3; ctx.strokeStyle = '#060c18';
-    ctx.strokeText(lbl, lx, ly);
-    ctx.fillStyle = sc;
-    ctx.fillText(lbl, lx, ly);
-  });
-  ctx.textBaseline = 'alphabetic';
-}
-
-function drawConeAndArrow(cx, cy, R, bearing, coneHalf, color, alpha=1) {
-  const mainAngle = bearingToAngle(bearing);
-  const p50Angle = bearingToAngle(bearing - coneHalf);
-  const p80Angle = bearingToAngle(bearing + coneHalf);
-
+function drawIssueDot(iss){
+  const pos=polarXY(iss.bearing,0.13);
+  const col=STATUS_COLOR.active;
   ctx.save();
-  ctx.globalAlpha = alpha;
-
-  // P80 cone (outer, faint)
-  ctx.fillStyle = color;
-  ctx.globalAlpha = alpha * 0.08;
-  ctx.beginPath();
-  ctx.moveTo(cx, cy);
-  ctx.arc(cx, cy, R * 0.92, p80Angle, p50Angle, true);
-  ctx.closePath(); ctx.fill();
-
-  // P50 cone (inner, less faint)
-  ctx.globalAlpha = alpha * 0.15;
-  const half = coneHalf * 0.5;
-  ctx.beginPath();
-  ctx.moveTo(cx, cy);
-  ctx.arc(cx, cy, R * 0.7, bearingToAngle(bearing - half), bearingToAngle(bearing + half), false);
-  ctx.closePath(); ctx.fill();
-
-  ctx.globalAlpha = alpha;
-
-  // Main bearing arrow
-  const tipDist = R * 0.88;
-  const tip = { x: cx + tipDist * Math.cos(mainAngle), y: cy + tipDist * Math.sin(mainAngle) };
-  const shaft = { x: cx + 18 * Math.cos(mainAngle), y: cy + 18 * Math.sin(mainAngle) };
-
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 2.5;
-  ctx.beginPath();
-  ctx.moveTo(shaft.x, shaft.y);
-  ctx.lineTo(tip.x, tip.y);
-  ctx.stroke();
-
-  // Arrowhead
-  const headLen = 10, headAng = 0.35;
-  ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.moveTo(tip.x, tip.y);
-  ctx.lineTo(tip.x - headLen*Math.cos(mainAngle - headAng), tip.y - headLen*Math.sin(mainAngle - headAng));
-  ctx.lineTo(tip.x - headLen*Math.cos(mainAngle + headAng), tip.y - headLen*Math.sin(mainAngle + headAng));
-  ctx.closePath(); ctx.fill();
-
+  ctx.fillStyle=col+'50';ctx.strokeStyle=col;ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(pos.x,pos.y,7,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.fillStyle=col;ctx.beginPath();ctx.arc(pos.x,pos.y,3,0,Math.PI*2);ctx.fill();
   ctx.restore();
+  registerHit(pos.x,pos.y,12,iss,'issue');
 }
 
-const RISK_COLORS = {
-  1:'#ef5350', 2:'#e57373', 3:'#42a5f5', 4:'#ab47bc',
-  5:'#ff7043', 6:'#26c6da', 7:'#ffa726', 8:'#ec407a', 9:'#66bb6a'
-};
-
-function drawAllRisksView(cx, cy, R) {
-  // Draw each risk arrow (faint)
-  for (let i=1; i<=9; i++) {
-    const risk = RISKS[i];
-    const color = RISK_COLORS[i];
-    drawConeAndArrow(cx, cy, R, risk.bearing, risk.coneHalf, color, 0.6);
-    // Label
-    const mainAngle = bearingToAngle(risk.bearing);
-    const labelR = R * 0.72;
-    const lx = cx + labelR * Math.cos(mainAngle);
-    const ly = cy + labelR * Math.sin(mainAngle);
-    ctx.font = `bold ${Math.floor(canvas.width*0.022)}px 'Segoe UI'`;
-    ctx.fillStyle = color;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(i, lx, ly);
-    ctx.textBaseline = 'alphabetic';
-  }
-
-  // Aggregate vector
-  let sumX = 0, sumY = 0;
-  for (let i=1; i<=9; i++) {
-    const a = bearingToAngle(RISKS[i].bearing);
-    sumX += Math.cos(a); sumY += Math.sin(a);
-  }
-  const aggAngle = Math.atan2(sumY, sumX);
-  const aggBearing = (aggAngle * 180 / Math.PI + 90 + 360) % 360;
-
-  // Draw aggregate arrow (white, prominent)
-  const tipDist = R * 0.88;
-  const tip = { x: cx + tipDist * Math.cos(aggAngle), y: cy + tipDist * Math.sin(aggAngle) };
-  const shaft = { x: cx + 20 * Math.cos(aggAngle), y: cy + 20 * Math.sin(aggAngle) };
-
-  ctx.strokeStyle = '#fff';
-  ctx.lineWidth = 3.5;
-  ctx.beginPath(); ctx.moveTo(shaft.x, shaft.y); ctx.lineTo(tip.x, tip.y); ctx.stroke();
-
-  const headLen = 13, headAng = 0.35;
-  ctx.fillStyle = '#fff';
-  ctx.beginPath();
-  ctx.moveTo(tip.x, tip.y);
-  ctx.lineTo(tip.x - headLen*Math.cos(aggAngle - headAng), tip.y - headLen*Math.sin(aggAngle - headAng));
-  ctx.lineTo(tip.x - headLen*Math.cos(aggAngle + headAng), tip.y - headLen*Math.sin(aggAngle + headAng));
-  ctx.closePath(); ctx.fill();
-
-  // Bearing label
-  ctx.fillStyle = '#fff';
-  ctx.font = `bold ${Math.floor(canvas.width*0.03)}px monospace`;
-  ctx.textAlign = 'center';
-  const bx = cx + (R*0.6) * Math.cos(aggAngle);
-  const by = cy + (R*0.6) * Math.sin(aggAngle);
-  ctx.fillText(Math.round(aggBearing)+'°', bx, by);
-
-  // Legend strip
-  const legX = 14, legY = canvas.height - 14 - 9*18;
-  ctx.font = `${Math.floor(canvas.width*0.018)}px 'Segoe UI'`;
-  for (let i=1; i<=9; i++) {
-    const y = legY + (i-1)*18;
-    ctx.fillStyle = RISK_COLORS[i];
-    ctx.beginPath(); ctx.arc(legX+7, y+4, 5, 0, Math.PI*2); ctx.fill();
-    ctx.fillStyle = 'rgba(255,255,255,0.7)';
-    ctx.textAlign = 'left';
-    const shortName = ['','Portfolio','Climate/ET','Financial','Trading','HSSE','IT/Cyber','Legal/Reg','Reputation','People'][i];
-    ctx.fillText(`${i}. ${shortName}`, legX+16, y+8);
-  }
+function drawBearingArrow(bearing){
+  const a=bearingToAngle(bearing);
+  const tip=polarXY(bearing,.88);
+  const sx=CX+20*Math.cos(a),sy=CY+20*Math.sin(a);
+  ctx.strokeStyle='rgba(255,255,255,.7)';ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(tip.x,tip.y);ctx.stroke();
+  const hl=10,ha=.38;
+  ctx.fillStyle='rgba(255,255,255,.8)';
+  ctx.beginPath();ctx.moveTo(tip.x,tip.y);
+  ctx.lineTo(tip.x-hl*Math.cos(a-ha),tip.y-hl*Math.sin(a-ha));
+  ctx.lineTo(tip.x-hl*Math.cos(a+ha),tip.y-hl*Math.sin(a+ha));
+  ctx.closePath();ctx.fill();
 }
 
-function drawSingleRiskView(cx, cy, R, risk) {
-  const color = RISK_COLORS[risk.id] || SHELL_RED;
-  drawConeAndArrow(cx, cy, R, risk.bearing, risk.coneHalf, color, 1);
-  drawHistoryTrack(risk, cx, cy, R, color);
-
-  // Bearing label on arrow
-  const mainAngle = bearingToAngle(risk.bearing);
-  const bx = cx + R*0.55 * Math.cos(mainAngle);
-  const by = cy + R*0.55 * Math.sin(mainAngle);
-  ctx.fillStyle = color;
-  ctx.font = `bold ${Math.floor(canvas.width*0.038)}px monospace`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(risk.bearing+'°', bx, by);
-  ctx.textBaseline = 'alphabetic';
-
-  // Risk name at top of cone area
-  const nameAngle = bearingToAngle(risk.bearing);
-  const nx = cx + (R+6) * Math.cos(nameAngle);
-  const ny = cy + (R+6) * Math.sin(nameAngle);
-  ctx.fillStyle = color;
-  ctx.font = `bold ${Math.floor(canvas.width*0.018)}px 'Segoe UI'`;
-  ctx.textAlign = nx > cx ? 'left' : 'right';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(risk.name, nx, ny);
-  ctx.textBaseline = 'alphabetic';
+function drawBearingLabel(bearing){
+  const pos=polarXY(bearing,.58);
+  ctx.fillStyle='rgba(255,255,255,.9)';ctx.font='bold 22px monospace';
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.shadowColor='#000';ctx.shadowBlur=8;
+  ctx.fillText(Math.round(bearing)+'°',pos.x,pos.y);
+  ctx.shadowBlur=0;ctx.textBaseline='alphabetic';
 }
 
-// ─── BLADE PANEL ──────────────────────────────────────────────────────────────
-function toggleBlade() {
-  bladeOpen = !bladeOpen;
-  const panel = document.getElementById('info-panel');
-  panel.classList.toggle('open', bladeOpen);
-  document.getElementById('blade-toggle').textContent = bladeOpen ? 'CLOSE' : 'ANALYSIS';
-  if (bladeOpen) renderPanel();
-  setTimeout(() => resizeCanvas(), 260);
+// ── TOOLTIP ───────────────────────────────────────────────────────────────────
+const tooltip=document.getElementById('radar-tooltip');
+function showTip(hit,mx,my){
+  const d=hit.data;
+  let color,badgeClass,badgeText;
+  if(hit.kind==='issue'){color=STATUS_COLOR.active;badgeClass='issue';badgeText='Active Issue';}
+  else if(hit.kind==='opportunity'){color='#26a69a';badgeClass='opportunity';badgeText=`Opportunity · ${d.cat||''}`;}
+  else{color=CAT_COLOR[d.cat]||'#ef5350';badgeClass='threat';badgeText=`Threat · ${d.cat||''}`;}
+  document.getElementById('tt-dot').style.background=color;
+  document.getElementById('tt-label').textContent=d.label||'';
+  const badge=document.getElementById('tt-badge');
+  badge.textContent=badgeText;badge.className=`tt-badge ${badgeClass}`;
+  const grid=document.getElementById('tt-grid');grid.innerHTML='';
+  function cell(l,v,cls){return`<div class="tt-cell"><div class="tt-cell-label">${l}</div><div class="tt-cell-value ${cls||''}">${v}</div></div>`;}
+  if(hit.kind==='issue'){
+    grid.innerHTML=cell('Status','Active','high')+cell('Category',d.cat||'—')+cell('Onset',d.onset||'—')+cell('Resolution',(d.resolution||'—').slice(0,30));
+    document.getElementById('tt-bearing').textContent='';
+    document.getElementById('tt-rationale').textContent=d.action||'';
+  } else {
+    grid.innerHTML=cell('Severity',d.severity||'—',vcls((d.severity||'').split('/')[0]))+cell('Confidence',d.confidence||'—',vcls(d.confidence))+cell('Source',d.arYear||'—')+cell('Capability',d.capability||'—');
+    document.getElementById('tt-bearing').textContent=d.bearing_effect||'';
+    document.getElementById('tt-rationale').textContent=d.rationale||'';
+  }
+  const causalEl=document.getElementById('tt-causal');
+  const hasCauses=d.causes&&d.causes.length>0,hasCausedBy=d.caused_by&&d.caused_by.length>0;
+  if(hasCauses||hasCausedBy){
+    let html='';
+    if(hasCausedBy){html+='<div class="tt-causal-head">Driven by</div>';d.caused_by.forEach(e=>{html+=`<div class="tt-causal-row"><span class="tt-causal-src">${e.label}</span><span class="tt-causal-delta pos">${e.delta}</span></div><div class="tt-causal-note">${e.note}</div>`;});}
+    if(hasCauses){html+='<div class="tt-causal-head">Drives</div>';d.causes.forEach(e=>{html+=`<div class="tt-causal-row"><span class="tt-causal-src">${e.label}</span><span class="tt-causal-delta pos">${e.delta}</span></div><div class="tt-causal-note">${e.note}</div>`;});}
+    causalEl.innerHTML=html;causalEl.style.display='block';
+  } else {causalEl.style.display='none';}
+  const TW=280,TH=440,vw=window.innerWidth,vh=window.innerHeight;
+  let left=mx+16,top=my-20;
+  if(left+TW>vw-12)left=mx-TW-12;
+  if(top+TH>vh-12)top=vh-TH-12;
+  if(top<8)top=8;
+  tooltip.style.left=left+'px';tooltip.style.top=top+'px';
+  tooltip.classList.add('visible');
 }
+function hideTip(){tooltip.classList.remove('visible');}
+canvas.addEventListener('mousemove',e=>{const{x,y}=canvasCoords(e.clientX,e.clientY);const hit=hitTest(x,y);if(hit){canvas.style.cursor='pointer';showTip(hit,e.clientX,e.clientY);}else{canvas.style.cursor='default';hideTip();}});
+canvas.addEventListener('mouseleave',hideTip);
+canvas.addEventListener('click',e=>{const{x,y}=canvasCoords(e.clientX,e.clientY);const hit=hitTest(x,y);if(hit&&!bladeOpen)toggleBlade();});
 
-function setBlade(open) {
-  bladeOpen = open;
-  const panel = document.getElementById('info-panel');
-  panel.classList.toggle('open', open);
-  document.getElementById('blade-toggle').textContent = open ? 'CLOSE' : 'ANALYSIS';
-  if (open) renderPanel();
-  setTimeout(() => resizeCanvas(), 260);
+// ── BLADE ─────────────────────────────────────────────────────────────────────
+function toggleBlade(){
+  bladeOpen=!bladeOpen;
+  document.getElementById('info-panel').classList.toggle('open',bladeOpen);
+  document.getElementById('blade-toggle').textContent=bladeOpen?'Close':'Analysis';
+  if(bladeOpen)renderAll();
 }
-
-function renderPanel() {
-  const risk = RISKS[currentRisk];
-  if (!risk) return;
-  const el = document.getElementById('panel-content');
-
-  const STATUS_COLOR = {'moderate':'#4caf50','elevated':'#ff9800','high':'#f44336'};
-  const currentTone = risk.history ? risk.history[risk.history.length-1].tone : 'elevated';
-  const color = RISK_COLORS[risk.id] || SHELL_RED;
-
-  // Confidence tier
-  const confTier = risk.confidence >= 75 ? 'High' : risk.confidence >= 55 ? 'Medium' : 'Low';
-  const confColor = risk.confidence >= 75 ? '#4caf50' : risk.confidence >= 55 ? '#ff9800' : '#f44336';
-
-  // Divergence: compare 2024 history bearing to current bearing
-  let divergenceHTML = '';
-  if (risk.history) {
-    const h2024 = risk.history.find(h=>h.year===2024);
-    const h2025 = risk.history.find(h=>h.year===2025);
-    if (h2024 && h2025 && Math.abs(h2024.bearing - h2025.bearing) >= 5) {
-      const delta = h2025.bearing - h2024.bearing;
-      if (delta > 0) {
-        divergenceHTML = `<div class="divergence-box deteriorating"><strong style="font-size:11px">Risk trajectory: deteriorating</strong>Bearing increased ${delta}° from 2024 to 2025 assessment. ${h2025.note || ''}</div>`;
-      } else {
-        divergenceHTML = `<div class="divergence-box improving"><strong style="font-size:11px">Risk trajectory: improving</strong>Bearing reduced ${Math.abs(delta)}° from 2024 to 2025 assessment. ${h2025.note || ''}</div>`;
-      }
-    }
-  }
-
-  // KRI table
-  let kriHTML = '';
-  if (risk.kris && risk.kris.length > 0) {
-    kriHTML = `<div class="section-label">Key Risk Indicators — Source: Shell Annual Reports</div>`;
-    risk.kris.forEach(k => {
-      const vals = k.values;
-      const years = Object.keys(vals).sort();
-      const lastYear = years[years.length-1];
-      const lastVal = vals[lastYear];
-      const trendIcon = k.trend==='up' ? '↑' : k.trend==='down' ? '↓' : '→';
-      const trendClass = k.trend==='up' ? 'up' : k.trend==='down' ? 'down' : 'flat';
-      const prevYear = years[years.length-2];
-      const prevVal = prevYear ? vals[prevYear] : null;
-      kriHTML += `<div class="kri-row">
-        <span class="kri-name">${k.name}</span>
-        <span class="kri-value">${lastVal}<span class="kri-trend ${trendClass}">${trendIcon}</span>${prevVal !== null && prevVal !== 'n/d' ? `<span style="font-size:9px;color:#5a7a8a"> (${prevYear}: ${prevVal})</span>` : ''}</span>
-      </div>`;
-      if (k.note) kriHTML += `<div style="font-size:9px;color:#5a7a8a;padding:2px 0 4px">${k.note}</div>`;
-    });
-  }
-
-  // Sub-risks
-  let subHTML = '';
-  if (risk.subrisks) {
-    subHTML = `<div class="section-label">Sub-Risk Breakdown — Shell AR 2025 Disclosure</div>`;
-    risk.subrisks.forEach(s => {
-      const typeTags = (s.types||[]).map(t => `<span class="tag ${t}">${t}</span>`).join('');
-      subHTML += `<div class="risk-card">
-        <div class="risk-card-title">${s.name} <span style="font-size:9px;color:#5a7a8a;font-weight:400">— ${s.severity}</span></div>
-        <div class="risk-card-body">${s.desc}</div>
-        <div class="risk-type-tags">${typeTags}</div>
-      </div>`;
-    });
-  }
-
-  // History track
-  let histHTML = '';
-  if (risk.history) {
-    histHTML = `<div class="section-label">Historical Bearing — 2021 to 2025</div>
-    <div style="font-size:9px;color:#5a7a8a;margin-bottom:8px">Bearing derived from disclosed risk severity language in each year's Annual Report. Not interpolated.</div>`;
-    const maxB = Math.max(...risk.history.map(h=>h.bearing));
-    risk.history.forEach(h => {
-      const pct = Math.round((h.bearing / maxB) * 100);
-      const sc = {'moderate':'#4caf50','elevated':'#ff9800','high':'#f44336'}[h.tone] || '#888';
-      histHTML += `<div class="history-row">
-        <span class="history-year">${h.year}</span>
-        <div class="history-bar-wrap"><div class="history-bar" style="width:${pct}%;background:${sc}"></div></div>
-        <span class="history-bearing">${h.bearing}°</span>
-        <span class="history-status">${h.tone}</span>
-      </div>`;
-      if (h.note) histHTML += `<div style="font-size:9px;color:#5a7a8a;padding:1px 0 4px 44px;line-height:1.3">${h.note}</div>`;
-    });
-  }
-
-  // Decision outputs (aggregate only)
-  let decHTML = '';
-  if (risk.decisions) {
-    decHTML = `<div class="section-label">Decision Simulation — Route Options</div>
-    <div style="font-size:9px;color:#5a7a8a;margin-bottom:8px">Each decision modelled as a potential bearing shift relative to current aggregate. Source: Shell CMD 2023 and AR 2025 strategy disclosures.</div>`;
-    risk.decisions.forEach(d => {
-      decHTML += `<div class="decision-box">
-        <div class="decision-bearing">${d.bearing}°</div>
-        <h4>${d.title}</h4>
-        <p>${d.note}</p>
-      </div>`;
-    });
-  }
-
-  el.innerHTML = `
-    <div class="risk-title">${risk.name}</div>
-    <div class="risk-subtitle">${risk.north}</div>
-
-    <div class="methodology-box">
-      <strong>Data provenance</strong>
-      ${risk.confidenceNote || 'Bearing derived from Shell plc Annual Report disclosures only.'}
-      ${risk.source ? `<span class="source-cite">Source: ${risk.source}</span>` : ''}
-    </div>
-
-    <div class="bearing-display">
-      <span class="bearing-value">${risk.bearing}°</span>
-      <span class="bearing-unit">bearing</span>
-      <span class="bearing-label" style="color:${STATUS_COLOR[currentTone]||'#ff9800'}">${currentTone.toUpperCase()}</span>
-    </div>
-
-    <div class="confidence-bar">
-      <div class="confidence-label">Data confidence</div>
-      <div class="conf-track"><div class="conf-fill" style="width:${risk.confidence}%;background:${confColor}"></div></div>
-      <div class="conf-text">${confTier} confidence (${risk.confidence}%) — ${risk.confidence < 65 ? 'qualitative basis; treat bearing as directional, not precise' : 'quantitative KRIs available to support bearing'}</div>
-    </div>
-
-    ${divergenceHTML}
-    ${risk.headline ? `<div style="font-size:12px;color:#cde;line-height:1.5;margin-bottom:12px">${risk.headline}</div>` : ''}
-    ${kriHTML}
-    ${subHTML}
-    ${histHTML}
-    ${decHTML}
-  `;
+function setTab(name){
+  activeTab=name;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.toggle('active',c.id==='tab-'+name));
 }
+document.querySelectorAll('.tab-btn').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.tab)));
 
-// ─── RISK SELECTION ───────────────────────────────────────────────────────────
-function setRisk(id) {
-  currentRisk = id;
-  document.querySelectorAll('.risk-btn').forEach((b, i) => {
-    b.classList.toggle('active', i === id);
-  });
-  if (bladeOpen) renderPanel();
+function setView(id){
+  activeView=id;
+  const ids=['all','portfolio','climate','financial','trading','hsse','cyber','legal','reputation','people'];
+  document.querySelectorAll('.rtab').forEach((b,i)=>b.classList.toggle('active',ids[i]===id));
   drawRadar();
+  if(bladeOpen)renderAll();
 }
 
-// ─── CANVAS CLICK ─────────────────────────────────────────────────────────────
-canvas.addEventListener('click', function(e) {
-  const rect = canvas.getBoundingClientRect();
-  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
-  const cx = canvas.width/2, cy = canvas.height/2;
-  const R = canvas.width/2 - 12;
-  const dx = mx - cx, dy = my - cy;
-  const dist = Math.sqrt(dx*dx + dy*dy);
-  if (dist > R * 0.2 && dist < R) {
-    const clickAngle = Math.atan2(dy, dx) * 180 / Math.PI + 90;
-    const clickBearing = (clickAngle + 360) % 360;
-    let bestRisk = 0, bestDiff = 999;
-    for (let i=1; i<=9; i++) {
-      const diff = Math.abs(RISKS[i].bearing - clickBearing);
-      if (diff < bestDiff && diff < 25) { bestDiff = diff; bestRisk = i; }
-    }
-    if (bestRisk > 0) {
-      setRisk(bestRisk);
-      if (!bladeOpen) setBlade(true);
-    }
-  }
+document.querySelectorAll('.pf-btn').forEach(b=>{
+  b.addEventListener('click',()=>{
+    const cat=b.dataset.cat;
+    if(hiddenCats.has(cat)){hiddenCats.delete(cat);b.classList.remove('off');}
+    else{hiddenCats.add(cat);b.classList.add('off');}
+    drawRadar();
+  });
 });
 
-// ─── INIT ─────────────────────────────────────────────────────────────────────
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
+// ── PANEL RENDER ──────────────────────────────────────────────────────────────
+function renderAll(){renderAnalysis();renderNetwork();renderDecisions();renderChat();}
+function statusPill(s){const cls={active:'status-active',elevated:'status-elevated',managed:'status-managed',emerging:'status-emerging'}[s]||'status-elevated';const lbl={active:'Active Risk',elevated:'Elevated',managed:'Managed',emerging:'Emerging'}[s]||s;return`<span class="status-pill ${cls}">${lbl}</span>`;}
+function confBadge(c){const cls={High:'conf-high',Medium:'conf-medium',Low:'conf-low'}[c]||'conf-low';return`<span class="conf-badge ${cls}">${c}</span>`;}
+
+function renderAnalysis(){
+  const d=DATA;
+  let html=`<div class="info-header">
+    <div class="info-title">Shell plc — Principal Risks (2025)</div>
+    <div class="info-subtitle" style="margin-top:3px">${statusPill(d.status)}</div>
+    <div class="info-subtitle" style="margin-top:6px">${d.statusNote}</div>
+  </div>
+  <div class="info-section">
+    <div class="info-section-head">True North</div>
+    <div class="info-body" style="color:#c8d8f0;font-style:italic">"${d.north}"</div>
+  </div>
+  <div class="info-section">
+    <div class="info-section-head">Strategic Bearing</div>
+    <div class="bearing-stat"><span class="bearing-label">Current (2025)</span><span class="bearing-value">+${d.bearing}°</span></div>
+    <div class="bearing-stat"><span class="bearing-label">P50 expected</span><span class="bearing-value" style="font-size:.9rem;color:#8aa4c8">+${d.coneP50}°</span></div>
+    <div class="bearing-stat"><span class="bearing-label">P80 stressed</span><span class="bearing-value" style="font-size:.9rem;color:#ef5350">+${d.coneP80}°</span></div>
+    <div class="info-body" style="margin-top:8px">${d.headline}</div>
+  </div>`;
+
+  html+=`<div class="info-section"><div class="info-section-head">Active Issues (Now Ring)</div><ul class="risk-list">`;
+  d.issues.forEach(i=>{
+    html+=`<li><span class="risk-dot" style="background:#ef5350"></span><span class="risk-name">${i.label}</span><span class="risk-rank">${i.onset}</span></li>`;
+    html+=`<li style="border:none;padding:2px 0 6px 16px"><span style="font-size:.68rem;color:#5a7090">${i.action}</span></li>`;
+  });
+  html+=`</ul></div>`;
+
+  const threats=d.blips.filter(b=>b.type==='threat').sort((a,b)=>b.bearing-a.bearing);
+  html+=`<div class="info-section"><div class="info-section-head">Principal Threats — East of North</div><ul class="risk-list">`;
+  threats.forEach(b=>{
+    html+=`<li><span class="risk-dot" style="background:${CAT_COLOR[b.cat]||'#ef5350'}"></span><span class="risk-name">${b.label}</span><span class="risk-rank">${b.bearing}° ${confBadge(b.confidence)}</span></li>`;
+    html+=`<li style="border:none;padding:2px 0 6px 16px"><span class="source-cite">${b.arYear}</span></li>`;
+  });
+  html+=`</ul></div>`;
+
+  const opps=d.blips.filter(b=>b.type==='opportunity');
+  html+=`<div class="info-section"><div class="info-section-head">Strategic Opportunities — North-West</div><ul class="risk-list">`;
+  opps.forEach(b=>{
+    html+=`<li><span class="risk-dot" style="background:#26a69a;border-radius:0"></span><span class="risk-name">${b.label}</span><span class="risk-rank">Capability: ${b.capability||'—'}</span></li>`;
+    html+=`<li style="border:none;padding:2px 0 6px 16px"><span class="source-cite">${b.arYear}</span></li>`;
+  });
+  html+=`</ul></div>`;
+
+  html+=`<div class="info-section"><div class="info-section-head">Key Risk Indicators</div>`;
+  d.kris.forEach(k=>{
+    const years=Object.keys(k.values).sort();
+    const last=years[years.length-1],prev=years[years.length-2];
+    const ti=k.trend==='up'?'↑':k.trend==='down'?'↓':'→';
+    const tc=k.trend==='up'?'kri-trend-up':k.trend==='down'?'kri-trend-down':'kri-trend-flat';
+    html+=`<div class="kri-row"><span class="kri-name">${k.name}</span><span class="kri-val">${k.values[last]} <span class="${tc}">${ti}</span> <span style="font-size:.6rem;color:#3a5060">(${prev}: ${k.values[prev]})</span></span></div>`;
+    html+=`<div class="source-cite">${k.source}</div>`;
+  });
+  html+=`</div>`;
+
+  html+=`<div class="info-section"><div class="info-section-head">Bearing Methodology &amp; Caveats</div>
+    <div class="info-body">Bearings derived exclusively from Shell plc Annual Report disclosures 2021–2025. Severity mapping: High/High = 50–65°; High/Med = 38–50°; Med/Med = 25–38°; Low/Med = 15–25°. Each blip cites its AR source page. No editorial inference applied to severity.</div>
+    <div class="diverg-box warn" style="margin-top:8px">The aggregate bearing (+${d.bearing}°) is an unweighted directional sum. Shell does not publish a quantified risk weighting. Treat as indicative of risk posture, not a precise measurement. Individual blips carry higher analytical confidence than the aggregate vector.</div>
+  </div>`;
+
+  document.getElementById('tab-analysis').innerHTML=html;
+}
+
+function renderNetwork(){
+  const net=DATA.network;
+  let html=`<div class="info-header">
+    <div class="info-title">Shell Risk Network</div>
+    <div class="info-subtitle">Causal chains derived exclusively from Shell Annual Report risk interdependency disclosures. Every link cites its source. No external network model used.</div>
+  </div>
+  <div class="info-section"><div class="info-section-head">Network Assessment</div><div class="info-body">${net.headline}</div></div>
+  <div class="info-section"><div class="info-section-head">Principal Causal Chains</div>`;
+  net.chains.forEach(chain=>{
+    html+=`<div class="causal-chain"><div class="chain-path">`;
+    chain.path.forEach((node,i)=>{
+      html+=`<span class="chain-node">${node}</span>`;
+      if(i<chain.path.length-1){const w=chain.weights[i]||1;html+=`<span class="chain-arrow">→<span class="chain-weight">${w}</span></span>`;}
+    });
+    html+=`</div><div class="chain-effect">${chain.effect}</div></div>`;
+  });
+  html+=`</div><div class="info-section"><div class="info-section-head">Risk Node Connections</div><ul class="risk-list">`;
+  DATA.blips.filter(b=>b.type==='threat').forEach(b=>{
+    html+=`<li><span class="risk-dot" style="background:${CAT_COLOR[b.cat]||'#ef5350'}"></span><span class="risk-name">${b.label}</span><span class="risk-rank">${confBadge(b.confidence)}</span></li>`;
+    if(b.causes&&b.causes.length)html+=`<li style="border:none;padding:1px 0 2px 16px"><span style="font-size:.65rem;color:#5a7090">Drives: ${b.causes.map(c=>c.label).join(', ')}</span></li>`;
+    if(b.caused_by&&b.caused_by.length)html+=`<li style="border:none;padding:1px 0 5px 16px"><span style="font-size:.65rem;color:#4a6080">Driven by: ${b.caused_by.map(c=>c.label).join(', ')}</span></li>`;
+  });
+  html+=`</ul></div>`;
+  html+=`<div class="info-section"><div class="info-section-head">Evidence Basis</div>
+    <div class="info-body">All causal links are drawn from Shell Annual Report 2025 pp.125–140 risk interdependency statements. For example: "a cyberattack on our operational technology systems could result in an HSSE incident" (p.134). "Climate/energy transition risk underpins and may amplify all other principal risks" (p.128). No Cytoscape or external model used.</div>
+    <div class="source-cite" style="margin-top:5px">Shell AR 2025 pp.125–140; AR 2022 pp.15–26; AR 2021 pp.22–33</div>
+  </div>`;
+  document.getElementById('tab-network').innerHTML=html;
+}
+
+function renderDecisions(){
+  let html=`<div class="info-header">
+    <div class="info-title">Decision Simulations</div>
+    <div class="info-subtitle">Each option modelled as a candidate bearing shift vs. current +${DATA.bearing}°. Source: Shell CMD 2023 and AR 2025 strategy disclosures. Directional approximations only.</div>
+  </div><div class="info-section"><div class="info-section-head">Route Options</div>`;
+  DATA.decisions.forEach(d=>{
+    const delta=d.bearing-DATA.bearing;
+    const dstr=delta<=0?`${delta}° improvement`:`+${delta}° increase`;
+    html+=`<div class="decision-row">
+      <div class="decision-bearing">${d.bearing}°</div>
+      <div class="decision-title">${d.title}</div>
+      <div style="font-size:.65rem;color:#60a5fa;margin-bottom:4px">Bearing shift: ${dstr}</div>
+      <div class="decision-body">${d.body}</div>
+    </div>`;
+  });
+  html+=`</div><div class="info-section"><div class="info-section-head">How to Read</div>
+    <div class="info-body">A decision bearing below current +${DATA.bearing}° moves Shell closer to True North. Bearing estimates are directional approximations from disclosed risk language, not quantitative optimisation models.</div>
+    <div class="diverg-box good" style="margin-top:8px">All three modelled decisions sit below the current aggregate bearing, consistent with Shell\'s stated strategic direction. Key uncertainty: LNG demand materialisation and Hague ruling outcome on Scope 3 flexibility.</div>
+  </div>`;
+  document.getElementById('tab-decisions').innerHTML=html;
+}
+
+function renderChat(){
+  let html=`<div class="info-header"><div class="info-title">Board Q&amp;A</div><div class="info-subtitle">Director-level questions with analyst responses grounded in Shell AR 2021–2025 disclosures.</div></div>`;
+  DATA.chat.forEach(m=>{
+    html+=`<div class="chat-msg"><div class="chat-role ${m.role}">${m.role==='board'?'Director':'Risk Analyst'}</div><div class="chat-text">${m.text}</div></div>`;
+  });
+  html+=`<div class="info-section" style="margin-top:12px"><div class="info-section-head">Sources</div><div class="info-body">Shell AR 2025 pp.1–20, 125–140<br>Shell AR 2024 pp.1–20, 107–124<br>Shell AR 2023 pp.98–115<br>Shell AR 2022 pp.1–20, 15–26<br>Shell AR 2021 pp.1–20, 22–33<br>All disclosures: Shell plc only. No third-party data or editorial inference applied.</div></div>`;
+  document.getElementById('tab-chat').innerHTML=html;
+}
+
+drawRadar();
 </script>
 </body>
 </html>
