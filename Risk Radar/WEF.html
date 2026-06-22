@@ -1,0 +1,1649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Risk Radar — WEF Global Risks × SDG Objectives</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0a0e1a;
+      color: #e0e6f0;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Toolbar ── */
+    #toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 16px;
+      background: #0d1220;
+      border-bottom: 1px solid #1e2a40;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+    .brand {
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: #4fc3f7;
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+    .brand-sub {
+      font-size: 0.68rem;
+      color: #4a6080;
+      letter-spacing: 0.05em;
+      flex-shrink: 0;
+    }
+    .sdg-tabs {
+      display: flex;
+      gap: 3px;
+      flex-wrap: wrap;
+    }
+    .sdg-btn {
+      padding: 4px 10px;
+      background: #1a2235;
+      border: 1px solid #2a3550;
+      border-radius: 4px;
+      color: #8a9bb5;
+      cursor: pointer;
+      font-size: 0.75rem;
+      white-space: nowrap;
+      transition: all 0.18s;
+    }
+    .sdg-btn:hover { border-color: #4fc3f7; color: #e0e6f0; }
+    .sdg-btn.active { background: #1a3a5c; border-color: #4fc3f7; color: #4fc3f7; font-weight: 600; }
+
+    /* ── Filter bar ── */
+    #filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 16px;
+      background: #111927;
+      border-bottom: 1px solid #243048;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+    .fb-label {
+      font-size: 0.62rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #4a6080;
+      margin-right: 2px;
+    }
+    .fb-sep { width: 1px; height: 18px; background: #1e2d42; margin: 0 4px; }
+    .pf-btn {
+      padding: 3px 9px;
+      border-radius: 3px;
+      border: 1px solid #2e3f58;
+      background: #151f30;
+      cursor: pointer;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #c8d8f0;
+      transition: all 0.15s;
+    }
+    .pf-btn:hover { opacity: 0.85; }
+    .pf-btn.off { opacity: 0.28; filter: grayscale(0.7); }
+
+    /* ── Main layout ── */
+    #main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      min-height: 0;
+    }
+    #radar-panel {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      padding: 16px;
+      min-width: 340px;
+    }
+    canvas { display: block; image-rendering: crisp-edges; }
+
+    /* ── Right panel ── */
+    #info-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      border-left: 1px solid #1e2a40;
+      overflow: hidden;
+      min-width: 0;
+    }
+    .tab-bar {
+      display: flex;
+      border-bottom: 1px solid #1e2a40;
+      flex-shrink: 0;
+    }
+    .tab-btn {
+      padding: 8px 18px;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: #4a6080;
+      cursor: pointer;
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      transition: all 0.15s;
+    }
+    .tab-btn:hover { color: #8aa4c8; }
+    .tab-btn.active { color: #4fc3f7; border-bottom-color: #4fc3f7; }
+
+    .tab-content { display: none; flex: 1; overflow-y: auto; padding: 20px; }
+    .tab-content.active { display: block; }
+
+    /* ── Info panel content ── */
+    .info-header { margin-bottom: 16px; }
+    .info-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #e0e6f0;
+      margin-bottom: 4px;
+      line-height: 1.3;
+    }
+    .info-subtitle {
+      font-size: 0.75rem;
+      color: #4a6080;
+      line-height: 1.5;
+    }
+    .info-section { margin-bottom: 18px; }
+    .info-section-head {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #4a6080;
+      margin-bottom: 8px;
+      border-bottom: 1px solid #1e2a40;
+      padding-bottom: 4px;
+    }
+    .info-body {
+      font-size: 0.78rem;
+      color: #8aa4c8;
+      line-height: 1.6;
+    }
+    .bearing-stat {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 6px;
+    }
+    .bearing-label { font-size: 0.72rem; color: #6a7a95; }
+    .bearing-value { font-size: 1.1rem; font-weight: 700; color: #4fc3f7; }
+
+    .risk-list { list-style: none; }
+    .risk-list li {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      padding: 4px 0;
+      border-bottom: 1px solid #111927;
+      font-size: 0.74rem;
+    }
+    .risk-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 3px;
+    }
+    .risk-name { flex: 1; color: #8aa4c8; }
+    .risk-rank { color: #4a6080; font-size: 0.68rem; }
+
+    .progress-bar-wrap { margin-bottom: 8px; }
+    .progress-bar-label {
+      display: flex; justify-content: space-between;
+      font-size: 0.68rem; color: #6a7a95; margin-bottom: 3px;
+    }
+    .progress-bar-track {
+      height: 6px; background: #1a2235; border-radius: 3px; overflow: hidden;
+    }
+    .progress-bar-fill { height: 100%; border-radius: 3px; }
+
+    .status-pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .status-on-track   { background: rgba(38,166,154,0.2); color: #26a69a; }
+    .status-moderate   { background: rgba(255,193,7,0.2);  color: #ffc107; }
+    .status-marginal   { background: rgba(255,167,38,0.2); color: #ffa726; }
+    .status-stagnation { background: rgba(120,100,60,0.2); color: #a08050; }
+    .status-regression { background: rgba(239,83,80,0.2);  color: #ef5350; }
+
+    .causal-chain { margin-top: 10px; }
+    .causal-chain-row {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      font-size: 0.72rem;
+      padding: 3px 0;
+      border-bottom: 1px solid #111927;
+    }
+    .causal-arrow { color: #2e3f58; font-size: 0.8rem; }
+    .causal-node { color: #8aa4c8; flex: 1; }
+    .causal-weight {
+      font-size: 0.65rem; font-weight: 700;
+      padding: 1px 5px; border-radius: 3px;
+    }
+    .cw-3 { background: rgba(239,83,80,0.25); color: #ef5350; }
+    .cw-2 { background: rgba(255,167,38,0.20); color: #ffa726; }
+    .cw-1 { background: rgba(74,96,128,0.25); color: #6a7a95; }
+
+    /* ── Chat panel ── */
+    .chat-container { display: flex; flex-direction: column; gap: 12px; }
+    .chat-msg { display: flex; flex-direction: column; gap: 3px; max-width: 88%; }
+    .chat-msg.board { align-self: flex-end; }
+    .chat-msg.analyst { align-self: flex-start; }
+    .chat-speaker {
+      font-size: 0.62rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .chat-msg.board .chat-speaker { color: #7986cb; text-align: right; }
+    .chat-msg.analyst .chat-speaker { color: #26a69a; }
+    .chat-bubble {
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.76rem;
+      line-height: 1.55;
+    }
+    .chat-msg.board .chat-bubble {
+      background: #1a2040;
+      border: 1px solid #2a3560;
+      color: #c0cce0;
+    }
+    .chat-msg.analyst .chat-bubble {
+      background: #0f1e18;
+      border: 1px solid #1a3028;
+      color: #a0c8b8;
+    }
+
+    /* ── Tooltip ── */
+    #radar-tooltip {
+      position: fixed;
+      pointer-events: none;
+      z-index: 200;
+      width: 290px;
+      background: #0d1525;
+      border: 1px solid #2a3a55;
+      border-radius: 8px;
+      padding: 12px 14px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.75);
+      display: none;
+    }
+    #radar-tooltip.visible { display: block; }
+    .tt-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .tt-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .tt-label { font-size: 0.82rem; font-weight: 700; color: #e0e6f0; flex: 1; line-height: 1.3; }
+    .tt-badge {
+      font-size: 0.6rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.05em; padding: 2px 6px; border-radius: 3px;
+    }
+    .tt-badge.threat      { background: rgba(239,83,80,0.2);   color: #ef5350; }
+    .tt-badge.opportunity { background: rgba(38,166,154,0.2);  color: #26a69a; }
+    .tt-badge.issue       { background: rgba(41,182,246,0.2);  color: #29b6f6; }
+    .tt-badge.econ        { background: rgba(33,150,243,0.2);  color: #2196f3; }
+    .tt-badge.env         { background: rgba(76,175,80,0.2);   color: #4caf50; }
+    .tt-badge.geo         { background: rgba(255,152,0,0.2);   color: #ff9800; }
+    .tt-badge.soc         { background: rgba(233,30,99,0.2);   color: #e91e63; }
+    .tt-badge.tech        { background: rgba(156,39,176,0.2);  color: #9c27b0; }
+    .tt-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 5px; margin-bottom: 8px;
+    }
+    .tt-cell { background: #111d2e; border-radius: 4px; padding: 5px 7px; }
+    .tt-cell-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em; color: #3a5070; margin-bottom: 2px; }
+    .tt-cell-value { font-size: 0.75rem; font-weight: 600; color: #c0d0e0; }
+    .tt-cell-value.high   { color: #ef5350; }
+    .tt-cell-value.medium { color: #ffa726; }
+    .tt-cell-value.low    { color: #66bb6a; }
+    .tt-bearing { font-size: 0.72rem; color: #7986cb; margin-bottom: 6px; }
+    .tt-rationale { font-size: 0.71rem; color: #6a7a95; line-height: 1.5; }
+    .tt-causal { margin-top: 8px; border-top: 1px solid #1e2d42; padding-top: 6px; display: none; }
+    .tt-causal-head {
+      font-size: 0.62rem; text-transform: uppercase;
+      letter-spacing: 0.05em; color: #3a5070; margin-bottom: 3px; margin-top: 4px;
+    }
+    .tt-causal-row {
+      display: flex; justify-content: space-between; align-items: baseline;
+      font-size: 0.69rem; margin-bottom: 1px;
+    }
+    .tt-causal-src { color: #7a94b8; }
+    .tt-causal-delta { font-weight: 600; font-size: 0.66rem; }
+    .tt-causal-delta.pos { color: #ef5350; }
+    .tt-causal-delta.neg { color: #26a69a; }
+    .tt-causal-note {
+      font-size: 0.64rem; color: #3a5070; line-height: 1.4;
+      margin-bottom: 3px; padding-left: 4px; border-left: 2px solid #1e2d42;
+    }
+
+    /* scrollbars */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: #0a0e1a; }
+    ::-webkit-scrollbar-thumb { background: #1e2d42; border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<!-- ── Toolbar ──────────────────────────────────────────────────────────── -->
+<div id="toolbar">
+  <div style="display:flex;flex-direction:column;gap:1px;flex-shrink:0;margin-right:8px;">
+    <div class="brand">Risk Radar</div>
+    <div class="brand-sub">WEF Global Risks × UN Sustainable Development Goals · 2026</div>
+  </div>
+  <div class="sdg-tabs" id="sdg-tabs">
+    <!-- injected by JS -->
+  </div>
+</div>
+
+<!-- ── Filter bar ────────────────────────────────────────────────────────── -->
+<div id="filter-bar">
+  <span class="fb-label">WEF Category</span>
+  <button class="pf-btn" data-cat="Economic"      style="border-color:#2196f3;color:#2196f3">Economic</button>
+  <button class="pf-btn" data-cat="Environmental" style="border-color:#4caf50;color:#4caf50">Environmental</button>
+  <button class="pf-btn" data-cat="Geopolitical"  style="border-color:#ff9800;color:#ff9800">Geopolitical</button>
+  <button class="pf-btn" data-cat="Societal"      style="border-color:#e91e63;color:#e91e63">Societal</button>
+  <button class="pf-btn" data-cat="Technological" style="border-color:#9c27b0;color:#9c27b0">Technological</button>
+  <div class="fb-sep"></div>
+  <span class="fb-label">Type</span>
+  <button class="pf-btn" data-type="threat"      style="border-color:#ef5350;color:#ef5350">Threats</button>
+  <button class="pf-btn" data-type="opportunity" style="border-color:#26a69a;color:#26a69a">Opportunities</button>
+  <button class="pf-btn" data-type="issue"       style="border-color:#29b6f6;color:#29b6f6">Active Issues</button>
+</div>
+
+<!-- ── Main ─────────────────────────────────────────────────────────────── -->
+<div id="main">
+  <div id="radar-panel">
+    <canvas id="radar" width="660" height="660"></canvas>
+  </div>
+
+  <section id="info-panel">
+    <div class="tab-bar">
+      <button class="tab-btn active" data-tab="analysis">Analysis</button>
+      <button class="tab-btn"        data-tab="network">Risk Network</button>
+      <button class="tab-btn"        data-tab="chat">Board Q&A</button>
+    </div>
+    <div class="tab-content active" id="tab-analysis"></div>
+    <div class="tab-content"        id="tab-network"></div>
+    <div class="tab-content"        id="tab-chat"></div>
+  </section>
+</div>
+
+<!-- ── Tooltip ──────────────────────────────────────────────────────────── -->
+<div id="radar-tooltip">
+  <div class="tt-header">
+    <div class="tt-dot" id="tt-dot"></div>
+    <div class="tt-label" id="tt-label"></div>
+    <span class="tt-badge" id="tt-badge"></span>
+  </div>
+  <div class="tt-grid" id="tt-grid"></div>
+  <div class="tt-bearing" id="tt-bearing"></div>
+  <div class="tt-rationale" id="tt-rationale"></div>
+  <div class="tt-causal" id="tt-causal"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// CONSTANTS & HELPERS
+// ═══════════════════════════════════════════════════════════════════════════
+const CW = 660, CH = 660, CX = CW/2, CY = CH/2, MAX_R = 290;
+const ISSUE_RANGE = 0.10;
+
+const CAT_COLOR = {
+  Economic:      '#2196f3',
+  Environmental: '#4caf50',
+  Geopolitical:  '#ff9800',
+  Societal:      '#e91e63',
+  Technological: '#9c27b0',
+};
+
+// SDG official colours
+const SDG_COLOR = {
+  1:'#e5243b', 2:'#dda63a', 3:'#4c9f38',  4:'#c5192d',  5:'#ff3a21',
+  6:'#26bde2', 7:'#fcc30b', 8:'#a21942',  9:'#fd6925',  10:'#dd1367',
+  11:'#fd9d24',12:'#bf8b2e',13:'#3f7e44', 14:'#0a97d9', 15:'#56c02b',
+  16:'#00689d',17:'#19486a',
+};
+
+function toRad(d) { return d * Math.PI / 180; }
+function bearingToAngle(deg) { return toRad(deg - 90); }
+function polarXY(bearingDeg, fraction) {
+  const a = bearingToAngle(bearingDeg), r = fraction * MAX_R;
+  return { x: CX + r * Math.cos(a), y: CY + r * Math.sin(a) };
+}
+function hexToRgba(hex, a) {
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+function vcls(v) {
+  if(!v) return '';
+  const s = String(v).toLowerCase();
+  if(s==='high'||s==='critical') return 'high';
+  if(s==='medium'||s==='moderate') return 'medium';
+  if(s==='low') return 'low';
+  return '';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// WEF 2016 RISK NETWORK (Cytoscape — assumed extant)
+// Source: WEF Global Risks Report 2016, Cytoscape import file
+// 29 nodes, 170 directed edges, weight 1–3
+// ═══════════════════════════════════════════════════════════════════════════
+const WEF_NODES = {
+  N1:  { name:'Profound social instability',                     cat:'Societal' },
+  N2:  { name:'Large scale involuntary migration',               cat:'Societal' },
+  N3:  { name:'Water crisis',                                    cat:'Societal' },
+  N4:  { name:'Food crisis',                                     cat:'Societal' },
+  N5:  { name:'Spread of infectious disease',                    cat:'Societal' },
+  N6:  { name:'Failure of urban planning',                       cat:'Societal' },
+  N7:  { name:'Failure of climate-change mitigation & adaptation', cat:'Environmental' },
+  N8:  { name:'Extreme weather events',                          cat:'Environmental' },
+  N9:  { name:'Natural catastrophes',                            cat:'Environmental' },
+  N10: { name:'Biodiversity loss & ecosystem collapse',          cat:'Environmental' },
+  N11: { name:'Man-made environmental catastrophe',              cat:'Environmental' },
+  N12: { name:'Failure of critical infrastructure',              cat:'Economic' },
+  N13: { name:'Unemployment or underemployment',                 cat:'Economic' },
+  N14: { name:'Fiscal crisis',                                   cat:'Economic' },
+  N15: { name:'Illicit trade',                                   cat:'Economic' },
+  N16: { name:'Asset bubble',                                    cat:'Economic' },
+  N17: { name:'Energy price shock',                              cat:'Economic' },
+  N18: { name:'Unmanageable inflation',                          cat:'Economic' },
+  N19: { name:'Deflation',                                       cat:'Economic' },
+  N20: { name:'Failure of financial mechanisms',                 cat:'Economic' },
+  N21: { name:'Failure of national governance',                  cat:'Geopolitical' },
+  N22: { name:'Interstate conflict',                             cat:'Geopolitical' },
+  N23: { name:'State collapse or crisis',                        cat:'Geopolitical' },
+  N24: { name:'Weapons of mass destruction',                     cat:'Geopolitical' },
+  N25: { name:'Terrorist attacks',                               cat:'Geopolitical' },
+  N26: { name:'Adverse consequences of technological advances',  cat:'Technological' },
+  N27: { name:'Critical information infrastructure breakdown',   cat:'Technological' },
+  N28: { name:'Cyberattacks',                                    cat:'Technological' },
+  N29: { name:'Data fraud or theft',                             cat:'Technological' },
+};
+
+// Directed edges: [source, target, weight]
+const WEF_EDGES = [
+  ['N1','N13',3],['N1','N23',2],['N1','N2',2],['N1','N21',2],['N1','N4',1],
+  ['N1','N3',1],['N1','N6',1],['N1','N18',1],['N1','N14',1],['N1','N20',1],
+  ['N1','N22',1],['N1','N29',1],['N1','N27',1],['N1','N11',1],['N1','N7',1],['N1','N8',1],
+  ['N2','N5',1],['N2','N20',1],['N2','N15',1],['N2','N21',1],['N2','N25',1],
+  ['N2','N22',3],['N2','N23',3],['N2','N7',1],['N2','N10',1],['N2','N8',1],
+  ['N2','N9',1],['N2','N3',1],['N2','N4',1],
+  ['N3','N5',1],['N3','N21',1],['N3','N22',1],['N3','N20',1],['N3','N7',3],
+  ['N3','N10',1],['N3','N8',1],['N3','N4',3],
+  ['N4','N5',1],['N4','N18',1],['N4','N17',1],['N4','N13',1],['N4','N22',1],
+  ['N4','N23',1],['N4','N26',1],['N4','N7',2],['N4','N11',1],['N4','N8',2],
+  ['N4','N10',2],['N4','N9',1],
+  ['N5','N6',1],['N5','N26',1],['N5','N12',1],['N5','N7',1],['N5','N11',1],['N5','N9',1],
+  ['N6','N13',1],['N6','N21',1],['N6','N27',1],['N6','N12',2],['N6','N7',1],['N6','N8',1],
+  ['N7','N8',3],['N7','N9',2],['N7','N6',1],['N7','N17',1],['N7','N19',1],
+  ['N7','N21',1],['N7','N11',1],['N7','N10',3],
+  ['N8','N9',2],['N8','N14',1],['N8','N12',1],['N8','N11',1],['N8','N10',2],
+  ['N9','N12',1],['N9','N27',1],['N9','N11',1],['N9','N10',1],
+  ['N10','N21',1],['N10','N15',1],['N10','N11',1],
+  ['N11','N21',1],['N11','N15',1],['N11','N26',1],
+  ['N12','N14',1],['N12','N21',1],['N12','N13',1],['N12','N25',1],
+  ['N12','N29',1],['N12','N28',1],['N12','N27',1],
+  ['N13','N21',1],['N13','N17',1],['N13','N18',1],['N13','N14',2],
+  ['N13','N16',1],['N13','N19',2],['N13','N15',1],['N13','N20',1],
+  ['N13','N25',1],['N13','N26',2],['N13','N22',1],['N13','N23',1],
+  ['N14','N17',1],['N14','N18',1],['N14','N16',2],['N14','N19',2],
+  ['N14','N20',2],['N14','N29',1],['N14','N21',1],['N14','N23',1],
+  ['N15','N16',1],['N15','N20',1],['N15','N25',1],['N15','N28',1],
+  ['N15','N22',1],['N15','N23',1],['N15','N21',1],
+  ['N16','N17',1],['N16','N18',1],['N16','N19',1],['N16','N20',2],['N16','N26',1],
+  ['N17','N18',1],['N17','N19',1],['N17','N25',1],['N17','N22',1],['N17','N23',1],
+  ['N18','N19',1],['N18','N20',1],['N18','N23',1],
+  ['N19','N20',1],
+  ['N20','N29',1],['N20','N28',1],['N20','N21',1],
+  ['N21','N25',1],['N21','N24',1],['N21','N28',1],['N21','N22',1],['N21','N23',2],
+  ['N22','N25',1],['N22','N24',1],['N22','N28',1],['N22','N23',2],
+  ['N23','N25',1],['N23','N24',1],['N23','N28',1],['N23','N26',1],
+  ['N24','N23',1],['N24','N22',1],['N24','N25',2],['N24','N26',1],
+  ['N25','N23',1],['N25','N22',1],['N25','N29',1],['N25','N28',1],
+  ['N25','N24',2],['N25','N27',1],['N25','N26',1],
+  ['N26','N23',1],['N26','N25',1],['N26','N24',1],['N26','N29',1],
+  ['N26','N28',1],['N26','N27',1],
+  ['N27','N26',1],['N27','N25',1],['N27','N29',1],['N27','N28',2],
+  ['N28','N29',3],
+];
+
+// Compute node in-degree (sum of edge weights arriving) for sizing
+const NODE_INDEGREE = {};
+Object.keys(WEF_NODES).forEach(k => { NODE_INDEGREE[k] = 0; });
+WEF_EDGES.forEach(([s,t,w]) => { NODE_INDEGREE[t] = (NODE_INDEGREE[t]||0) + w; });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SDG SCENARIOS
+// Each SDG is one "scenario" — its True North is the 2030 target.
+// Blips are the WEF 2026 risks most relevant to that SDG.
+// range: 0.25=2yr horizon, 0.50=5yr, 0.75=10yr, 1.0=beyond
+// bearing: eastward = threat pulling off-course; westward = opportunity / tailwind
+// Positive bearing = threat deflecting east; negative = opportunity pulling north-west
+// Issues = confirmed/active crises already affecting the SDG now
+// ═══════════════════════════════════════════════════════════════════════════
+const SDGs = {
+  // ── SDG 1: No Poverty ─────────────────────────────────────────────────
+  1: {
+    id: 1, name: 'No Poverty',
+    north: 'Eradicate extreme poverty for all people everywhere by 2030',
+    status: 'regression',
+    statusNote: '18% of targets in regression. 808m people in extreme poverty in 2025 — higher than 2020 revised estimates.',
+    bearing: 42, coneP50: 38, coneP80: 58, coneHalf: 20,
+    headline: 'Poverty eradication is off-course. Geoeconomic confrontation and economic downturn compound the chronic gap. Bearing deviation: +42° east — structural threats dominate over capability.',
+    issues: [
+      { label: 'Debt crisis — LIC', bearing: 20, pestle: 'Economic',
+        onset: '2023–present', resolution: 'Unresolved',
+        action: '$1.4 trillion debt servicing cost in LICs is crowding out SDG spending. Confirmed active constraint.' },
+      { label: 'US foreign aid freeze', bearing: 50, pestle: 'Geopolitical',
+        onset: 'Feb 2025', resolution: 'Partially lifted',
+        action: 'Termination of USAID funding disrupted DHS, health services and social protection programmes across 55+ countries.' },
+    ],
+    blips: [
+      { label: 'Geoeconomic confrontation', bearing: 55, range: 0.28, size: 15, type: 'threat', cat: 'Geopolitical',
+        wef2yr: 1, wef10yr: null, magnitude: 'High', direction: '+55°',
+        bearing_effect: '#1 short-term risk — fragments trade and remittance flows on which extreme poor depend',
+        rationale: 'Tariff fragmentation reduces real wages and remittances in LICs. GDP contraction in fragile states directly increases poverty headcount.',
+        objective: 'SDG 1 — No Poverty',
+        causes: [{ label: 'State collapse or crisis', delta: '+0.20', note: 'Geoeconomic pressure accelerates fiscal fragility in weak states, raising collapse probability' }],
+        caused_by: [] },
+      { label: 'Economic downturn', bearing: 35, range: 0.35, size: 13, type: 'threat', cat: 'Economic',
+        wef2yr: 11, wef10yr: 24, magnitude: 'High', direction: '+35°',
+        bearing_effect: 'Up 8 positions in 2yr ranking — recession risk compresses social protection budgets',
+        rationale: 'Global recession reduces ODA flows, tightens domestic fiscal space, and reverses working poverty gains. Disproportionate impact on LICs and LLDCs.',
+        objective: 'SDG 1 — No Poverty',
+        causes: [{ label: 'Inequality', delta: '+0.12', note: 'Downturns widen wealth gaps, suppressing bottom-quintile recovery' }],
+        caused_by: [{ label: 'Geoeconomic confrontation', delta: '+0.18', note: 'Trade fragmentation is a primary transmission mechanism for global downturn risk' }] },
+      { label: 'Inflation', bearing: 28, range: 0.28, size: 11, type: 'threat', cat: 'Economic',
+        wef2yr: 21, wef10yr: 31, magnitude: 'High', direction: '+28°',
+        bearing_effect: 'Up 8 positions — erodes real incomes of the extreme poor faster than any other economic shock',
+        rationale: 'Food price inflation disproportionately hits the poorest decile, pushing households below poverty line. Triple pre-pandemic food prices still persist.',
+        objective: 'SDG 1 — No Poverty',
+        causes: [],
+        caused_by: [{ label: 'Economic downturn', delta: '+0.10', note: 'Supply-side recession combined with fiscal stimulus risk stagflationary spiral' }] },
+      { label: 'Extreme weather events', bearing: 62, range: 0.55, size: 12, type: 'threat', cat: 'Environmental',
+        wef2yr: 4, wef10yr: 1, magnitude: 'High', direction: '+62°',
+        bearing_effect: '#1 long-term risk — climate shocks destroy livelihoods of the rural poor and small-scale farmers',
+        rationale: 'Three quarters of the extreme poor live in climate-vulnerable regions. Crop failure and displacement from weather events are primary drivers of poverty regression.',
+        objective: 'SDG 1 — No Poverty',
+        causes: [{ label: 'Water crisis (SDG 6)', delta: '+0.15', note: 'Weather extremes are the primary driver of water scarcity for rural poor' }],
+        caused_by: [] },
+      { label: 'Societal polarisation', bearing: 45, range: 0.45, size: 10, type: 'threat', cat: 'Societal',
+        wef2yr: 3, wef10yr: 9, magnitude: 'Medium', direction: '+45°',
+        bearing_effect: 'Fractures political will for redistributive policy; blocks social protection expansion',
+        rationale: 'Rising polarisation reduces government capacity to build coalitions for SDG-aligned spending. Populist fiscal austerity disproportionately cuts social protection.',
+        objective: 'SDG 1 — No Poverty',
+        causes: [],
+        caused_by: [{ label: 'Inequality', delta: '+0.15', note: 'Widening wealth and income gaps are the structural driver of societal polarisation' }] },
+      { label: 'Inequality reduction', bearing: 355, range: 0.60, size: 10, type: 'opportunity', cat: 'Economic',
+        wef2yr: null, wef10yr: null, magnitude: 'Medium', direction: '−5°',
+        capability: 'Low',
+        bearing_effect: 'Cross-cutting opportunity — closing the income gap is structurally necessary to achieve SDG 1',
+        rationale: 'Targeted cash transfers and social floors show 3.5× return on investment in poverty reduction. Political will is the binding constraint.',
+        objective: 'SDG 1 — No Poverty',
+        causes: [], caused_by: [] },
+    ],
+    chat: [
+      { role:'board', text:'The radar shows a +42° bearing deviation. Does that mean we are fundamentally off-course, or is this within manageable range?' },
+      { role:'analyst', text:'At +42°, we are significantly off the strategic bearing for poverty eradication. The WEF ranking reflects this — the top three short-term risks (geoeconomic confrontation, economic downturn, inflation) are all pulling east simultaneously. The UN 2025 data confirms 18% of SDG 1 targets are in active regression.' },
+      { role:'board', text:'The debt crisis blip is positioned on the "Now" ring. What does that mean practically?' },
+      { role:'analyst', text:'The Now ring represents confirmed, active issues — not future risks. The $1.4 trillion debt servicing burden in low-income countries is happening today. It is not a probability — it is a structural constraint already crowding out SDG spending. Treating it as a future risk would be a misjudgement.' },
+      { role:'board', text:'The causal network shows geoeconomic confrontation driving state collapse. Is that pathway credible in the near term?' },
+      { role:'analyst', text:'The WEF 2016 Cytoscape network, assumed extant, shows the geoeconomic→fiscal crisis→state collapse chain with combined edge weight of 4. The WEF 2026 report elevates geoeconomic confrontation to the #1 current crisis trigger (18% of respondents). The probability delta is +0.20 on state collapse — which in turn drives the most severe poverty outcomes. This is the highest-leverage causal chain on the board.' },
+    ],
+    network: {
+      headline: 'The poverty risk network is a convergence trap: economic and geopolitical shocks reinforce each other and both terminate in the same set of SDG 1 outcomes.',
+      chains: [
+        { path: ['Geoeconomic confrontation','Fiscal crisis','State collapse or crisis','Profound social instability'], weights:[2,2,2], effect:'Primary cascade — trade fragmentation → sovereign default → societal breakdown' },
+        { path: ['Extreme weather events','Food crisis','Unmanageable inflation','Profound social instability'], weights:[2,1,1], effect:'Climate cascade — crop failure → food price spike → mass poverty shock' },
+        { path: ['Economic downturn','Unemployment or underemployment','Fiscal crisis'], weights:[2,2], effect:'Recession cascade — job losses → tax revenue collapse → social protection failure' },
+      ]
+    }
+  },
+
+  // ── SDG 2: Zero Hunger ────────────────────────────────────────────────
+  2: {
+    id: 2, name: 'Zero Hunger',
+    north: 'End hunger and achieve food security and improved nutrition by 2030',
+    status: 'regression',
+    statusNote: '638–720 million people face hunger in 2024. Food insecurity affects 2.3 billion. Progress has stalled and reversed in sub-Saharan Africa.',
+    bearing: 58, coneP50: 52, coneP80: 75, coneHalf: 23,
+    headline: 'Zero Hunger is the most severely off-course SDG. Bearing: +58° east. Extreme weather, conflict, and economic shocks form a mutually reinforcing triad driving the world away from True North.',
+    issues: [
+      { label: 'Sub-Saharan food crisis', bearing: 65, pestle: 'Environmental',
+        onset: '2022–present', resolution: 'Unresolved',
+        action: '22.3% of sub-Saharan Africa undernourished in 2024. Conflict and climate have reversed a decade of progress.' },
+      { label: 'Food price shock', bearing: 40, pestle: 'Economic',
+        onset: '2021–present', resolution: 'Easing — still 3× pre-pandemic',
+        action: '50% of countries experienced moderately to abnormally high food prices in 2023. Structural volatility remains.' },
+    ],
+    blips: [
+      { label: 'Extreme weather events', bearing: 70, range: 0.30, size: 15, type: 'threat', cat: 'Environmental',
+        wef2yr: 4, wef10yr: 1, magnitude: 'High', direction: '+70°',
+        bearing_effect: '#1 long-term risk — crop failure and displacement are the primary mechanism of hunger regression',
+        rationale: 'Storm frequency up 30% over last decade. Agricultural disruption from weather is the primary driver of food insecurity in sub-Saharan Africa and South Asia.',
+        objective: 'SDG 2 — Zero Hunger',
+        causes: [{ label: 'Biodiversity loss & ecosystem collapse', delta: '+0.12', note: 'Weather extremes accelerate pollinator loss and soil degradation' }],
+        caused_by: [] },
+      { label: 'State-based armed conflict', bearing: 65, range: 0.35, size: 13, type: 'threat', cat: 'Geopolitical',
+        wef2yr: 5, wef10yr: null, magnitude: 'High', direction: '+65°',
+        bearing_effect: 'Conflict is the single biggest driver of acute food insecurity — 70% of the world\'s hungry live in fragile and conflict-affected states',
+        rationale: '120 million forcibly displaced in 2024. Agricultural land abandonment, supply chain disruption, and aid blockades all convert conflict directly into famine risk.',
+        objective: 'SDG 2 — Zero Hunger',
+        causes: [{ label: 'Large scale involuntary migration', delta: '+0.18', note: 'Conflict drives displacement, which in turn amplifies food insecurity in host regions' }],
+        caused_by: [{ label: 'Geoeconomic confrontation', delta: '+0.12', note: 'Geopolitical rivalry reduces multilateral conflict prevention effectiveness' }] },
+      { label: 'Geoeconomic confrontation', bearing: 50, range: 0.28, size: 12, type: 'threat', cat: 'Geopolitical',
+        wef2yr: 1, wef10yr: null, magnitude: 'High', direction: '+50°',
+        bearing_effect: 'Trade weaponisation fragments fertiliser and grain supply chains; export restrictions amplify food price volatility',
+        rationale: 'Russia–Ukraine conflict demonstrated how geopolitical fragmentation translates directly to food price spikes. Tariff escalation raises input costs for smallholders.',
+        objective: 'SDG 2 — Zero Hunger',
+        causes: [{ label: 'State-based armed conflict', delta: '+0.10', note: 'Geoeconomic rivalry normalises the use of food as a geopolitical weapon' }],
+        caused_by: [] },
+      { label: 'Biodiversity loss & ecosystem collapse', bearing: 72, range: 0.65, size: 11, type: 'threat', cat: 'Environmental',
+        wef2yr: 26, wef10yr: 2, magnitude: 'High', direction: '+72°',
+        bearing_effect: '#2 long-term risk — pollinator loss and soil degradation threaten the biological foundation of food production',
+        rationale: 'Global pollinator loss and soil degradation compound agricultural productivity pressure. 40% of insect species face extinction. This is a structural threat to food system resilience.',
+        objective: 'SDG 2 — Zero Hunger',
+        causes: [],
+        caused_by: [{ label: 'Extreme weather events', delta: '+0.12', note: 'Weather extremes accelerate soil erosion and habitat destruction' }] },
+      { label: 'AI in agriculture', bearing: 350, range: 0.65, size: 9, type: 'opportunity', cat: 'Technological',
+        wef2yr: null, wef10yr: null, magnitude: 'Medium', direction: '−10°',
+        capability: 'Medium',
+        bearing_effect: 'Precision agriculture, AI-driven yield forecasting and climate-resilient crop development could unlock step-change in food productivity',
+        rationale: 'AI-enabled crop monitoring and predictive irrigation have shown 15–25% yield improvements in pilot programmes. Scaling to smallholders requires digital infrastructure investment.',
+        objective: 'SDG 2 — Zero Hunger',
+        causes: [], caused_by: [] },
+    ],
+    chat: [
+      { role:'board', text:'A +58° bearing is extreme. Is there any part of this SDG that is moving in the right direction?' },
+      { role:'analyst', text:'SDG 2 is among the worst-performing goals. However, there are pockets of progress: South America and South-East Asia have reduced undernourishment rates. The AI in agriculture blip at −10° shows a genuine near-north opportunity if capability can be built. The binding constraint is that three high-weight threats — extreme weather, conflict, and geoeconomic confrontation — are simultaneously active in the same geographies where hunger is most severe.' },
+      { role:'board', text:'The WEF network connects extreme weather to food crisis to inflation. What is the cumulative edge weight on that chain?' },
+      { role:'analyst', text:'Extreme weather → food crisis carries weight 2, food crisis → unmanageable inflation carries weight 1. But the compounding effect in the correlated model is more severe — when both are active simultaneously, the tail risk of the bearing distribution shifts from P80 of 58° to approximately 72°. That is the scenario we observe right now in sub-Saharan Africa.' },
+    ],
+    network: {
+      headline: 'The food security network has the highest causal density of any SDG cluster. Three independent risk chains all terminate in hunger outcomes.',
+      chains: [
+        { path: ['Extreme weather events','Food crisis','Unmanageable inflation'], weights:[2,1], effect:'Climate-food-inflation cascade — the most active chain in 2024' },
+        { path: ['Interstate conflict','State collapse or crisis','Food crisis'], weights:[2,1], effect:'Conflict cascade — 70% of the world\'s hungry live in conflict zones' },
+        { path: ['Failure of climate-change mitigation','Biodiversity loss & ecosystem collapse','Food crisis'], weights:[3,2], effect:'Long-term biological foundation erosion — highest weight chain in the 2016 network' },
+      ]
+    }
+  },
+
+  // ── SDG 13: Climate Action ─────────────────────────────────────────────
+  13: {
+    id: 13, name: 'Climate Action',
+    north: 'Take urgent action to combat climate change and its impacts — limit warming to 1.5°C',
+    status: 'stagnation',
+    statusNote: '2024 was the hottest year on record, crossing 1.5°C threshold. CO₂ at highest in 2 million years. Environmental risks are being deprioritised in 2-year outlook despite dominance at 10 years.',
+    bearing: 68, coneP50: 60, coneP80: 85, coneHalf: 25,
+    headline: 'Climate action faces a structural paradox: it is the most severe long-term risk cluster yet the most politically deprioritised in the 2-year horizon. Bearing: +68° east — the widest deviation of any SDG.',
+    issues: [
+      { label: '1.5°C threshold crossed', bearing: 80, pestle: 'Environmental',
+        onset: '2024', resolution: 'Permanent unless reversed',
+        action: '2024 global average temperature surpassed 1.5°C above pre-industrial baseline. This activates climate tipping point risk at elevated probability.' },
+      { label: 'Environmental deprioritisation', bearing: 55, pestle: 'Geopolitical',
+        onset: '2025', resolution: 'Ongoing',
+        action: 'WEF GRPS 2026: all environmental risks declined in 2yr ranking. Critical change to Earth systems fell 7 positions. Biodiversity fell 5 positions. Political attention has shifted.' },
+    ],
+    blips: [
+      { label: 'Critical change to Earth systems', bearing: 85, range: 0.68, size: 14, type: 'threat', cat: 'Environmental',
+        wef2yr: 24, wef10yr: 3, magnitude: 'High', direction: '+85°',
+        bearing_effect: 'Fell 7 positions in 2yr ranking — political deprioritisation masks #3 long-term catastrophic risk',
+        rationale: 'Tipping cascades — permafrost, ice sheet collapse, Amazon dieback — are being underweighted in short-term planning. The gap between 2yr (#24) and 10yr (#3) is the largest in the 2026 WEF dataset.',
+        objective: 'SDG 13 — Climate Action',
+        causes: [{ label: 'Biodiversity loss & ecosystem collapse', delta: '+0.20', note: 'Earth system tipping points trigger accelerated biodiversity collapse in a non-linear cascade' }],
+        caused_by: [{ label: 'Failure of climate-change mitigation', delta: '+0.25', note: 'Insufficient mitigation is the direct cause of Earth system destabilisation' }] },
+      { label: 'Failure of climate mitigation & adaptation', bearing: 75, range: 0.50, size: 15, type: 'threat', cat: 'Environmental',
+        wef2yr: null, wef10yr: null, magnitude: 'High', direction: '+75°',
+        bearing_effect: 'Root cause node in the WEF 2016 network — carries the highest out-degree weight of any environmental node',
+        rationale: 'NDC pledges remain insufficient to limit warming to 1.5°C. Global emissions gap is 22–24 Gt CO₂e per year. This is the highest-leverage intervention point: reducing it collapses 8 downstream risk chains.',
+        objective: 'SDG 13 — Climate Action',
+        causes: [
+          { label: 'Extreme weather events', delta: '+0.25', note: 'Mitigation failure is the primary cause of accelerating weather severity' },
+          { label: 'Biodiversity loss & ecosystem collapse', delta: '+0.20', note: 'Warming above 1.5°C activates mass extinction cascades' },
+          { label: 'Critical change to Earth systems', delta: '+0.25', note: 'Insufficient mitigation is the direct cause of Earth system destabilisation' },
+        ],
+        caused_by: [{ label: 'Geoeconomic confrontation', delta: '+0.15', note: 'Geopolitical rivalry undermines multilateral climate cooperation' }] },
+      { label: 'Extreme weather events', bearing: 62, range: 0.30, size: 14, type: 'threat', cat: 'Environmental',
+        wef2yr: 4, wef10yr: 1, magnitude: 'High', direction: '+62°',
+        bearing_effect: '#4 short-term, #1 long-term — confirms climate risks are immediate, not just future',
+        rationale: 'Storm frequency up 30% since 2015. $313bn in climate losses in 2023. Each extreme event causes feedback: infrastructure destruction raises emissions from reconstruction.',
+        objective: 'SDG 13 — Climate Action',
+        causes: [
+          { label: 'Water crisis (SDG 6)', delta: '+0.15', note: 'Extreme weather is the primary driver of freshwater scarcity' },
+          { label: 'Food crisis', delta: '+0.18', note: 'Crop failures from weather events drive food insecurity cascades' },
+        ],
+        caused_by: [{ label: 'Failure of climate mitigation & adaptation', delta: '+0.25', note: 'Insufficient mitigation is the proximate cause of increasing weather severity' }] },
+      { label: 'Biodiversity loss & ecosystem collapse', bearing: 80, range: 0.72, size: 13, type: 'threat', cat: 'Environmental',
+        wef2yr: 26, wef10yr: 2, magnitude: 'High', direction: '+80°',
+        bearing_effect: '#2 long-term risk — ecosystem collapse removes natural carbon sinks, amplifying warming feedback',
+        rationale: 'Loss of natural carbon sinks (forests, wetlands, ocean phytoplankton) accelerates atmospheric CO₂ accumulation. Biodiversity loss and climate change are mutually reinforcing.',
+        objective: 'SDG 13 — Climate Action',
+        causes: [],
+        caused_by: [
+          { label: 'Failure of climate mitigation & adaptation', delta: '+0.20', note: 'Climate warming is the primary driver of mass extinction events' },
+          { label: 'Critical change to Earth systems', delta: '+0.20', note: 'Earth system tipping cascades accelerate biodiversity loss' },
+        ] },
+      { label: 'Geoeconomic confrontation', bearing: 60, range: 0.30, size: 13, type: 'threat', cat: 'Geopolitical',
+        wef2yr: 1, wef10yr: null, magnitude: 'High', direction: '+60°',
+        bearing_effect: '#1 current risk — undermines the multilateral cooperation that climate action requires',
+        rationale: 'A contested multipolar order cannot sustain the Paris Agreement architecture. Trade fragmentation disrupts clean energy supply chains (critical minerals, solar panels, EV batteries).',
+        objective: 'SDG 13 — Climate Action',
+        causes: [{ label: 'Failure of climate mitigation & adaptation', delta: '+0.15', note: 'Geopolitical rivalry is the primary systemic barrier to multilateral climate action' }],
+        caused_by: [] },
+      { label: 'Green technology transition', bearing: 345, range: 0.55, size: 12, type: 'opportunity', cat: 'Technological',
+        wef2yr: null, wef10yr: null, magnitude: 'High', direction: '−15°',
+        capability: 'Medium',
+        bearing_effect: 'Renewable energy costs have fallen 90% since 2010. Technology trajectory is favourable — political will and capital allocation are the constraints',
+        rationale: 'Solar and wind now cheaper than new fossil fuel in most markets. The opportunity exists; the risk is that geopolitical fragmentation slows deployment in the regions that need it most.',
+        objective: 'SDG 13 — Climate Action',
+        causes: [], caused_by: [] },
+    ],
+    chat: [
+      { role:'board', text:'At +68°, climate action has the widest bearing deviation. Yet the WEF 2026 report says environmental risks are being deprioritised. How do we reconcile these?' },
+      { role:'analyst', text:'This is the critical disconnect. Environmental risks dominate the 10-year severity list — extreme weather #1, biodiversity #2, Earth systems #3 — but they all dropped in the 2-year ranking as geoeconomic and economic risks surged. Short-term political attention is crowding out long-term action. The radar shows this as a wide cone: we know the direction is wrong but uncertainty about *when* the consequences materialise makes it politically manageable to defer.' },
+      { role:'board', text:'The WEF 2016 network shows failure of climate mitigation as a root cause node. What is its out-degree?' },
+      { role:'analyst', text:'Node N7 (Failure of climate-change mitigation and adaptation) has the highest environmental out-degree in the 2016 network: it drives extreme weather events (weight 3), biodiversity collapse (weight 3), natural catastrophes (weight 2), and 4 further nodes. This makes it the single highest-leverage intervention point — if you reduce N7 probability, you collapse 8 downstream threat chains simultaneously. The question is whether the multilateral apparatus to act on N7 still exists in a post-multilateralism world.' },
+      { role:'board', text:'The green technology opportunity blip sits at −15°. Why is capability only Medium despite the cost breakthrough?' },
+      { role:'analyst', text:'Technology cost is no longer the binding constraint. The constraints are: (1) critical mineral supply chains — concentrated in geopolitically contested jurisdictions; (2) grid infrastructure — scaling renewables requires transmission investment that moves at political not market speed; (3) deployment equity — the countries with highest climate vulnerability have lowest clean energy deployment rates. Medium capability reflects these systemic constraints, not the technology itself.' },
+    ],
+    network: {
+      headline: 'Climate action has the most structurally dense causal network: failure of mitigation is a root node that connects to every other environmental risk in the WEF 2016 graph.',
+      chains: [
+        { path: ['Failure of climate mitigation','Extreme weather events','Natural catastrophes','Failure of critical infrastructure'], weights:[3,2,1], effect:'Physical damage cascade — storm → infrastructure failure → economic loss' },
+        { path: ['Failure of climate mitigation','Biodiversity loss & ecosystem collapse','Food crisis','Profound social instability'], weights:[3,2,1], effect:'Biological cascade — ecosystem failure → food system collapse → societal breakdown' },
+        { path: ['Geoeconomic confrontation','Failure of climate mitigation','Critical change to Earth systems'], weights:[1,3], effect:'Geopolitical lock-in cascade — rivalry prevents mitigation → tipping points triggered' },
+      ]
+    }
+  },
+
+  // ── SDG 16: Peace, Justice & Strong Institutions ───────────────────────
+  16: {
+    id: 16, name: 'Peace, Justice & Institutions',
+    north: 'Promote peaceful and inclusive societies, access to justice for all, and build effective accountable institutions by 2030',
+    status: 'regression',
+    statusNote: 'Peace and security have worsened. 120m+ displaced. Conflict-affected populations at record levels. Multilateral governance under unprecedented pressure.',
+    bearing: 52, coneP50: 46, coneP80: 65, coneHalf: 19,
+    headline: 'The institutional foundations of the entire SDG agenda are under stress. Bearing: +52° east. Geoeconomic confrontation is the dominant risk, displacing multilateral governance mechanisms.',
+    issues: [
+      { label: 'Multilateralism in retreat', bearing: 55, pestle: 'Geopolitical',
+        onset: '2023–present', resolution: 'Ongoing',
+        action: 'WEF 2026: multilateral cooperation frameworks are deadlocked or ineffective. Declining trust in institutions is systemic, not cyclical.' },
+      { label: 'Mass displacement — 120m+', bearing: 70, pestle: 'Geopolitical',
+        onset: '2015–present', resolution: 'Worsening',
+        action: '120 million people forcibly displaced in 2024 — more than double the 2015 figure. Conflict-driven. Directly undermines SDG 16.1 (reduce violence) and 16.7 (inclusive decision-making).' },
+    ],
+    blips: [
+      { label: 'Geoeconomic confrontation', bearing: 60, range: 0.28, size: 15, type: 'threat', cat: 'Geopolitical',
+        wef2yr: 1, wef10yr: null, magnitude: 'High', direction: '+60°',
+        bearing_effect: '#1 current risk — dismantles the rules-based international order that SDG 16 depends on',
+        rationale: 'Competition replacing cooperation erodes the institutional architecture built to deliver SDG 16. Rules-based trade and transparency norms are the first casualties of geoeconomic rivalry.',
+        objective: 'SDG 16 — Peace, Justice & Institutions',
+        causes: [
+          { label: 'Failure of national governance', delta: '+0.18', note: 'Geopolitical rivalry reduces domestic accountability pressure and enables authoritarian consolidation' },
+          { label: 'Interstate conflict', delta: '+0.12', note: 'Geoeconomic confrontation normalises the use of force as a policy instrument' },
+        ],
+        caused_by: [] },
+      { label: 'State-based armed conflict', bearing: 72, range: 0.35, size: 13, type: 'threat', cat: 'Geopolitical',
+        wef2yr: 5, wef10yr: null, magnitude: 'High', direction: '+72°',
+        bearing_effect: '#5 short-term risk — kinetic warfare is the most direct violation of SDG 16 targets',
+        rationale: 'Active conflicts in Ukraine, Gaza, Sudan and elsewhere directly violate SDG 16.1 (reduce violence) and 16.2 (end violence against children). Conflict is the primary driver of mass displacement.',
+        objective: 'SDG 16 — Peace, Justice & Institutions',
+        causes: [{ label: 'Large scale involuntary migration', delta: '+0.20', note: 'Armed conflict is the primary driver of mass displacement globally' }],
+        caused_by: [{ label: 'Geoeconomic confrontation', delta: '+0.12', note: 'Rival power competition provides armaments, reduces diplomatic restraint and incentivises proxy conflicts' }] },
+      { label: 'Erosion of human rights & civic freedoms', bearing: 48, range: 0.45, size: 12, type: 'threat', cat: 'Societal',
+        wef2yr: 8, wef10yr: null, magnitude: 'High', direction: '+48°',
+        bearing_effect: '#8 short-term risk — systematic rights erosion undermines the governance quality that SDG 16 requires',
+        rationale: 'Growing authoritarian governance, press freedom erosion, and judicial capture in multiple democracies directly undermine SDG 16.3 (rule of law) and 16.6 (accountable institutions).',
+        objective: 'SDG 16 — Peace, Justice & Institutions',
+        causes: [],
+        caused_by: [{ label: 'Societal polarisation', delta: '+0.15', note: 'Political polarisation enables erosion of rights through majoritarian capture of institutions' }] },
+      { label: 'Misinformation & disinformation', bearing: 40, range: 0.30, size: 12, type: 'threat', cat: 'Technological',
+        wef2yr: 2, wef10yr: 4, magnitude: 'High', direction: '+40°',
+        bearing_effect: '#2 short-term risk — undermines the information integrity that functioning institutions require',
+        rationale: 'AI-generated disinformation at scale is degrading public trust in institutions, electoral processes, and international law. SDG 16.10 (public access to information) is under direct attack.',
+        objective: 'SDG 16 — Peace, Justice & Institutions',
+        causes: [{ label: 'Societal polarisation', delta: '+0.15', note: 'Disinformation accelerates political polarisation, which in turn demands more disinformation' }],
+        caused_by: [{ label: 'Adverse outcomes of AI technologies', delta: '+0.18', note: 'AI dramatically reduces the cost of generating and distributing disinformation at scale' }] },
+      { label: 'Societal polarisation', bearing: 35, range: 0.40, size: 11, type: 'threat', cat: 'Societal',
+        wef2yr: 3, wef10yr: 9, magnitude: 'High', direction: '+35°',
+        bearing_effect: '#3 short-term risk — polarised societies cannot build the inclusive institutions SDG 16 requires',
+        rationale: 'Street-versus-elites narratives and populist movements are dismantling institutional trust. Without trust, institutions cannot deliver justice or peace equitably.',
+        objective: 'SDG 16 — Peace, Justice & Institutions',
+        causes: [
+          { label: 'Erosion of human rights & civic freedoms', delta: '+0.15', note: 'Polarisation enables rights erosion through democratic backsliding' },
+          { label: 'Misinformation & disinformation', delta: '+0.12', note: 'Polarisation creates demand for misinformation that confirms in-group beliefs' },
+        ],
+        caused_by: [{ label: 'Inequality', delta: '+0.18', note: 'Structural inequality is the most robust predictor of political polarisation in empirical literature' }] },
+      { label: 'Digital governance frameworks', bearing: 358, range: 0.55, size: 9, type: 'opportunity', cat: 'Technological',
+        wef2yr: null, wef10yr: null, magnitude: 'Medium', direction: '−2°',
+        capability: 'Low',
+        bearing_effect: 'International AI governance and digital rights frameworks could rebuild institutional trust if enacted — currently underdeveloped',
+        rationale: 'The UN Global Digital Compact and emerging AI treaty frameworks offer a path to restoring information integrity. Capability is Low: geopolitical competition is slowing multilateral digital governance.',
+        objective: 'SDG 16 — Peace, Justice & Institutions',
+        causes: [], caused_by: [] },
+    ],
+    chat: [
+      { role:'board', text:'SDG 16 underpins the governance architecture for all other SDGs. If it is in regression, what does that mean for the wider SDG agenda?' },
+      { role:'analyst', text:'SDG 16 is the enabling infrastructure for the entire 2030 Agenda. Effective, accountable institutions are the delivery mechanism for every other goal. When SDG 16 is in regression — when governance quality declines, conflict increases, and rights are eroded — it creates a negative multiplier across all 16 other goals simultaneously. The WEF 2016 causal network confirms this: the failure of national governance node (N21) receives inputs from 14 of the 29 risk nodes.' },
+      { role:'board', text:'The misinformation blip is at #2 in the WEF short-term ranking. Is this genuinely structural or a cyclical concern?' },
+      { role:'analyst', text:'Structural. The WEF 2026 report identifies it as both a #2 short-term and #4 long-term risk. The causal mechanism is structural: AI has permanently reduced the marginal cost of disinformation to near-zero, and algorithmic amplification creates systemic incentives for its spread. Without institutional intervention — content governance, AI transparency rules, media literacy — this risk does not self-correct.' },
+    ],
+    network: {
+      headline: 'The governance risk network is a convergence point: 14 of 29 WEF nodes have directed edges to Failure of National Governance. It is the highest in-degree node in the entire 2016 network.',
+      chains: [
+        { path: ['Geoeconomic confrontation','Failure of national governance','State collapse or crisis'], weights:[2,2], effect:'Geopolitical cascade — rivalry erodes accountability → state fragility' },
+        { path: ['Societal polarisation','Erosion of human rights','Failure of national governance'], weights:[2,1], effect:'Democratic backsliding cascade — polarisation → rights erosion → institutional capture' },
+        { path: ['Adverse outcomes of AI','Misinformation & disinformation','Societal polarisation','Failure of national governance'], weights:[2,1,1], effect:'Technology-governance cascade — AI amplifies disinformation → polarisation → institutional failure' },
+      ]
+    }
+  },
+
+  // ── SDG 8: Decent Work & Economic Growth ──────────────────────────────
+  8: {
+    id: 8, name: 'Decent Work & Economic Growth',
+    north: 'Promote sustained, inclusive and sustainable economic growth, full and productive employment and decent work for all',
+    status: 'marginal',
+    statusNote: 'Moderate progress on employment but decent work quality lagging. Debt servicing crowds out growth investment. AI-driven labour market disruption accelerating.',
+    bearing: 38, coneP50: 32, coneP80: 52, coneHalf: 20,
+    headline: 'Economic growth is bifurcating: headline GDP has recovered but decent work quality and inclusive growth are stalling. Bearing: +38° east. AI displacement and geoeconomic confrontation are the key vectors.',
+    issues: [
+      { label: 'K-shaped recovery', bearing: 45, pestle: 'Economic',
+        onset: '2020–present', resolution: 'Structural',
+        action: 'Post-pandemic recovery has concentrated gains at the top of the income distribution. Wealth concentration is at record levels while working poverty persists in LICs.' },
+    ],
+    blips: [
+      { label: 'Adverse outcomes of AI technologies', bearing: 50, range: 0.45, size: 13, type: 'threat', cat: 'Technological',
+        wef2yr: 30, wef10yr: 5, magnitude: 'High', direction: '+50°',
+        bearing_effect: 'Largest rise between short- and long-term rankings of any risk — AI labour displacement is the defining structural threat to SDG 8',
+        rationale: 'AI automation threatens 40–60% of tasks in white-collar occupations over 10 years. Without reskilling infrastructure and labour market reform, productivity gains will not translate to decent work.',
+        objective: 'SDG 8 — Decent Work & Economic Growth',
+        causes: [
+          { label: 'Unemployment or underemployment', delta: '+0.20', note: 'AI task automation is the primary mechanism of structural unemployment in advanced and emerging economies' },
+          { label: 'Inequality', delta: '+0.15', note: 'AI productivity gains accrue to capital, widening labour-capital income split' },
+        ],
+        caused_by: [] },
+      { label: 'Economic downturn', bearing: 30, range: 0.30, size: 13, type: 'threat', cat: 'Economic',
+        wef2yr: 11, wef10yr: 24, magnitude: 'High', direction: '+30°',
+        bearing_effect: 'Up 8 positions in 2yr ranking — recession erodes employment gains and decent work standards',
+        rationale: 'Debt-driven fiscal fragility in high-income and emerging economies constrains fiscal space for labour market investment. Recession risk is elevated by asset bubble and inflation dynamics.',
+        objective: 'SDG 8 — Decent Work & Economic Growth',
+        causes: [{ label: 'Unemployment or underemployment', delta: '+0.18', note: 'Recessions are the primary mechanism of mass unemployment shocks' }],
+        caused_by: [{ label: 'Asset bubble burst', delta: '+0.15', note: 'Asset correction is a leading transmitter of recession risk' }] },
+      { label: 'Asset bubble burst', bearing: 25, range: 0.32, size: 11, type: 'threat', cat: 'Economic',
+        wef2yr: 18, wef10yr: 27, magnitude: 'High', direction: '+25°',
+        bearing_effect: 'Up 7 positions — high debt and inflated asset prices create structural fragility in the financial system',
+        rationale: 'Record sovereign debt levels combined with potential asset price corrections create systemic financial risk. A correction would contract credit, investment and employment simultaneously.',
+        objective: 'SDG 8 — Decent Work & Economic Growth',
+        causes: [{ label: 'Economic downturn', delta: '+0.15', note: 'Asset corrections are a primary transmission mechanism into broader recession' }],
+        caused_by: [{ label: 'Geoeconomic confrontation', delta: '+0.10', note: 'Trade fragmentation creates economic uncertainty that inflates risk premiums and asset volatility' }] },
+      { label: 'Geoeconomic confrontation', bearing: 45, range: 0.28, size: 12, type: 'threat', cat: 'Geopolitical',
+        wef2yr: 1, wef10yr: null, magnitude: 'High', direction: '+45°',
+        bearing_effect: '#1 current risk — supply chain fragmentation raises production costs and reduces the trade multiplier on growth',
+        rationale: 'Tariff escalation and supply chain reshoring increase production costs, reduce trade volume, and fragment the global labour market. Investment uncertainty suppresses job creation.',
+        objective: 'SDG 8 — Decent Work & Economic Growth',
+        causes: [{ label: 'Economic downturn', delta: '+0.18', note: 'Geoeconomic fragmentation is a primary transmission channel into global economic contraction' }],
+        caused_by: [] },
+      { label: 'Green economy transition', bearing: 350, range: 0.55, size: 11, type: 'opportunity', cat: 'Environmental',
+        wef2yr: null, wef10yr: null, magnitude: 'High', direction: '−10°',
+        capability: 'Medium',
+        bearing_effect: 'Renewable energy and green infrastructure represent the largest job creation opportunity of the next decade — 24 million new jobs by 2030 (ILO)',
+        rationale: 'Green transition creates labour demand in construction, manufacturing and services. Requires policy alignment between climate commitments and industrial strategy. SDG 8 and SDG 13 are complementary, not in tension.',
+        objective: 'SDG 8 — Decent Work & Economic Growth',
+        causes: [], caused_by: [] },
+    ],
+    chat: [
+      { role:'board', text:'The AI risk has the largest spread between 2-year (#30) and 10-year (#5) rankings. What does that tell us strategically?' },
+      { role:'analyst', text:'It tells us that AI labour displacement is a slow-burn structural risk, not a 2-year shock. In the short term, AI productivity gains are still net positive for employment in most sectors. But the 10-year trajectory is severe: 40–60% task automation affects work quality, not just volume. The strategic question for SDG 8 is whether reskilling infrastructure and social protection systems can be built fast enough to manage the transition. Currently they cannot — that is why capability for the green economy opportunity is only Medium.' },
+      { role:'board', text:'How connected are the economic risks in the WEF 2016 network?' },
+      { role:'analyst', text:'The economic risk cluster (nodes N12–N20) is the most densely interconnected in the entire WEF 2016 graph. Fiscal crisis, asset bubble, unemployment, inflation, and deflation all have bidirectional or near-bidirectional edges. This means a shock to any one of them propagates rapidly across all others. The WEF 2026 uptick in economic risk rankings reflects this network property: geoeconomic confrontation hit the cluster, and the internal density amplified it.' },
+    ],
+    network: {
+      headline: 'The economic risk cluster is the most internally dense subgraph in the WEF 2016 network. A shock to any node propagates to all others within 2–3 hops.',
+      chains: [
+        { path: ['Asset bubble','Failure of financial mechanisms','Fiscal crisis','Unemployment or underemployment'], weights:[2,2,2], effect:'Financial contagion cascade — the 2008 transmission mechanism, still structurally active' },
+        { path: ['Geoeconomic confrontation','Energy price shock','Unmanageable inflation','Deflation'], weights:[1,1,1], effect:'Trade-price cascade — fragmentation → energy shock → stagflationary spiral' },
+        { path: ['Adverse outcomes of AI','Unemployment or underemployment','Profound social instability'], weights:[2,3], effect:'Technology-labour cascade — AI displacement → mass unemployment → societal breakdown' },
+      ]
+    }
+  },
+
+  // ── SDG 17: Partnerships for the Goals ────────────────────────────────
+  17: {
+    id: 17, name: 'Partnerships for the Goals',
+    north: 'Strengthen the means of implementation and revitalise the global partnership for sustainable development',
+    status: 'regression',
+    statusNote: 'Multilateralism in retreat. ODA declining. $4 trillion annual financing gap. Debt servicing record high. Trust in international institutions at historic low.',
+    bearing: 48, coneP50: 42, coneP80: 62, coneHalf: 20,
+    headline: 'The enabling condition for all SDGs is deteriorating fastest. Bearing: +48° east. Geoeconomic confrontation is directly dismantling the partnership architecture that SDG 17 requires.',
+    issues: [
+      { label: '$4 trillion financing gap', bearing: 50, pestle: 'Economic',
+        onset: '2023–present', resolution: 'Unresolved',
+        action: 'Annual SDG financing gap is $4 trillion. ODA declining since 2023. USAID freeze and development budget cuts in multiple G7 countries are compounding the gap.' },
+      { label: 'Multilateral deadlock', bearing: 60, pestle: 'Geopolitical',
+        onset: '2022–present', resolution: 'Structural',
+        action: 'WEF 2026: cooperative mechanisms are crumbling. UN Security Council paralysis on major conflicts. WTO dispute resolution dysfunctional. IMF/World Bank capital adequacy under pressure.' },
+    ],
+    blips: [
+      { label: 'Geoeconomic confrontation', bearing: 62, range: 0.28, size: 15, type: 'threat', cat: 'Geopolitical',
+        wef2yr: 1, wef10yr: null, magnitude: 'High', direction: '+62°',
+        bearing_effect: 'Existential threat to SDG 17 — replaces multilateral cooperation with bilateral competition',
+        rationale: 'The shift from collaboration to confrontation directly destroys the partnership infrastructure SDG 17 requires. Trade rules, tax cooperation, technology transfer agreements, and development finance are all casualties of geoeconomic rivalry.',
+        objective: 'SDG 17 — Partnerships',
+        causes: [{ label: 'Failure of national governance', delta: '+0.15', note: 'Geoeconomic fragmentation reduces domestic accountability for multilateral commitments' }],
+        caused_by: [] },
+      { label: 'Debt', bearing: 40, range: 0.32, size: 12, type: 'threat', cat: 'Economic',
+        wef2yr: null, wef10yr: null, magnitude: 'High', direction: '+40°',
+        bearing_effect: 'Record debt servicing costs in LICs are crowding out both domestic development spending and international partnership capacity',
+        rationale: '$1.4 trillion debt servicing in LICs in 2023. Debt distress reduces the political and fiscal capacity of developing countries to engage as partners, not just recipients. Restructuring deadlock further fragments global financial cooperation.',
+        objective: 'SDG 17 — Partnerships',
+        causes: [],
+        caused_by: [{ label: 'Geoeconomic confrontation', delta: '+0.12', note: 'Geopolitical rivalry has paralysed multilateral debt restructuring mechanisms (Paris Club, G20 Common Framework)' }] },
+      { label: 'Concentration of strategic resources & tech', bearing: 55, range: 0.55, size: 11, type: 'threat', cat: 'Economic',
+        wef2yr: null, wef10yr: null, magnitude: 'High', direction: '+55°',
+        bearing_effect: 'Technology and resource concentration in few jurisdictions undermines the technology transfer mechanisms SDG 17.6 requires',
+        rationale: 'AI capabilities, critical minerals, and semiconductor manufacturing are concentrating in 3–4 countries. This structural concentration makes technology transfer — a core SDG 17 mechanism — increasingly difficult to achieve.',
+        objective: 'SDG 17 — Partnerships',
+        causes: [],
+        caused_by: [{ label: 'Geoeconomic confrontation', delta: '+0.15', note: 'Strategic rivalry drives technology and resource concentration as competitive weaponisation' }] },
+      { label: 'South-South cooperation', bearing: 355, range: 0.55, size: 10, type: 'opportunity', cat: 'Geopolitical',
+        wef2yr: null, wef10yr: null, magnitude: 'Medium', direction: '−5°',
+        capability: 'Medium',
+        bearing_effect: 'Non-Western partnership frameworks (BRICS, African Union, ASEAN) offer alternative cooperation pathways as Northern multilateral architecture weakens',
+        rationale: 'Brazil, India, China and regional bodies are developing alternative financial instruments (NDB, AIIB) and technology cooperation frameworks. These could partially compensate for North-South partnership regression.',
+        objective: 'SDG 17 — Partnerships',
+        causes: [], caused_by: [] },
+    ],
+    chat: [
+      { role:'board', text:'SDG 17 is the means of implementation — the enabler of all other SDGs. If it is in regression, does that mean the entire SDG agenda is at risk of systemic failure?' },
+      { role:'analyst', text:'That is precisely the correct inference. SDG 17 is not one goal among 17 — it is the condition under which the other 16 can be achieved. The $4 trillion financing gap, the collapse of ODA, and the paralysis of multilateral mechanisms mean the SDG agenda is significantly under-resourced even if political will existed. The WEF 2026 report frames this as the "Age of Competition" — cooperation is not dead, but it is no longer the default mode.' },
+      { role:'board', text:'Is there any mechanism that could reverse the partnership trajectory without restored multilateralism?' },
+      { role:'analyst', text:'The South-South cooperation opportunity blip points to one. Non-Western multilateral institutions — BRICS New Development Bank, the African Union\'s Agenda 2063, ASEAN frameworks — are developing in parallel to the Northern-dominated architecture. They are imperfect substitutes but they represent genuine alternative channels. The question is whether their combined capacity can fill a $4 trillion gap. At current scale, they cannot. But the trajectory matters: if competition further erodes Northern frameworks, the Southern alternatives become progressively more important.' },
+    ],
+    network: {
+      headline: 'SDG 17 depends on the meta-level of international cooperation — making it uniquely vulnerable to the WEF 2026 defining theme: multipolarity without multilateralism.',
+      chains: [
+        { path: ['Geoeconomic confrontation','Failure of national governance','Failure of financial mechanisms'], weights:[1,1], effect:'Governance cascade — rivalry erodes domestic accountability for international commitments' },
+        { path: ['Interstate conflict','State collapse or crisis','Large scale involuntary migration'], weights:[2,3], effect:'Conflict cascade — each new conflict absorbs partnership resources and political capital' },
+        { path: ['Concentration of strategic resources','Adverse outcomes of AI','Failure of national governance'], weights:[1,1], effect:'Technology power cascade — resource concentration reduces incentive for technology transfer' },
+      ]
+    }
+  },
+};
+
+// Build SDG ordered list for tabs
+const SDG_ORDER = [1,2,8,13,16,17];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FILTER STATE
+// ═══════════════════════════════════════════════════════════════════════════
+let activeSdg = 1;
+const catActive  = { Economic:true, Environmental:true, Geopolitical:true, Societal:true, Technological:true };
+const typeActive = { threat:true, opportunity:true, issue:true };
+
+function blipVisible(b) {
+  if(!typeActive[b.type]) return false;
+  if(b.cat && !catActive[b.cat]) return false;
+  return true;
+}
+function issueVisible(i) {
+  if(!typeActive['issue']) return false;
+  if(i.pestle && !catActive[i.pestle]) return false;
+  return true;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CANVAS SETUP
+// ═══════════════════════════════════════════════════════════════════════════
+const canvas = document.getElementById('radar');
+const ctx = canvas.getContext('2d');
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DRAWING PRIMITIVES
+// ═══════════════════════════════════════════════════════════════════════════
+function drawBg() {
+  const grad = ctx.createRadialGradient(CX,CY,0,CX,CY,MAX_R);
+  grad.addColorStop(0,'rgba(15,25,48,1)');
+  grad.addColorStop(1,'rgba(5,8,18,1)');
+  ctx.fillStyle = grad; ctx.fillRect(0,0,CW,CH);
+}
+
+function drawRings(sdg) {
+  // Now ring
+  const nr = ISSUE_RANGE * MAX_R;
+  ctx.beginPath(); ctx.arc(CX,CY,nr,0,Math.PI*2);
+  ctx.strokeStyle='rgba(41,182,246,0.30)'; ctx.lineWidth=1;
+  ctx.setLineDash([3,4]); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle='rgba(41,182,246,0.5)'; ctx.font='9px Segoe UI';
+  ctx.textAlign='left'; ctx.textBaseline='middle';
+  ctx.fillText('Now', CX+nr+4, CY-4);
+
+  // Time horizon rings
+  const rings = [
+    { r:0.25, label:'2yr' }, { r:0.50, label:'5yr' },
+    { r:0.75, label:'10yr' }, { r:1.00, label:'2030+' }
+  ];
+  rings.forEach(({r,label}) => {
+    const pr = r * MAX_R;
+    ctx.beginPath(); ctx.arc(CX,CY,pr,0,Math.PI*2);
+    ctx.strokeStyle='rgba(79,195,247,0.10)'; ctx.lineWidth=1;
+    ctx.setLineDash([2,5]); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle='rgba(79,195,247,0.35)'; ctx.font='9px Segoe UI';
+    ctx.textAlign='left'; ctx.textBaseline='middle';
+    ctx.fillText(label, CX+pr+4, CY-4);
+  });
+}
+
+function drawCompass(northLabel) {
+  const tip = polarXY(0, 1.07);
+  ctx.fillStyle='rgba(79,195,247,0.5)'; ctx.font='bold 10px Segoe UI';
+  ctx.textAlign='center'; ctx.textBaseline='bottom';
+  ctx.fillText(northLabel, CX, tip.y-2);
+  [0,90,180,270].forEach(d => {
+    const p = polarXY(d,1.04);
+    ctx.strokeStyle='rgba(79,195,247,0.12)'; ctx.lineWidth=1;
+    ctx.setLineDash([2,4]);
+    ctx.beginPath(); ctx.moveTo(CX,CY); ctx.lineTo(p.x,p.y); ctx.stroke();
+    ctx.setLineDash([]);
+  });
+}
+
+function drawCone(coneP80, coneHalf, color) {
+  const a0 = bearingToAngle(coneP80 - coneHalf);
+  const a1 = bearingToAngle(coneP80 + coneHalf);
+  ctx.beginPath(); ctx.moveTo(CX,CY);
+  ctx.arc(CX,CY,MAX_R,a0,a1);
+  ctx.closePath();
+  ctx.fillStyle = hexToRgba(color, 0.08); ctx.fill();
+  ctx.strokeStyle = hexToRgba(color, 0.25); ctx.lineWidth=1;
+  ctx.setLineDash([3,4]); ctx.stroke(); ctx.setLineDash([]);
+}
+
+function drawArrow(bearingDeg, color) {
+  const tip = polarXY(bearingDeg, 0.82);
+  const base = polarXY(bearingDeg, 0.05);
+  const a = bearingToAngle(bearingDeg);
+  ctx.beginPath(); ctx.moveTo(base.x,base.y); ctx.lineTo(tip.x,tip.y);
+  ctx.strokeStyle = color; ctx.lineWidth=2.5; ctx.globalAlpha=0.9;
+  ctx.stroke(); ctx.globalAlpha=1;
+  const hl=16,hw=7;
+  ctx.beginPath(); ctx.moveTo(tip.x,tip.y);
+  ctx.lineTo(tip.x-hl*Math.cos(a-0.38),tip.y-hl*Math.sin(a-0.38));
+  ctx.lineTo(tip.x-hl*Math.cos(a+0.38),tip.y-hl*Math.sin(a+0.38));
+  ctx.closePath(); ctx.fillStyle=color; ctx.fill();
+}
+
+function drawForceArrow(px,py,bearingDeg,color,stem) {
+  const a = bearingToAngle(bearingDeg);
+  const tip = { x:px+stem*Math.cos(a), y:py+stem*Math.sin(a) };
+  const hw = stem*0.32, hl = stem*0.38;
+  ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(tip.x,tip.y);
+  ctx.strokeStyle=color; ctx.lineWidth=1.5; ctx.globalAlpha=0.75; ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(tip.x,tip.y);
+  ctx.lineTo(tip.x-hl*Math.cos(a-0.38),tip.y-hl*Math.sin(a-0.38));
+  ctx.lineTo(tip.x-hl*Math.cos(a+0.38),tip.y-hl*Math.sin(a+0.38));
+  ctx.closePath(); ctx.fillStyle=color; ctx.fill(); ctx.globalAlpha=1;
+}
+
+function drawBlip(b) {
+  const p = polarXY(b.bearing, b.range);
+  const color = CAT_COLOR[b.cat] || (b.type==='opportunity'?'#26a69a':'#ef5350');
+  drawForceArrow(p.x,p.y,b.bearing,color,b.size*2.2);
+  // glow
+  ctx.save();
+  ctx.shadowColor=color; ctx.shadowBlur=12;
+  ctx.beginPath(); ctx.arc(p.x,p.y,b.size/2+1,0,Math.PI*2);
+  ctx.fillStyle=hexToRgba(color,0.15); ctx.fill(); ctx.restore();
+  // dot
+  ctx.beginPath(); ctx.arc(p.x,p.y,b.size/2,0,Math.PI*2);
+  if(b.type==='opportunity') {
+    ctx.strokeStyle=color; ctx.lineWidth=2;
+    ctx.fillStyle=hexToRgba(color,0.25); ctx.fill(); ctx.stroke();
+  } else {
+    ctx.fillStyle=color; ctx.fill();
+  }
+  // label
+  ctx.fillStyle='rgba(200,216,240,0.85)'; ctx.font='9px Segoe UI';
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  const words = b.label.split(' ');
+  const line1 = words.slice(0,2).join(' ');
+  const line2 = words.slice(2,4).join(' ');
+  ctx.fillText(line1, p.x, p.y+b.size/2+3);
+  if(line2) ctx.fillText(line2, p.x, p.y+b.size/2+13);
+}
+
+function drawIssueDiamond(issue) {
+  const p = polarXY(issue.bearing, ISSUE_RANGE);
+  const col = CAT_COLOR[issue.pestle] || '#29b6f6';
+  const s = 9;
+  drawForceArrow(p.x,p.y,issue.bearing,col,s*2.4);
+  ctx.save();
+  ctx.shadowColor=col; ctx.shadowBlur=10;
+  ctx.beginPath();
+  ctx.moveTo(p.x, p.y-s); ctx.lineTo(p.x+s,p.y);
+  ctx.lineTo(p.x,p.y+s); ctx.lineTo(p.x-s,p.y); ctx.closePath();
+  ctx.fillStyle=hexToRgba(col,0.25); ctx.strokeStyle=col; ctx.lineWidth=1.5;
+  ctx.fill(); ctx.stroke(); ctx.restore();
+  ctx.fillStyle=hexToRgba(col,0.8); ctx.font='8px Segoe UI';
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  const words = issue.label.split(' ');
+  ctx.fillText(words.slice(0,2).join(' '), p.x, p.y+s+3);
+  if(words.length>2) ctx.fillText(words.slice(2,4).join(' '), p.x, p.y+s+12);
+}
+
+function drawCausalLinks(visibleBlips) {
+  if(!visibleBlips || visibleBlips.length < 2) return;
+  const byLabel = {};
+  visibleBlips.forEach(b => { byLabel[b.label] = b; });
+  ctx.save(); ctx.setLineDash([4,5]); ctx.lineWidth=1;
+  visibleBlips.forEach(src => {
+    if(!src.causes || src.causes.length===0) return;
+    const ps = polarXY(src.bearing,src.range);
+    src.causes.forEach(edge => {
+      const tgt = byLabel[edge.label];
+      if(!tgt) return;
+      const pt = polarXY(tgt.bearing,tgt.range);
+      const baseCol = CAT_COLOR[src.cat] || '#ef5350';
+      ctx.strokeStyle = hexToRgba(baseCol,0.40);
+      ctx.beginPath(); ctx.moveTo(ps.x,ps.y); ctx.lineTo(pt.x,pt.y); ctx.stroke();
+      const dx=pt.x-ps.x, dy=pt.y-ps.y, len=Math.hypot(dx,dy);
+      if(len<1) return;
+      const ux=dx/len, uy=dy/len, hl=8, hw=4;
+      ctx.setLineDash([]);
+      ctx.beginPath(); ctx.moveTo(pt.x,pt.y);
+      ctx.lineTo(pt.x-hl*ux+hw*uy, pt.y-hl*uy-hw*ux);
+      ctx.lineTo(pt.x-hl*ux-hw*uy, pt.y-hl*uy+hw*ux);
+      ctx.closePath(); ctx.fillStyle=hexToRgba(baseCol,0.40); ctx.fill();
+      ctx.setLineDash([4,5]);
+    });
+  });
+  ctx.restore();
+}
+
+function drawTrueNorthLabel(sdg) {
+  const sdgCol = SDG_COLOR[sdg.id] || '#4fc3f7';
+  ctx.fillStyle = sdgCol; ctx.font = 'bold 11px Segoe UI';
+  ctx.textAlign='center'; ctx.textBaseline='bottom';
+  ctx.fillText(`SDG ${sdg.id}: ${sdg.name}`, CX, CY - MAX_R - 8);
+}
+
+function drawOrigin() {
+  ctx.beginPath(); ctx.arc(CX,CY,12,0,Math.PI*2);
+  ctx.strokeStyle='rgba(79,195,247,0.18)'; ctx.lineWidth=1; ctx.stroke();
+  ctx.beginPath(); ctx.arc(CX,CY,5,0,Math.PI*2);
+  ctx.fillStyle='#4fc3f7'; ctx.shadowColor='#4fc3f7'; ctx.shadowBlur=10; ctx.fill(); ctx.shadowBlur=0;
+}
+
+function drawBorder() {
+  ctx.beginPath(); ctx.arc(CX,CY,MAX_R,0,Math.PI*2);
+  ctx.strokeStyle='rgba(79,195,247,0.18)'; ctx.lineWidth=2; ctx.stroke();
+}
+
+function drawBearingLabel(bearing) {
+  const abs=Math.abs(Math.round(bearing));
+  const dir = bearing===0?'True North':bearing>0?`+${abs}° east of True North`:`−${abs}° west of True North`;
+  ctx.fillStyle='#4fc3f7'; ctx.font='bold 10px Segoe UI';
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  ctx.fillText(`Strategic bearing: ${dir}`, CX, CY+MAX_R+12);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MAIN RENDER
+// ═══════════════════════════════════════════════════════════════════════════
+function renderRadar() {
+  ctx.clearRect(0,0,CW,CH);
+  const sdg = SDGs[activeSdg];
+  if(!sdg) return;
+
+  drawBg();
+  drawRings(sdg);
+  drawCompass('TRUE NORTH — 2030');
+  drawCone(sdg.coneP80, sdg.coneHalf, '#4fc3f7');
+  drawTrueNorthLabel(sdg);
+
+  // Causal links under blips
+  const vb = (sdg.blips||[]).filter(b=>blipVisible(b));
+  drawCausalLinks(vb);
+
+  // Blips
+  vb.forEach(b => drawBlip(b));
+
+  // Issues (Now ring)
+  (sdg.issues||[]).filter(i=>issueVisible(i)).forEach(i=>drawIssueDiamond(i));
+
+  // Main bearing arrow
+  drawArrow(sdg.bearing, SDG_COLOR[sdg.id]||'#4fc3f7');
+
+  drawOrigin();
+  drawBorder();
+  drawBearingLabel(sdg.bearing);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TOOLTIP SYSTEM
+// ═══════════════════════════════════════════════════════════════════════════
+const tooltip = document.getElementById('radar-tooltip');
+
+function canvasCoords(cx,cy) {
+  const rect = canvas.getBoundingClientRect();
+  const sx = CW/rect.width, sy = CH/rect.height;
+  return { x:(cx-rect.left)*sx, y:(cy-rect.top)*sy };
+}
+
+function hitTest(mx,my) {
+  const sdg = SDGs[activeSdg];
+  if(!sdg) return null;
+
+  // Test issues (Now ring diamonds)
+  for(const iss of (sdg.issues||[]).filter(i=>issueVisible(i))) {
+    const p = polarXY(iss.bearing, ISSUE_RANGE);
+    if(Math.hypot(mx-p.x,my-p.y)<14) return {kind:'issue',data:iss};
+  }
+
+  // Test blips
+  for(const b of (sdg.blips||[]).filter(b=>blipVisible(b))) {
+    const p = polarXY(b.bearing, b.range);
+    if(Math.hypot(mx-p.x,my-p.y) < b.size/2+4) return {kind:'blip',data:b};
+  }
+  return null;
+}
+
+const catBadgeClass = { Economic:'econ', Environmental:'env', Geopolitical:'geo', Societal:'soc', Technological:'tech' };
+
+function showTip(hit,mx,my) {
+  const d = hit.data;
+  let color, badgeClass, badgeText;
+  if(hit.kind==='issue') {
+    color = CAT_COLOR[d.pestle]||'#29b6f6';
+    badgeClass='issue'; badgeText='Active Issue';
+    if(d.pestle) badgeText += ` · ${d.pestle}`;
+  } else {
+    color = CAT_COLOR[d.cat]||(d.type==='opportunity'?'#26a69a':'#ef5350');
+    const typeLabel = d.type==='opportunity'?'Opportunity':'Threat';
+    badgeClass = d.type==='opportunity'?'opportunity':(catBadgeClass[d.cat]||'threat');
+    badgeText  = d.cat ? `${typeLabel} · ${d.cat}` : typeLabel;
+  }
+
+  document.getElementById('tt-dot').style.background=color;
+  document.getElementById('tt-label').textContent=d.label||'';
+  const badge=document.getElementById('tt-badge');
+  badge.textContent=badgeText; badge.className=`tt-badge ${badgeClass}`;
+
+  const grid=document.getElementById('tt-grid');
+  grid.innerHTML='';
+  function cell(label,value,cls) {
+    return `<div class="tt-cell"><div class="tt-cell-label">${label}</div><div class="tt-cell-value ${cls||''}">${value}</div></div>`;
+  }
+
+  if(hit.kind==='issue') {
+    grid.innerHTML=cell('Status','Confirmed','high')+cell('Category',d.pestle||'—')+
+      cell('Onset',d.onset||'—')+cell('Resolution',d.resolution||'—');
+    document.getElementById('tt-bearing').textContent='';
+    document.getElementById('tt-rationale').textContent=d.action||'';
+  } else {
+    const r2=d.wef2yr?`#${d.wef2yr}`:'—';
+    const r10=d.wef10yr?`#${d.wef10yr}`:'—';
+    grid.innerHTML=cell('Magnitude',d.magnitude||'—',vcls(d.magnitude))+
+      cell('Direction',d.direction||'—')+
+      cell('WEF 2yr rank',r2)+cell('WEF 10yr rank',r10)+
+      (d.capability?cell('Capability',d.capability,vcls(d.capability)):'');
+    document.getElementById('tt-bearing').textContent=d.bearing_effect||'';
+    document.getElementById('tt-rationale').textContent=d.rationale||'';
+  }
+
+  // Causal block
+  const causalEl=document.getElementById('tt-causal');
+  const hasCauses   = d.causes    && d.causes.length>0;
+  const hasCausedBy = d.caused_by && d.caused_by.length>0;
+  if(causalEl && (hasCauses||hasCausedBy)) {
+    let html='';
+    if(hasCausedBy) {
+      html+='<div class="tt-causal-head">Driven by</div>';
+      d.caused_by.forEach(e=>{
+        html+=`<div class="tt-causal-row"><span class="tt-causal-src">${e.label}</span><span class="tt-causal-delta ${parseFloat(e.delta)>=0?'pos':'neg'}">${e.delta}</span></div>`;
+        if(e.note) html+=`<div class="tt-causal-note">${e.note}</div>`;
+      });
+    }
+    if(hasCauses) {
+      html+='<div class="tt-causal-head">Drives</div>';
+      d.causes.forEach(e=>{
+        html+=`<div class="tt-causal-row"><span class="tt-causal-src">${e.label}</span><span class="tt-causal-delta ${parseFloat(e.delta)>=0?'pos':'neg'}">${e.delta}</span></div>`;
+        if(e.note) html+=`<div class="tt-causal-note">${e.note}</div>`;
+      });
+    }
+    causalEl.innerHTML=html; causalEl.style.display='block';
+  } else if(causalEl) {
+    causalEl.style.display='none';
+  }
+
+  const TW=290,TH=420,vw=window.innerWidth,vh=window.innerHeight;
+  let left=mx+16,top=my-20;
+  if(left+TW>vw-12) left=mx-TW-12;
+  if(top+TH>vh-12) top=vh-TH-12;
+  if(top<8) top=8;
+  tooltip.style.left=left+'px'; tooltip.style.top=top+'px';
+  tooltip.classList.add('visible');
+}
+function hideTip() { tooltip.classList.remove('visible'); }
+
+canvas.addEventListener('mousemove',e=>{
+  const {x,y}=canvasCoords(e.clientX,e.clientY);
+  const hit=hitTest(x,y);
+  if(hit){canvas.style.cursor='pointer';showTip(hit,e.clientX,e.clientY);}
+  else{canvas.style.cursor='';hideTip();}
+});
+canvas.addEventListener('mouseleave',hideTip);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ANALYSIS PANEL
+// ═══════════════════════════════════════════════════════════════════════════
+function statusPill(s) {
+  const labels={
+    'on-track':'On Track','moderate':'Moderate Progress',
+    'marginal':'Marginal Progress','stagnation':'Stagnation','regression':'Regression'
+  };
+  return `<span class="status-pill status-${s}">${labels[s]||s}</span>`;
+}
+
+function renderAnalysis() {
+  const sdg = SDGs[activeSdg];
+  if(!sdg) return;
+  const col = SDG_COLOR[sdg.id]||'#4fc3f7';
+
+  const topThreats = (sdg.blips||[])
+    .filter(b=>b.type==='threat')
+    .sort((a,b)=>(a.wef2yr||99)-(b.wef2yr||99))
+    .slice(0,5);
+
+  const topOpps = (sdg.blips||[])
+    .filter(b=>b.type==='opportunity')
+    .slice(0,3);
+
+  const issues = sdg.issues||[];
+
+  let html = `
+    <div class="info-header">
+      <div class="info-title" style="color:${col}">SDG ${sdg.id}: ${sdg.name}</div>
+      <div class="info-subtitle" style="margin-top:4px">${statusPill(sdg.status)}</div>
+      <div class="info-subtitle" style="margin-top:6px">${sdg.statusNote}</div>
+    </div>
+
+    <div class="info-section">
+      <div class="info-section-head">Strategic Bearing</div>
+      <div class="bearing-stat">
+        <span class="bearing-label">Current deviation from True North</span>
+        <span class="bearing-value">+${sdg.bearing}°</span>
+      </div>
+      <div class="bearing-stat">
+        <span class="bearing-label">P50 bearing (expected)</span>
+        <span class="bearing-value" style="font-size:0.9rem;color:#8aa4c8">+${sdg.coneP50}°</span>
+      </div>
+      <div class="bearing-stat">
+        <span class="bearing-label">P80 tail (stressed)</span>
+        <span class="bearing-value" style="font-size:0.9rem;color:#ef5350">+${sdg.coneP80}°</span>
+      </div>
+      <div class="info-body" style="margin-top:8px">${sdg.headline}</div>
+    </div>`;
+
+  if(issues.length>0) {
+    html+=`<div class="info-section">
+      <div class="info-section-head">Active Issues (Now Ring)</div>
+      <ul class="risk-list">`;
+    issues.forEach(i=>{
+      const c=CAT_COLOR[i.pestle]||'#29b6f6';
+      html+=`<li>
+        <span class="risk-dot" style="background:${c}"></span>
+        <span class="risk-name">${i.label}</span>
+        <span class="risk-rank">${i.onset}</span>
+      </li>`;
+    });
+    html+=`</ul></div>`;
+  }
+
+  if(topThreats.length>0) {
+    html+=`<div class="info-section">
+      <div class="info-section-head">Principal WEF Threats</div>
+      <ul class="risk-list">`;
+    topThreats.forEach(b=>{
+      const c=CAT_COLOR[b.cat]||'#ef5350';
+      const r2=b.wef2yr?`WEF 2yr #${b.wef2yr}`:'';
+      const r10=b.wef10yr?`/ 10yr #${b.wef10yr}`:'';
+      html+=`<li>
+        <span class="risk-dot" style="background:${c}"></span>
+        <span class="risk-name">${b.label}</span>
+        <span class="risk-rank">${r2} ${r10}</span>
+      </li>`;
+    });
+    html+=`</ul></div>`;
+  }
+
+  if(topOpps.length>0) {
+    html+=`<div class="info-section">
+      <div class="info-section-head">Strategic Opportunities</div>
+      <ul class="risk-list">`;
+    topOpps.forEach(b=>{
+      const c=CAT_COLOR[b.cat]||'#26a69a';
+      html+=`<li>
+        <span class="risk-dot" style="background:${c};border-radius:0"></span>
+        <span class="risk-name">${b.label}</span>
+        <span class="risk-rank">Capability: ${b.capability||'—'}</span>
+      </li>`;
+    });
+    html+=`</ul></div>`;
+  }
+
+  html+=`<div class="info-section">
+    <div class="info-section-head">Data Sources</div>
+    <div class="info-body">
+      WEF Global Risks Report 2026 (21st Edition) — Global Risks Perception Survey 2025–2026, 1,300+ experts.<br>
+      WEF 2016 Cytoscape Risk Network — 29 nodes, 170 directed edges, weights 1–3. Assumed structurally extant.<br>
+      UN SDG Report 2025 — 169 targets assessed against 2015–2025 trend data.
+    </div>
+  </div>`;
+
+  document.getElementById('tab-analysis').innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// NETWORK PANEL
+// ═══════════════════════════════════════════════════════════════════════════
+function renderNetwork() {
+  const sdg = SDGs[activeSdg];
+  if(!sdg || !sdg.network) return;
+  const col = SDG_COLOR[sdg.id]||'#4fc3f7';
+  const net = sdg.network;
+
+  // Find the WEF nodes most connected to blip labels
+  const blipLabels = new Set((sdg.blips||[]).map(b=>b.label.toLowerCase().substring(0,15)));
+  const relevantNodes = Object.entries(WEF_NODES).filter(([k,v]) =>
+    blipLabels.has(v.name.toLowerCase().substring(0,15)) ||
+    (sdg.blips||[]).some(b=>b.label.toLowerCase().includes(v.name.toLowerCase().substring(0,12)))
+  ).map(([k,v])=>({id:k,...v}));
+
+  let html = `
+    <div class="info-header">
+      <div class="info-title" style="color:${col}">Risk Network: SDG ${sdg.id}</div>
+      <div class="info-subtitle">WEF 2016 Cytoscape network — causal chains mapped to SDG ${sdg.id} risk exposure</div>
+    </div>
+
+    <div class="info-section">
+      <div class="info-section-head">Network Assessment</div>
+      <div class="info-body">${net.headline}</div>
+    </div>
+
+    <div class="info-section">
+      <div class="info-section-head">Principal Causal Chains</div>`;
+
+  net.chains.forEach(chain=>{
+    html+=`<div class="causal-chain">`;
+    chain.path.forEach((node,i)=>{
+      const w = chain.weights[i];
+      const wc = w===3?'cw-3':w===2?'cw-2':'cw-1';
+      html+=`<div class="causal-chain-row">
+        ${i>0?`<span class="causal-arrow">→</span>`:'<span style="width:14px;display:inline-block"></span>'}
+        <span class="causal-node">${node}</span>
+        ${w!=null?`<span class="causal-weight ${wc}">w${w}</span>`:''}
+      </div>`;
+    });
+    html+=`<div class="info-body" style="margin:4px 0 10px 14px;font-size:0.7rem;color:#4a6080">${chain.effect}</div>`;
+    html+=`</div>`;
+  });
+
+  html+=`</div>
+
+    <div class="info-section">
+      <div class="info-section-head">WEF 2016 Node In-Degree (Top 8 — network centrality)</div>
+      <ul class="risk-list">`;
+
+  const topNodes = Object.entries(NODE_INDEGREE)
+    .sort((a,b)=>b[1]-a[1]).slice(0,8);
+  topNodes.forEach(([k,deg])=>{
+    const n=WEF_NODES[k];
+    const c=CAT_COLOR[n.cat];
+    const maxDeg=topNodes[0][1];
+    html+=`<li>
+      <span class="risk-dot" style="background:${c}"></span>
+      <span class="risk-name">${n.name}</span>
+      <span class="risk-rank">in-degree ${deg}</span>
+    </li>`;
+  });
+
+  html+=`</ul></div>
+
+    <div class="info-section">
+      <div class="info-section-head">Methodological Note</div>
+      <div class="info-body">
+        The WEF 2016 Cytoscape network (29 nodes, 170 directed edges) is treated as structurally extant for this proof of concept.
+        Edge weights (1–3) represent co-occurrence strength from expert elicitation.
+        Node in-degree is the sum of all incoming edge weights — a proxy for systemic vulnerability.
+        Causal chains on the radar represent the highest-weight directed paths from WEF risks to SDG outcome degradation.
+        The 2026 WEF GRPS severity rankings are overlaid as blip positioning on the radar (2yr horizon = inner rings; 10yr = outer rings).
+      </div>
+    </div>`;
+
+  document.getElementById('tab-network').innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CHAT PANEL
+// ═══════════════════════════════════════════════════════════════════════════
+function renderChat() {
+  const sdg = SDGs[activeSdg];
+  if(!sdg || !sdg.chat) return;
+  let html='<div class="chat-container">';
+  sdg.chat.forEach(m=>{
+    const speaker = m.role==='board'?'Board Member':'Risk Analyst';
+    html+=`<div class="chat-msg ${m.role}">
+      <div class="chat-speaker">${speaker}</div>
+      <div class="chat-bubble">${m.text}</div>
+    </div>`;
+  });
+  html+='</div>';
+  document.getElementById('tab-chat').innerHTML=html;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TAB SWITCHING
+// ═══════════════════════════════════════════════════════════════════════════
+let activeTab = 'analysis';
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    activeTab=btn.dataset.tab;
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-'+activeTab).classList.add('active');
+    if(activeTab==='analysis') renderAnalysis();
+    else if(activeTab==='network') renderNetwork();
+    else if(activeTab==='chat') renderChat();
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SDG SWITCHING
+// ═══════════════════════════════════════════════════════════════════════════
+function setSdg(id) {
+  activeSdg = id;
+  document.querySelectorAll('.sdg-btn').forEach(b=>{
+    b.classList.toggle('active', parseInt(b.dataset.sdg)===id);
+  });
+  hideTip();
+  renderRadar();
+  if(activeTab==='analysis') renderAnalysis();
+  else if(activeTab==='network') renderNetwork();
+  else renderChat();
+}
+
+// Build SDG buttons
+const tabsEl = document.getElementById('sdg-tabs');
+SDG_ORDER.forEach(id=>{
+  const sdg=SDGs[id];
+  const col=SDG_COLOR[id];
+  const btn=document.createElement('button');
+  btn.className='sdg-btn'; btn.dataset.sdg=id;
+  btn.textContent=`SDG ${id}: ${sdg.name}`;
+  btn.style.borderColor=col+'55';
+  btn.addEventListener('click',()=>setSdg(id));
+  tabsEl.appendChild(btn);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FILTER BAR
+// ═══════════════════════════════════════════════════════════════════════════
+document.querySelectorAll('.pf-btn[data-cat]').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const cat=btn.dataset.cat;
+    catActive[cat]=!catActive[cat];
+    btn.classList.toggle('off',!catActive[cat]);
+    hideTip(); renderRadar();
+    if(activeTab==='analysis') renderAnalysis();
+  });
+});
+document.querySelectorAll('.pf-btn[data-type]').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const t=btn.dataset.type;
+    typeActive[t]=!typeActive[t];
+    btn.classList.toggle('off',!typeActive[t]);
+    hideTip(); renderRadar();
+    if(activeTab==='analysis') renderAnalysis();
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RESIZE
+// ═══════════════════════════════════════════════════════════════════════════
+function resizeCanvas() {
+  const panel=document.getElementById('radar-panel');
+  const avail=Math.min(panel.clientWidth-32, panel.clientHeight-32);
+  const sz=Math.max(300,Math.min(660,avail));
+  canvas.style.width=sz+'px'; canvas.style.height=sz+'px';
+}
+window.addEventListener('resize',()=>{ resizeCanvas(); renderRadar(); });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════════════
+resizeCanvas();
+setSdg(1);
+</script>
+</body>
+</html>
