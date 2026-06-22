@@ -549,6 +549,13 @@ const SDGs = {
     statusNote: '18% of targets in regression. 808m people in extreme poverty in 2025 — higher than 2020 revised estimates.',
     bearing: 42, coneP50: 38, coneP80: 58, coneHalf: 20,
     headline: 'Poverty eradication is off-course. Geoeconomic confrontation and economic downturn compound the chronic gap. Bearing deviation: +42° east — structural threats dominate over capability.',
+    history: [
+      {year:2021,bearing:65,status:'regression'},
+      {year:2022,bearing:65,status:'regression'},
+      {year:2023,bearing:50,status:'stagnation'},
+      {year:2024,bearing:50,status:'stagnation'},
+      {year:2025,bearing:50,status:'stagnation'},
+    ],
     issues: [
       { label: 'Debt crisis — LIC', bearing: 20, pestle: 'Economic',
         onset: '2023–present', resolution: 'Unresolved',
@@ -627,6 +634,13 @@ const SDGs = {
     statusNote: '638–720 million people face hunger in 2024. Food insecurity affects 2.3 billion. Progress has stalled and reversed in sub-Saharan Africa.',
     bearing: 58, coneP50: 52, coneP80: 75, coneHalf: 23,
     headline: 'Zero Hunger is the most severely off-course SDG. Bearing: +58° east. Extreme weather, conflict, and economic shocks form a mutually reinforcing triad driving the world away from True North.',
+    history: [
+      {year:2021,bearing:65,status:'regression'},
+      {year:2022,bearing:65,status:'regression'},
+      {year:2023,bearing:50,status:'stagnation'},
+      {year:2024,bearing:50,status:'stagnation'},
+      {year:2025,bearing:50,status:'stagnation'},
+    ],
     issues: [
       { label: 'Sub-Saharan food crisis', bearing: 65, pestle: 'Environmental',
         onset: '2022–present', resolution: 'Unresolved',
@@ -696,6 +710,13 @@ const SDGs = {
     statusNote: '2024 was the hottest year on record, crossing 1.5°C threshold. CO₂ at highest in 2 million years. Environmental risks are being deprioritised in 2-year outlook despite dominance at 10 years.',
     bearing: 68, coneP50: 60, coneP80: 85, coneHalf: 25,
     headline: 'Climate action faces a structural paradox: it is the most severe long-term risk cluster yet the most politically deprioritised in the 2-year horizon. Bearing: +68° east — the widest deviation of any SDG.',
+    history: [
+      {year:2021,bearing:65,status:'regression'},
+      {year:2022,bearing:65,status:'regression'},
+      {year:2023,bearing:65,status:'regression'},
+      {year:2024,bearing:65,status:'regression'},
+      {year:2025,bearing:65,status:'regression'},
+    ],
     issues: [
       { label: '1.5°C threshold crossed', bearing: 80, pestle: 'Environmental',
         onset: '2024', resolution: 'Permanent unless reversed',
@@ -784,6 +805,13 @@ const SDGs = {
     statusNote: 'Peace and security have worsened. 120m+ displaced. Conflict-affected populations at record levels. Multilateral governance under unprecedented pressure.',
     bearing: 52, coneP50: 46, coneP80: 65, coneHalf: 19,
     headline: 'The institutional foundations of the entire SDG agenda are under stress. Bearing: +52° east. Geoeconomic confrontation is the dominant risk, displacing multilateral governance mechanisms.',
+    history: [
+      {year:2021,bearing:65,status:'regression'},
+      {year:2022,bearing:50,status:'stagnation'},
+      {year:2023,bearing:35,status:'marginal'},
+      {year:2024,bearing:50,status:'stagnation'},
+      {year:2025,bearing:50,status:'stagnation'},
+    ],
     issues: [
       { label: 'Multilateralism in retreat', bearing: 55, pestle: 'Geopolitical',
         onset: '2023–present', resolution: 'Ongoing',
@@ -866,6 +894,13 @@ const SDGs = {
     statusNote: 'Moderate progress on employment but decent work quality lagging. Debt servicing crowds out growth investment. AI-driven labour market disruption accelerating.',
     bearing: 38, coneP50: 32, coneP80: 52, coneHalf: 20,
     headline: 'Economic growth is bifurcating: headline GDP has recovered but decent work quality and inclusive growth are stalling. Bearing: +38° east. AI displacement and geoeconomic confrontation are the key vectors.',
+    history: [
+      {year:2021,bearing:65,status:'regression'},
+      {year:2022,bearing:35,status:'marginal'},
+      {year:2023,bearing:35,status:'marginal'},
+      {year:2024,bearing:35,status:'marginal'},
+      {year:2025,bearing:35,status:'marginal'},
+    ],
     issues: [
       { label: 'K-shaped recovery', bearing: 45, pestle: 'Economic',
         onset: '2020–present', resolution: 'Structural',
@@ -935,6 +970,13 @@ const SDGs = {
     statusNote: 'Multilateralism in retreat. ODA declining. $4 trillion annual financing gap. Debt servicing record high. Trust in international institutions at historic low.',
     bearing: 48, coneP50: 42, coneP80: 62, coneHalf: 20,
     headline: 'The enabling condition for all SDGs is deteriorating fastest. Bearing: +48° east. Geoeconomic confrontation is directly dismantling the partnership architecture that SDG 17 requires.',
+    history: [
+      {year:2021,bearing:50,status:'stagnation'},
+      {year:2022,bearing:35,status:'marginal'},
+      {year:2023,bearing:35,status:'marginal'},
+      {year:2024,bearing:50,status:'stagnation'},
+      {year:2025,bearing:50,status:'stagnation'},
+    ],
     issues: [
       { label: '$4 trillion financing gap', bearing: 50, pestle: 'Economic',
         onset: '2023–present', resolution: 'Unresolved',
@@ -990,8 +1032,579 @@ const SDGs = {
   },
 };
 
+// ── SDG 3: Good Health & Well-Being ───────────────────────────────────────
+SDGs[3] = {
+  id:3, name:'Good Health & Well-Being',
+  north:'Ensure healthy lives and promote well-being for all at all ages by 2030',
+  status:'marginal',
+  statusNote:'Health systems remain fragile post-pandemic. Maternal and child mortality declining but too slowly. NCD burden rising. Global health financing constrained by fiscal pressures.',
+  bearing:32, coneP50:28, coneP80:45, coneHalf:17,
+  headline:'Health goals show marginal progress — COVID-19 recovery is real but uneven. Bearing: +32° east. Health system resilience and workforce shortfalls are the binding constraints.',
+  history:[
+    {year:2021,bearing:65,status:'regression'},
+    {year:2022,bearing:65,status:'regression'},
+    {year:2023,bearing:35,status:'marginal'},
+    {year:2024,bearing:35,status:'marginal'},
+    {year:2025,bearing:35,status:'marginal'},
+  ],
+  issues:[
+    {label:'Health workforce crisis',bearing:35,pestle:'Societal',onset:'2021–present',resolution:'Worsening',
+     action:'WHO estimates a shortfall of 10 million health workers by 2030, concentrated in LMICs. Burnout and emigration compound supply gaps.'},
+    {label:'AMR — antimicrobial resistance',bearing:45,pestle:'Technological',onset:'Ongoing',resolution:'Unresolved',
+     action:'1.27 million deaths attributable to AMR in 2019. Pipeline of new antibiotics is critically thin. Treated as low-priority by private capital markets.'},
+  ],
+  blips:[
+    {label:'Spread of infectious disease',bearing:55,range:0.30,size:13,type:'threat',cat:'Societal',
+     wef2yr:7,wef10yr:null,magnitude:'High',direction:'+55°',
+     bearing_effect:'#7 current risk — pandemic preparedness gaps remain despite COVID-19 investment',
+     rationale:'Global health security index reveals persistent gaps in detection, response, and financing. Next pandemic event has higher probability than pre-2020 baseline.',
+     objective:'SDG 3 — Good Health',causes:[],caused_by:[]},
+    {label:'Extreme weather events',bearing:40,range:0.50,size:11,type:'threat',cat:'Environmental',
+     wef2yr:4,wef10yr:1,magnitude:'High',direction:'+40°',
+     bearing_effect:'Heat stress, flood, and air quality from climate events are rapidly expanding the NCD burden',
+     rationale:'Climate change is a direct health hazard: heat mortality, vector-borne disease range expansion, and air pollution from wildfires compound existing NCD burden.',
+     objective:'SDG 3 — Good Health',causes:[],caused_by:[]},
+    {label:'Geoeconomic confrontation',bearing:38,range:0.28,size:12,type:'threat',cat:'Geopolitical',
+     wef2yr:1,wef10yr:null,magnitude:'High',direction:'+38°',
+     bearing_effect:'Disrupts medicine and medical equipment supply chains; fragments WHO and multilateral health cooperation',
+     rationale:'Trade fragmentation raises costs of essential medicines, vaccines and diagnostics. USAID freeze has directly disrupted HIV, TB and malaria programmes across 55+ countries.',
+     objective:'SDG 3 — Good Health',causes:[],caused_by:[]},
+    {label:'Digital health innovation',bearing:348,range:0.55,size:10,type:'opportunity',cat:'Technological',
+     wef2yr:null,wef10yr:null,magnitude:'Medium',direction:'−12°',capability:'Medium',
+     bearing_effect:'AI diagnostics, telemedicine and digital health records can extend coverage with lower workforce intensity',
+     rationale:'AI-assisted diagnosis has demonstrated primary-care level performance in dermatology, radiology and ophthalmology. Scaling to LMICs requires connectivity and data infrastructure investment.',
+     objective:'SDG 3 — Good Health',causes:[],caused_by:[]},
+  ],
+  chat:[
+    {role:'board',text:'The radar shows SDG 3 moved from regression to marginal. What drove the improvement after 2022?'},
+    {role:'analyst',text:'The dominant factor is COVID-19 recovery — immunisation catch-up, health system re-opening, and resumed routine care. Maternal and child mortality resumed their pre-pandemic decline trajectory. But these are recoveries, not advances: we have essentially returned to 2019 progress rates rather than accelerating. The 2030 targets for universal health coverage remain significantly out of reach.'},
+    {role:'board',text:'Is antimicrobial resistance on the SDG 3 radar or is it treated separately?'},
+    {role:'analyst',text:'AMR sits in an awkward policy gap — it appears in SDG 3 target language but receives no dedicated financing mechanism equivalent to HIV or malaria. The WEF 2016 network classifies it under spread of infectious disease (N5), which has direct edges to failure of urban planning and critical infrastructure. It is one of the few health risks where the 2yr and 10yr threat rankings should arguably be reversed.'},
+  ],
+  network:{
+    headline:'Health risks are tightly coupled to societal and environmental nodes in the WEF 2016 graph — infectious disease is a high out-degree node that connects health shocks to governance and economic cascades.',
+    chains:[
+      {path:['Spread of infectious disease','Failure of urban planning','Unemployment or underemployment'],weights:[1,1],effect:'Health-urban-economic cascade — pandemic shocks compress labour markets and overwhelm urban health infrastructure'},
+      {path:['Extreme weather events','Food crisis','Spread of infectious disease'],weights:[2,1],effect:'Climate-nutrition-health cascade — malnutrition increases vulnerability to infectious disease burden'},
+    ]
+  }
+};
+
+// ── SDG 4: Quality Education ───────────────────────────────────────────────
+SDGs[4] = {
+  id:4, name:'Quality Education',
+  north:'Ensure inclusive and equitable quality education and promote lifelong learning for all by 2030',
+  status:'stagnation',
+  statusNote:'COVID-19 reversed a decade of learning progress. 250 million children still out of school. Teacher shortages endemic. Learning poverty affects 70% of children in LMICs.',
+  bearing:50, coneP50:44, coneP80:62, coneHalf:18,
+  headline:'Education is in a learning crisis. Bearing: +50° east. Pandemic-induced learning loss has not recovered. Infrastructure gaps, teacher shortfalls, and connectivity deficits compound the structural challenge.',
+  history:[
+    {year:2021,bearing:65,status:'regression'},
+    {year:2022,bearing:65,status:'regression'},
+    {year:2023,bearing:50,status:'stagnation'},
+    {year:2024,bearing:50,status:'stagnation'},
+    {year:2025,bearing:50,status:'stagnation'},
+  ],
+  issues:[
+    {label:'Post-COVID learning deficit',bearing:55,pestle:'Societal',onset:'2020–present',resolution:'Partial recovery',
+     action:'World Bank estimates 1.5 years of effective learning lost globally. Recovery is slower than projected — 250 million children still out of school in 2023.'},
+    {label:'Teacher shortage crisis',bearing:40,pestle:'Societal',onset:'Structural',resolution:'Worsening',
+     action:'UNESCO estimates 69 million new teachers needed by 2030. Teacher pay and conditions are declining in real terms in most developing economies.'},
+  ],
+  blips:[
+    {label:'Societal polarisation',bearing:55,range:0.35,size:12,type:'threat',cat:'Societal',
+     wef2yr:3,wef10yr:9,magnitude:'High',direction:'+55°',
+     bearing_effect:'Fractures political will for universal education investment; drives curriculum conflict and school withdrawal',
+     rationale:'Political polarisation disrupts education systems through curriculum battles, school defunding, and withdrawal of children from public schooling. Most severe in upper-middle income countries.',
+     objective:'SDG 4 — Quality Education',causes:[],caused_by:[]},
+    {label:'Geoeconomic confrontation',bearing:42,range:0.28,size:11,type:'threat',cat:'Geopolitical',
+     wef2yr:1,wef10yr:null,magnitude:'Medium',direction:'+42°',
+     bearing_effect:'USAID freeze cut education programming across 20+ fragile states; ODA compression reduces multilateral education fund flows',
+     rationale:'Development education finance — through GPE, UNICEF and bilateral ODA — is directly exposed to geopolitical competition. Fragile states with lowest education baselines are most vulnerable to financing withdrawal.',
+     objective:'SDG 4 — Quality Education',causes:[],caused_by:[]},
+    {label:'AI in education',bearing:345,range:0.60,size:11,type:'opportunity',cat:'Technological',
+     wef2yr:null,wef10yr:null,magnitude:'High',direction:'−15°',capability:'Medium',
+     bearing_effect:'Personalised learning AI can partially substitute for teacher shortfalls and unlock at-scale quality improvement',
+     rationale:'AI tutoring systems have demonstrated learning gains equivalent to one-on-one tutoring in controlled pilots. Scaling requires device access and electricity — still unavailable for 370 million school-age children.',
+     objective:'SDG 4 — Quality Education',causes:[],caused_by:[]},
+  ],
+  chat:[
+    {role:'board',text:'Why has education stalled at stagnation since 2023 when school reopening appeared complete?'},
+    {role:'analyst',text:'Reopening is not the same as recovery. The learning crisis is about quality, not just access. Children who spent 2–3 years in remote or disrupted schooling during COVID-19 have measurable learning deficits that are not self-correcting. UNICEF data shows that reading and numeracy scores in LMICs remain 15–20% below 2019 baselines. Without targeted remediation — which requires teachers, time, and money — the bearing stays at stagnation.'},
+  ],
+  network:{
+    headline:'Education risk is primarily socioeconomic — unemployment and inequality both increase school dropout rates, and the WEF 2016 network reflects this with dense links between the economic cluster and the societal cluster where education sits.',
+    chains:[
+      {path:['Profound social instability','Failure of urban planning','Unemployment or underemployment'],weights:[1,1],effect:'Social breakdown cascade — instability disrupts schooling, which compounds unemployment'},
+      {path:['Geoeconomic confrontation','Fiscal crisis','Unemployment or underemployment'],weights:[1,2],effect:'Fiscal squeeze cascade — geopolitical fragmentation reduces education ODA and domestic education budgets'},
+    ]
+  }
+};
+
+// ── SDG 5: Gender Equality ─────────────────────────────────────────────────
+SDGs[5] = {
+  id:5, name:'Gender Equality',
+  north:'Achieve gender equality and empower all women and girls by 2030',
+  status:'stagnation',
+  statusNote:'Gender equality progress has stalled across all four domains: legal frameworks, violence, employment, and marriage and family. No country has achieved gender parity on all measures.',
+  bearing:50, coneP50:44, coneP80:62, coneHalf:18,
+  headline:'Gender equality is among the most off-course SDGs. Bearing: +50° east. Structural and legal barriers persist across all regions; political regression in some jurisdictions is reversing prior gains.',
+  history:[
+    {year:2021,bearing:50,status:'stagnation'},
+    {year:2022,bearing:50,status:'stagnation'},
+    {year:2023,bearing:50,status:'stagnation'},
+    {year:2024,bearing:50,status:'stagnation'},
+    {year:2025,bearing:50,status:'stagnation'},
+  ],
+  issues:[
+    {label:'Political regression on gender rights',bearing:60,pestle:'Geopolitical',onset:'2021–present',resolution:'Ongoing',
+     action:'Multiple jurisdictions have restricted reproductive rights, limited women\'s legal autonomy and reduced gender-equality policy commitments since 2021.'},
+    {label:'Gender-based violence',bearing:45,pestle:'Societal',onset:'Structural',resolution:'Persistent',
+     action:'1 in 3 women globally experience physical or sexual violence. Rates spiked during COVID-19 lockdowns. Only 63 countries have enacted legislation on violence against women.'},
+  ],
+  blips:[
+    {label:'Societal polarisation',bearing:58,range:0.35,size:12,type:'threat',cat:'Societal',
+     wef2yr:3,wef10yr:9,magnitude:'High',direction:'+58°',
+     bearing_effect:'Anti-gender political movements are reversing legislative and institutional gains made over the past three decades',
+     rationale:'Political polarisation has energised coordinated anti-gender-equality movements across democracies and autocracies alike. Reproductive rights, workplace protections, and political representation gains are under active reversal in multiple jurisdictions.',
+     objective:'SDG 5 — Gender Equality',causes:[],caused_by:[]},
+    {label:'Geoeconomic confrontation',bearing:42,range:0.28,size:11,type:'threat',cat:'Geopolitical',
+     wef2yr:1,wef10yr:null,magnitude:'High',direction:'+42°',
+     bearing_effect:'USAID freeze terminated gender equality programming across 55+ countries; multilateral gender finance mechanisms under pressure',
+     rationale:'US foreign aid freeze terminated programmes covering reproductive health, anti-GBV, and women\'s economic empowerment in dozens of countries. This is the largest single-year reversal in gender equality financing since 2000.',
+     objective:'SDG 5 — Gender Equality',causes:[],caused_by:[]},
+    {label:'Women\'s economic empowerment',bearing:350,range:0.55,size:10,type:'opportunity',cat:'Economic',
+     wef2yr:null,wef10yr:null,magnitude:'High',direction:'−10°',capability:'Medium',
+     bearing_effect:'Closing gender gaps in labour markets could add $28 trillion to global GDP by 2025 (McKinsey)',
+     rationale:'Evidence consistently shows that women\'s economic participation is the highest-return single investment available to developing economies. The binding constraints are legal, social, and care-economy related — not capability.',
+     objective:'SDG 5 — Gender Equality',causes:[],caused_by:[]},
+  ],
+  chat:[
+    {role:'board',text:'SDG 5 has shown stagnation for all five years. What would be needed to shift the bearing?'},
+    {role:'analyst',text:'The 2025 UN data points to three specific interventions with demonstrated effect: first, legal reform — 99 positive legal reforms on gender equality were implemented between 2019 and 2024, showing that legislative change at scale is achievable. Second, public finance systems with gender-responsive budgeting — only 26 per cent of countries have these, unchanged since 2021. Third, elimination of care economy penalties — women spend 2–4 times more hours on unpaid care than men. None of these require new technology. All require political will.'},
+  ],
+  network:{
+    headline:'Gender equality is structurally embedded in societal and economic risk nodes — the WEF 2016 network reflects this through the profound social instability node, which is a high-centrality convergence point for gender-related risk cascades.',
+    chains:[
+      {path:['Profound social instability','Large scale involuntary migration','Spread of infectious disease'],weights:[2,1],effect:'Social instability cascade — displacement and conflict disproportionately harm women and girls'},
+      {path:['Unemployment or underemployment','Fiscal crisis','Profound social instability'],weights:[2,1],effect:'Economic exclusion cascade — gender gaps in employment amplify social instability risk'},
+    ]
+  }
+};
+
+// ── SDG 6: Clean Water & Sanitation ───────────────────────────────────────
+SDGs[6] = {
+  id:6, name:'Clean Water & Sanitation',
+  north:'Ensure availability and sustainable management of water and sanitation for all by 2030',
+  status:'marginal',
+  statusNote:'2.2 billion lack safely managed drinking water; 3.4 billion lack sanitation. Progress is 4–6 times too slow for 2030 targets. Water stress intensifying across Northern Africa, Western and Central Asia.',
+  bearing:35, coneP50:30, coneP80:48, coneHalf:18,
+  headline:'Water and sanitation show marginal progress — steady improvement masked by population growth and widening regional gaps. Bearing: +35° east. Climate and governance are the binding constraints.',
+  history:[
+    {year:2021,bearing:35,status:'marginal'},
+    {year:2022,bearing:35,status:'marginal'},
+    {year:2023,bearing:35,status:'marginal'},
+    {year:2024,bearing:35,status:'marginal'},
+    {year:2025,bearing:35,status:'marginal'},
+  ],
+  issues:[
+    {label:'Groundwater depletion crisis',bearing:40,pestle:'Environmental',onset:'2015–present',resolution:'Accelerating',
+     action:'Global groundwater tables declining at 3× the rate of recharge in key agricultural regions. Northern Africa and Western Asia are in critical water stress exceeding 75%.'},
+    {label:'Water governance failure',bearing:30,pestle:'Geopolitical',onset:'Structural',resolution:'Persistent',
+     action:'Only 57% of integrated water resources management is implemented globally. 153 countries share transboundary waters; only 43 have agreements covering 90%+ of shared basins.'},
+  ],
+  blips:[
+    {label:'Water crisis',bearing:45,range:0.40,size:13,type:'threat',cat:'Societal',
+     wef2yr:6,wef10yr:null,magnitude:'High',direction:'+45°',
+     bearing_effect:'#6 current risk — water scarcity is simultaneously a humanitarian crisis and a cascade trigger for food, health, and conflict risks',
+     rationale:'The WEF 2016 node N3 (Water crisis) has high out-degree: it directly connects to food crisis, climate failure, and ecosystem collapse. 2.4 billion live in water-stressed countries.',
+     objective:'SDG 6 — Clean Water',causes:[{label:'Food crisis',delta:'+0.15',note:'Water scarcity is the primary agricultural productivity constraint in water-stressed regions'}],caused_by:[]},
+    {label:'Extreme weather events',bearing:50,range:0.45,size:12,type:'threat',cat:'Environmental',
+     wef2yr:4,wef10yr:1,magnitude:'High',direction:'+50°',
+     bearing_effect:'Intensifying droughts and floods are the primary driver of water access deterioration in vulnerable regions',
+     rationale:'Climate change is making rainfall less predictable, droughts more severe, and flood events more destructive to water infrastructure. The water crisis and climate failure nodes are co-evolving.',
+     objective:'SDG 6 — Clean Water',causes:[],caused_by:[]},
+    {label:'Nature-based water solutions',bearing:348,range:0.60,size:10,type:'opportunity',cat:'Environmental',
+     wef2yr:null,wef10yr:null,magnitude:'Medium',direction:'−12°',capability:'Medium',
+     bearing_effect:'Watershed restoration and wetland protection deliver water security at fraction of infrastructure cost — and provide co-benefits for SDG 13 and 15',
+     rationale:'Evidence from watershed restoration programmes in Kenya, India, and Brazil shows 3–5× cost advantage over built infrastructure for equivalent water security outcomes. Political will and land tenure are the binding constraints.',
+     objective:'SDG 6 — Clean Water',causes:[],caused_by:[]},
+  ],
+  chat:[
+    {role:'board',text:'Water has maintained marginal progress for five years. Is that the best we can expect?'},
+    {role:'analyst',text:'Marginal consistent progress is the honest assessment given structural constraints. The fundamental problem is that population growth and climate stress are running faster than infrastructure investment. The world would need to increase the pace of WASH access extension by 4–6 times to hit 2030 targets. That requires $114 billion per year in additional investment — currently, only $28 billion flows annually. The financing gap is the primary constraint, not technology.'},
+  ],
+  network:{
+    headline:'Water risk is among the most systemically connected nodes in the WEF 2016 network — N3 has direct edges to food crisis, climate failure, and ecosystem collapse, making it a high-priority intervention node.',
+    chains:[
+      {path:['Failure of climate mitigation','Extreme weather events','Water crisis','Food crisis'],weights:[3,2,3],effect:'Climate-water-food cascade — the highest-weight four-node chain in the environmental cluster'},
+      {path:['Water crisis','Failure of national governance','Profound social instability'],weights:[1,2],effect:'Water governance cascade — scarcity without institutions triggers social breakdown'},
+    ]
+  }
+};
+
+// ── SDG 7: Affordable & Clean Energy ──────────────────────────────────────
+SDGs[7] = {
+  id:7, name:'Affordable & Clean Energy',
+  north:'Ensure access to affordable, reliable, sustainable, and modern energy for all by 2030',
+  status:'marginal',
+  statusNote:'Global electricity access reached 92%. Renewables fastest-growing source. But 645 million will still lack electricity in 2030 at current pace; 1.8 billion will lack clean cooking.',
+  bearing:35, coneP50:30, coneP80:48, coneHalf:18,
+  headline:'Energy access is a dual-speed story. Bearing: +35° east. Technology trajectory is favourable but equity is failing: sub-Saharan Africa accounts for 85% of the global electricity deficit despite minimal consumption.',
+  history:[
+    {year:2021,bearing:35,status:'marginal'},
+    {year:2022,bearing:35,status:'marginal'},
+    {year:2023,bearing:35,status:'marginal'},
+    {year:2024,bearing:35,status:'marginal'},
+    {year:2025,bearing:35,status:'marginal'},
+  ],
+  issues:[
+    {label:'Sub-Saharan energy deficit',bearing:45,pestle:'Societal',onset:'Structural',resolution:'Worsening in absolute terms',
+     action:'Despite 33→53% electrification rate in sub-Saharan Africa, the unconnected population barely changed (566→565 million) due to population growth. 85% of global electricity deficit is in sub-Saharan Africa.'},
+    {label:'Clean cooking financing gap',bearing:35,pestle:'Economic',onset:'Structural',resolution:'Persistent',
+     action:'2.3 billion still use polluting fuels for cooking. Annual investment needed: $4.5 billion. Actual flows: $100 million. A 45× gap that receives a fraction of the political attention of electricity.'},
+  ],
+  blips:[
+    {label:'Geoeconomic confrontation',bearing:42,range:0.28,size:12,type:'threat',cat:'Geopolitical',
+     wef2yr:1,wef10yr:null,magnitude:'High',direction:'+42°',
+     bearing_effect:'Critical mineral supply chain fragmentation raises renewable energy deployment costs and creates strategic vulnerabilities',
+     rationale:'Lithium, cobalt, nickel and rare earths — essential for energy transition — are concentrated in geopolitically contested supply chains. Trade weaponisation adds 15–25% to clean energy deployment costs.',
+     objective:'SDG 7 — Clean Energy',causes:[],caused_by:[]},
+    {label:'Energy price shock',bearing:38,range:0.35,size:11,type:'threat',cat:'Economic',
+     wef2yr:null,wef10yr:null,magnitude:'Medium',direction:'+38°',
+     bearing_effect:'Fossil fuel price shocks divert scarce LIC fiscal space away from clean energy investment toward import subsidies',
+     rationale:'Energy price volatility forces LICs to choose between fiscally ruinous fossil fuel subsidies or energy poverty. Both outcomes are adverse for SDG 7 — one financially, one directly.',
+     objective:'SDG 7 — Clean Energy',causes:[],caused_by:[]},
+    {label:'Solar cost breakthrough',bearing:348,range:0.55,size:13,type:'opportunity',cat:'Technological',
+     wef2yr:null,wef10yr:null,magnitude:'High',direction:'−12°',capability:'Medium',
+     bearing_effect:'Solar costs have fallen 90% since 2010. Off-grid solar is now the most cost-effective pathway to electrification for 389 million people in remote areas',
+     rationale:'Decentralised renewable energy can reach populations beyond grid extension economics faster and at lower cost. The market is functional — the bottleneck is concessional capital and consumer financing for last-mile deployment.',
+     objective:'SDG 7 — Clean Energy',causes:[],caused_by:[]},
+  ],
+  chat:[
+    {role:'board',text:'If solar costs have fallen 90% since 2010, why are we still at marginal progress?'},
+    {role:'analyst',text:'Technology cost is not the bottleneck. The bottleneck is the capital stack: off-grid solar requires consumer credit at affordable rates, which does not exist at scale in sub-Saharan Africa. A solar home system costs $150–300 — manageable as a monthly payment, impossible as an upfront cost for households earning $3 per day. Concessional finance from DFIs can unlock this, but DFI capital is being crowded out by debt crises. The technology is ready; the financing system is broken.'},
+  ],
+  network:{
+    headline:'Energy access sits at the intersection of economic, environmental, and geopolitical risk nodes in the WEF 2016 network — energy price shocks connect directly to fiscal crisis, unmanageable inflation, and state collapse.',
+    chains:[
+      {path:['Energy price shock','Unmanageable inflation','Fiscal crisis','State collapse or crisis'],weights:[1,1,1],effect:'Energy price cascade — volatility drives inflation, fiscal collapse, and governance failure in energy-importing LICs'},
+      {path:['Geoeconomic confrontation','Energy price shock','Failure of climate mitigation'],weights:[1,1],effect:'Geopolitical energy cascade — supply chain fragmentation delays clean energy transition'},
+    ]
+  }
+};
+
+// ── SDG 9: Industry, Innovation & Infrastructure ───────────────────────────
+SDGs[9] = {
+  id:9, name:'Industry, Innovation & Infrastructure',
+  north:'Build resilient infrastructure, promote inclusive and sustainable industrialisation, and foster innovation by 2030',
+  status:'marginal',
+  statusNote:'Manufacturing value added growing but CO₂ emissions at record high. 5G reaching 51% of population but deep digital divide persists. Small enterprise credit access critically low in LICs.',
+  bearing:35, coneP50:30, coneP80:47, coneHalf:17,
+  headline:'Infrastructure and innovation advance in high-income economies while the divide widens for LDCs. Bearing: +35° east. Geopolitical tech competition is concentrating capability and slowing diffusion.',
+  history:[
+    {year:2021,bearing:65,status:'regression'},
+    {year:2022,bearing:35,status:'marginal'},
+    {year:2023,bearing:35,status:'marginal'},
+    {year:2024,bearing:35,status:'marginal'},
+    {year:2025,bearing:35,status:'marginal'},
+  ],
+  issues:[
+    {label:'CO₂ emissions at record high',bearing:45,pestle:'Environmental',onset:'2023–present',resolution:'Worsening',
+     action:'Global CO₂ from fuel combustion and industrial processes reached 37.6 Gt in 2024 — a record. Industrial emissions are decoupling from GDP but not fast enough to meet 1.5°C pathways.'},
+    {label:'Digital divide',bearing:35,pestle:'Technological',onset:'Structural',resolution:'Partial improvement',
+     action:'5G covers 51% globally but only 4% in low-income countries. LDCs and LLDCs account for 14–15% of mobile broadband gaps. AI and advanced manufacturing remain inaccessible to most of the developing world.'},
+  ],
+  blips:[
+    {label:'Geoeconomic confrontation',bearing:48,range:0.28,size:13,type:'threat',cat:'Geopolitical',
+     wef2yr:1,wef10yr:null,magnitude:'High',direction:'+48°',
+     bearing_effect:'Tech export controls, semiconductor restrictions, and supply chain decoupling are concentrating industrial capacity in a shrinking number of jurisdictions',
+     rationale:'US-China semiconductor war and allied technology export controls are fragmenting global innovation infrastructure. Countries outside the two blocs face widening access gaps to critical enabling technologies.',
+     objective:'SDG 9 — Industry & Innovation',causes:[],caused_by:[]},
+    {label:'AI & technology concentration',bearing:55,range:0.60,size:12,type:'threat',cat:'Technological',
+     wef2yr:null,wef10yr:null,magnitude:'High',direction:'+55°',
+     bearing_effect:'AI capabilities are concentrating in 3–4 jurisdictions, threatening to lock in structural inequality in industrial productivity for decades',
+     rationale:'Frontier AI model development requires capital and compute accessible only to a handful of companies and governments. This structural concentration contradicts SDG 9\'s inclusive industrialisation objective.',
+     objective:'SDG 9 — Industry & Innovation',causes:[],caused_by:[]},
+    {label:'Green industrial transition',bearing:348,range:0.60,size:11,type:'opportunity',cat:'Environmental',
+     wef2yr:null,wef10yr:null,magnitude:'High',direction:'−12°',capability:'Medium',
+     bearing_effect:'The green industrial transition creates a pathway to decouple economic growth from emissions — if LDCs can access enabling technologies',
+     rationale:'Clean energy, electric transport and green manufacturing represent the largest capital reallocation in economic history. Countries that build industrial capacity in these sectors early will gain long-term structural advantage.',
+     objective:'SDG 9 — Industry & Innovation',causes:[],caused_by:[]},
+  ],
+  chat:[
+    {role:'board',text:'Manufacturing value added is growing. Why is the bearing still at +35°?'},
+    {role:'analyst',text:'Growth is real but distributed inequitably. Global MVA per capita grew 17.3% since 2015, but LDCs are still far below the doubling target. More critically, the growth is concentrated in Eastern and South-Eastern Asia. Sub-Saharan Africa, Latin America, and Oceania all saw declines in manufacturing employment since 2015. The SDG 9 objective is inclusive industrialisation — and on that measure, the world is not on track.'},
+  ],
+  network:{
+    headline:'Industrial risk connects directly to the economic and technological risk cluster — manufacturing shocks, energy price changes, and AI displacement all cascade through the economic nodes to societal instability.',
+    chains:[
+      {path:['Geoeconomic confrontation','Energy price shock','Failure of critical infrastructure'],weights:[1,1],effect:'Industrial cascade — supply fragmentation raises infrastructure costs and delays investment'},
+      {path:['Adverse consequences of technological advances','Unemployment or underemployment','Profound social instability'],weights:[2,3],effect:'Technology displacement cascade — AI-driven manufacturing job losses without social protection triggers instability'},
+    ]
+  }
+};
+
+// ── SDG 10: Reduced Inequalities ──────────────────────────────────────────
+SDGs[10] = {
+  id:10, name:'Reduced Inequalities',
+  north:'Reduce inequality within and among countries by 2030',
+  status:'stagnation',
+  statusNote:'Labour income share of GDP declining globally. Discrimination rising. Half of vulnerable economies growing slower than wealthy ones. Refugee population at record 37.8 million.',
+  bearing:50, coneP50:44, coneP80:62, coneHalf:18,
+  headline:'Inequality is a structural condition that has not improved despite decades of commitment. Bearing: +50° east. The labour income share decline and the historic reversal in between-country convergence signal a worsening trajectory.',
+  history:[
+    {year:2021,bearing:65,status:'regression'},
+    {year:2022,bearing:65,status:'regression'},
+    {year:2023,bearing:50,status:'stagnation'},
+    {year:2024,bearing:50,status:'stagnation'},
+    {year:2025,bearing:50,status:'stagnation'},
+  ],
+  issues:[
+    {label:'Labour income share declining',bearing:45,pestle:'Economic',onset:'Structural',resolution:'Worsening',
+     action:'Global labour income share fell from 52.9% in 2015 to 52.3% in 2024. Equivalent to $255 loss per worker annually. Capital returns rising while wages stagnate — widening wealth concentration.'},
+    {label:'Record refugee displacement',bearing:60,pestle:'Geopolitical',onset:'2015–present',resolution:'Worsening',
+     action:'37.8 million refugees globally — more than double 2015 level. Displacement both reflects and deepens inequality: refugees disproportionately from least-developed countries.'},
+  ],
+  blips:[
+    {label:'Geoeconomic confrontation',bearing:55,range:0.28,size:13,type:'threat',cat:'Geopolitical',
+     wef2yr:1,wef10yr:null,magnitude:'High',direction:'+55°',
+     bearing_effect:'Trade fragmentation concentrates economic gains in industrial blocs, leaving developing countries further behind',
+     rationale:'Decoupling and reshoring of supply chains benefit high-income economies at the expense of developing countries that previously benefited from export-led growth. The post-WTO trade regime was an inequality-reducing force; its fracture is inequality-increasing.',
+     objective:'SDG 10 — Reduced Inequalities',causes:[],caused_by:[]},
+    {label:'Economic downturn',bearing:42,range:0.35,size:11,type:'threat',cat:'Economic',
+     wef2yr:11,wef10yr:24,magnitude:'High',direction:'+42°',
+     bearing_effect:'Recessions disproportionately harm the bottom decile — they lose jobs first, face higher inflation on necessities, and receive inadequate social protection',
+     rationale:'Economic contractions widen inequality because capital returns are insulated from downturns while labour income falls sharply. Post-2020 data shows the pandemic caused the largest single-year increase in between-country inequality in three decades.',
+     objective:'SDG 10 — Reduced Inequalities',causes:[],caused_by:[]},
+    {label:'Inclusive financial systems',bearing:350,range:0.55,size:10,type:'opportunity',cat:'Economic',
+     wef2yr:null,wef10yr:null,magnitude:'Medium',direction:'−10°',capability:'Medium',
+     bearing_effect:'Digital financial inclusion — mobile money, fintech credit — has demonstrably reduced within-country inequality in East Africa and South Asia',
+     rationale:'76% of adults globally now have a bank account, up from 62% in 2014. Mobile money has enabled previously excluded populations to build savings, access credit, and smooth consumption shocks.',
+     objective:'SDG 10 — Reduced Inequalities',causes:[],caused_by:[]},
+  ],
+  chat:[
+    {role:'board',text:'The data shows income growth for the bottom 40% outpacing the national average in 60% of countries. Why is the bearing still at stagnation?'},
+    {role:'analyst',text:'Within-country income distribution is improving in many places — that is the bottom-40 data. But between-country inequality is worsening sharply. Half of the most vulnerable countries are growing slower than advanced economies for the first time since the 1990s. The SDG 10 objective includes both dimensions. The between-country reversal, combined with the declining labour income share globally, means the aggregate inequality picture is deteriorating even as within-country metrics improve in some regions.'},
+  ],
+  network:{
+    headline:'Inequality is a structural amplifier of every other risk in the WEF 2016 network — the profound social instability node receives inputs from virtually every economic and geopolitical node, and inequality is the underlying condition that determines how much instability those shocks generate.',
+    chains:[
+      {path:['Unemployment or underemployment','Profound social instability','State collapse or crisis'],weights:[3,2],effect:'Labour exclusion cascade — structural unemployment drives instability and governance failure'},
+      {path:['Geoeconomic confrontation','Fiscal crisis','Unemployment or underemployment'],weights:[1,2],effect:'Geopolitical-inequality cascade — trade fragmentation reduces developing country fiscal capacity and employment'},
+    ]
+  }
+};
+
+// ── SDG 11: Sustainable Cities & Communities ───────────────────────────────
+SDGs[11] = {
+  id:11, name:'Sustainable Cities & Communities',
+  north:'Make cities and human settlements inclusive, safe, resilient and sustainable by 2030',
+  status:'stagnation',
+  statusNote:'1.12 billion live in slums. Housing affordability crisis affects 3 billion. Urban climate vulnerability intensifying. Only 19% of cities demonstrate strong civil society participation.',
+  bearing:50, coneP50:44, coneP80:62, coneHalf:18,
+  headline:'Urban sustainability is stagnating under pressure from rapid urbanisation. Bearing: +50° east. The housing affordability crisis and climate adaptation finance gap are the most immediate structural constraints.',
+  history:[
+    {year:2021,bearing:50,status:'stagnation'},
+    {year:2022,bearing:50,status:'stagnation'},
+    {year:2023,bearing:50,status:'stagnation'},
+    {year:2024,bearing:50,status:'stagnation'},
+    {year:2025,bearing:50,status:'stagnation'},
+  ],
+  issues:[
+    {label:'Housing affordability crisis',bearing:45,pestle:'Economic',onset:'2020–present',resolution:'Worsening',
+     action:'Average housing cost burden is 31% of income globally; 43.5% in sub-Saharan Africa. 1.12 billion live in slums. Rapid urbanisation is adding 183,000 slum dwellers daily.'},
+    {label:'Urban climate adaptation gap',bearing:55,pestle:'Environmental',onset:'2021–present',resolution:'Worsening',
+     action:'Cities require $4.5 trillion annually for climate-resilient infrastructure through 2030. Only $831 billion flows yearly. The adaptation gap is accelerating as extreme heat and flood risk increases.'},
+  ],
+  blips:[
+    {label:'Extreme weather events',bearing:60,range:0.35,size:13,type:'threat',cat:'Environmental',
+     wef2yr:4,wef10yr:1,magnitude:'High',direction:'+60°',
+     bearing_effect:'Urban heat islands, flooding, and wildfire smoke are concentrating climate risk in densely populated areas where infrastructure resilience is lowest',
+     rationale:'Cities concentrate both population and climate risk exposure. Sea-level rise, extreme heat, and flooding are three independent threat vectors converging on urban coastal populations. Urban flood exposure has increased 3.5× since 1975.',
+     objective:'SDG 11 — Sustainable Cities',causes:[],caused_by:[]},
+    {label:'Failure of urban planning',bearing:50,range:0.45,size:11,type:'threat',cat:'Societal',
+     wef2yr:null,wef10yr:null,magnitude:'High',direction:'+50°',
+     bearing_effect:'The WEF 2016 network node N6 — failure of urban planning — has direct edges to unemployment, critical infrastructure failure, and extreme weather vulnerability',
+     rationale:'Unplanned urban expansion is 3.7× faster than densification. This locks in car-dependency, heat island effects, inadequate sanitation, and extreme weather vulnerability for decades.',
+     objective:'SDG 11 — Sustainable Cities',causes:[{label:'Unemployment or underemployment',delta:'+0.12',note:'Urban planning failure reduces economic productivity and labour market access'}],caused_by:[]},
+    {label:'Smart city innovation',bearing:348,range:0.60,size:10,type:'opportunity',cat:'Technological',
+     wef2yr:null,wef10yr:null,magnitude:'Medium',direction:'−12°',capability:'Low',
+     bearing_effect:'Digital urban management, real-time monitoring and data-driven service delivery can improve urban sustainability without large capital investment',
+     rationale:'Smart city technologies — traffic management, energy monitoring, flood early warning — are cost-effective. The barrier is governance capacity to procure and operate them, not technology cost.',
+     objective:'SDG 11 — Sustainable Cities',causes:[],caused_by:[]},
+  ],
+  chat:[
+    {role:'board',text:'The slum population has reached 1.12 billion. How has that persisted despite urbanisation being a development milestone?'},
+    {role:'analyst',text:'The paradox is that urbanisation is happening faster than urban infrastructure investment can absorb it. Approximately 70 million people move to cities each year globally — mostly in sub-Saharan Africa and South Asia. Formal housing construction can accommodate perhaps 20 million of that movement. The remainder ends up in informal settlements. The SDG 11 objective requires that urbanisation be managed — zoned, financed, and serviced. Currently it is largely unmanaged.'},
+  ],
+  network:{
+    headline:'Urban sustainability risk is embedded in the societal cluster of the WEF 2016 network — failure of urban planning connects to unemployment, infrastructure failure, and extreme weather vulnerability through high-weight edges.',
+    chains:[
+      {path:['Failure of urban planning','Failure of critical infrastructure','Unemployment or underemployment'],weights:[2,1],effect:'Urban cascade — planning failure → infrastructure collapse → labour market exclusion'},
+      {path:['Extreme weather events','Natural catastrophes','Failure of critical infrastructure'],weights:[2,1],effect:'Climate-infrastructure cascade — climate events destroy urban infrastructure, compounding vulnerability'},
+    ]
+  }
+};
+
+// ── SDG 12: Responsible Consumption & Production ──────────────────────────
+SDGs[12] = {
+  id:12, name:'Responsible Consumption & Production',
+  north:'Ensure sustainable consumption and production patterns by 2030',
+  status:'stagnation',
+  statusNote:'Domestic material consumption rising. 1.05 billion tonnes of food wasted in 2022. E-waste at 62 billion kg — only 22% recycled. Fossil fuel subsidies remain near record levels.',
+  bearing:50, coneP50:44, coneP80:62, coneHalf:18,
+  headline:'Consumption and production patterns remain fundamentally unsustainable. Bearing: +50° east. Fossil fuel subsidies and food waste are the most visible contradictions between stated policy and actual trajectory.',
+  history:[
+    {year:2021,bearing:50,status:'stagnation'},
+    {year:2022,bearing:50,status:'stagnation'},
+    {year:2023,bearing:50,status:'stagnation'},
+    {year:2024,bearing:50,status:'stagnation'},
+    {year:2025,bearing:50,status:'stagnation'},
+  ],
+  issues:[
+    {label:'Fossil fuel subsidies',bearing:55,pestle:'Economic',onset:'2021–present',resolution:'Declining from peak but still $1.1 trillion',
+     action:'Fossil fuel subsidies hit $1.68 trillion in 2022. Fell to $1.1 trillion in 2023 but remain nearly 3× 2020 levels. Directly contradicts both SDG 12 and SDG 13 commitments.'},
+    {label:'Food waste crisis',bearing:40,pestle:'Societal',onset:'Structural',resolution:'Worsening in absolute terms',
+     action:'1.05 billion metric tonnes of food wasted annually while 783 million face hunger. Food loss and waste generate 8–10% of global greenhouse gas emissions.'},
+  ],
+  blips:[
+    {label:'Biodiversity loss & ecosystem collapse',bearing:65,range:0.65,size:12,type:'threat',cat:'Environmental',
+     wef2yr:26,wef10yr:2,magnitude:'High',direction:'+65°',
+     bearing_effect:'Unsustainable consumption is the primary driver of biodiversity loss — resource extraction, land conversion, and pollution all terminate in ecosystem collapse',
+     rationale:'The material footprint of high-income consumption is 10× that of low-income consumption. Closing this gap while maintaining development aspirations of the latter is the core tension of SDG 12.',
+     objective:'SDG 12 — Responsible Consumption',causes:[],caused_by:[]},
+    {label:'Geoeconomic confrontation',bearing:38,range:0.28,size:11,type:'threat',cat:'Geopolitical',
+     wef2yr:1,wef10yr:null,magnitude:'Medium',direction:'+38°',
+     bearing_effect:'Trade fragmentation locks in fossil fuel dependency in economies that use energy trade leverage; undercuts global agreements on sustainable consumption standards',
+     rationale:'Trade wars are being fought partly over resource supply chains. Energy export revenue dependency incentivises fossil fuel subsidies. This creates a structural barrier to sustainable production patterns.',
+     objective:'SDG 12 — Responsible Consumption',causes:[],caused_by:[]},
+    {label:'Circular economy transition',bearing:350,range:0.60,size:10,type:'opportunity',cat:'Economic',
+     wef2yr:null,wef10yr:null,magnitude:'Medium',direction:'−10°',capability:'Low',
+     bearing_effect:'Extended producer responsibility, material reuse, and circular design can decouple economic growth from resource extraction',
+     rationale:'Circular economy models are technologically viable in plastics, metals, and electronics. The binding constraints are regulatory frameworks, infrastructure investment, and consumer behaviour. Business models exist — policy incentives do not yet match.',
+     objective:'SDG 12 — Responsible Consumption',causes:[],caused_by:[]},
+  ],
+  chat:[
+    {role:'board',text:'Sustainability reporting is now standard for the 250 largest companies. Does that translate into actual consumption change?'},
+    {role:'analyst',text:'There is a significant reporting-to-action gap. 96% of the world\'s 250 largest companies report on sustainability, but the actual trajectory of material consumption, food waste, and e-waste all continued to worsen between 2015 and 2023. Sustainability reporting is necessary but not sufficient — it tracks what companies do, not what they consume. The binding constraint is that current pricing structures externalise environmental costs. Until pollution and resource depletion are priced, reporting without incentive change is performative.'},
+  ],
+  network:{
+    headline:'Unsustainable consumption is embedded in every economic risk node in the WEF 2016 network — fossil fuel dependency connects to energy price shock, deflation, and state collapse through the fiscal channel.',
+    chains:[
+      {path:['Failure of climate mitigation','Biodiversity loss & ecosystem collapse','Man-made environmental catastrophe'],weights:[3,1],effect:'Consumption-ecosystem cascade — unsustainable production drives climate failure which terminates in environmental catastrophe'},
+      {path:['Energy price shock','Unmanageable inflation','Fiscal crisis'],weights:[1,1],effect:'Fossil fuel dependency cascade — subsidy-dependent economies are exposed to energy price volatility through sovereign fiscal channels'},
+    ]
+  }
+};
+
+// ── SDG 14: Life Below Water ───────────────────────────────────────────────
+SDGs[14] = {
+  id:14, name:'Life Below Water',
+  north:'Conserve and sustainably use the oceans, seas and marine resources for sustainable development by 2030',
+  status:'regression',
+  statusNote:'35.5% of fish stocks overfished. Fourth global coral bleaching event underway — 84% of reefs affected. Only 8.4% of ocean protected. Ocean acidification and warming at record levels.',
+  bearing:65, coneP50:58, coneP80:80, coneHalf:22,
+  headline:'Ocean health is in active regression. Bearing: +65° east. The fourth global coral bleaching event and record ocean temperatures in 2024 represent an accelerating biological emergency that exceeds policy response.',
+  history:[
+    {year:2021,bearing:65,status:'regression'},
+    {year:2022,bearing:65,status:'regression'},
+    {year:2023,bearing:65,status:'regression'},
+    {year:2024,bearing:65,status:'regression'},
+    {year:2025,bearing:65,status:'regression'},
+  ],
+  issues:[
+    {label:'Mass coral bleaching — 4th event',bearing:75,pestle:'Environmental',onset:'Jan 2023–present',resolution:'Ongoing — worst on record',
+     action:'84% of the world\'s coral reefs experienced bleaching conditions between January 2023 and May 2025. 14% of coral cover lost 2009–2018. At 2°C warming, virtually all warm-water reefs would disappear.'},
+    {label:'Record ocean warming',bearing:70,pestle:'Environmental',onset:'2023–present',resolution:'Permanent at current trajectory',
+     action:'Ocean heat content reached its highest level in 65 years of observation in 2024. Sea surface temperatures have broken records for 13 consecutive months. Warming trajectory is locked in for decades even with immediate emission cuts.'},
+  ],
+  blips:[
+    {label:'Failure of climate mitigation',bearing:80,range:0.55,size:14,type:'threat',cat:'Environmental',
+     wef2yr:null,wef10yr:null,magnitude:'High',direction:'+80°',
+     bearing_effect:'Ocean warming, acidification, and sea level rise are all direct consequences of climate mitigation failure — SDG 14 cannot be achieved without SDG 13',
+     rationale:'The ocean absorbs 90% of excess heat from greenhouse gas emissions. Without rapid decarbonisation, ocean temperature rise is irreversible on any policy-relevant timescale. SDG 14 is structurally dependent on SDG 13 outcome.',
+     objective:'SDG 14 — Life Below Water',causes:[],caused_by:[{label:'Geoeconomic confrontation',delta:'+0.15',note:'Geopolitical rivalry prevents the multilateral climate action that ocean health depends on'}]},
+    {label:'Biodiversity loss & ecosystem collapse',bearing:72,range:0.65,size:13,type:'threat',cat:'Environmental',
+     wef2yr:26,wef10yr:2,magnitude:'High',direction:'+72°',
+     bearing_effect:'Marine biodiversity collapse is self-reinforcing: coral death removes fish habitat, which collapses fisheries, which removes the economic incentive for conservation',
+     rationale:'The Red List Index for marine species is declining across all groups. Ocean biodiversity loss is proceeding faster than terrestrial loss and with less reversibility due to the thermal inertia of ocean warming.',
+     objective:'SDG 14 — Life Below Water',causes:[],caused_by:[]},
+    {label:'Marine protected area expansion',bearing:350,range:0.55,size:10,type:'opportunity',cat:'Environmental',
+     wef2yr:null,wef10yr:null,magnitude:'Medium',direction:'−10°',capability:'Low',
+     bearing_effect:'The Kunming-Montreal target of 30% ocean protection by 2030 would give marine ecosystems recovery space — currently only 8.4% is protected',
+     rationale:'Marine protected areas, when properly enforced, demonstrably increase fish biomass, biodiversity, and ecosystem resilience. The BBNJ Agreement (High Seas Treaty) provides the legal framework — ratification at 50 states, 10 short of entry into force.',
+     objective:'SDG 14 — Life Below Water',causes:[],caused_by:[]},
+  ],
+  chat:[
+    {role:'board',text:'SDG 14 has been in regression for all five years. Is there any scenario where the trajectory reverses before 2030?'},
+    {role:'analyst',text:'Partial reversal is possible in two areas: fisheries management and IUU fishing enforcement. The 2021 FAO data shows 64.5% of fish stocks are at biologically sustainable levels — actually an improvement from prior estimates. Legal fishing with proper management can stabilise or recover in a 5–10 year window. But ocean temperature and coral bleaching are on a trajectory that cannot be reversed on any 2030-relevant timescale. The structural outcome for SDG 14 is: fisheries can be partially stabilised; coral reef systems cannot be saved without deep global decarbonisation.'},
+  ],
+  network:{
+    headline:'Ocean risk is at the extreme end of the WEF 2016 environmental cluster — biodiversity loss and climate failure are the two highest-weight nodes pointing toward ocean ecosystem collapse.',
+    chains:[
+      {path:['Failure of climate mitigation','Extreme weather events','Biodiversity loss & ecosystem collapse'],weights:[3,2],effect:'Climate-ocean cascade — mitigation failure drives ocean warming and reef bleaching at accelerating pace'},
+      {path:['Biodiversity loss & ecosystem collapse','Food crisis','Profound social instability'],weights:[2,1],effect:'Marine food cascade — fisheries collapse drives food insecurity in coastal communities dependent on marine protein'},
+    ]
+  }
+};
+
+// ── SDG 15: Life on Land ───────────────────────────────────────────────────
+SDGs[15] = {
+  id:15, name:'Life on Land',
+  north:'Protect, restore and promote sustainable use of terrestrial ecosystems and halt biodiversity loss by 2030',
+  status:'regression',
+  statusNote:'47,000+ species threatened. Red List Index declining. 100 million hectares of land degraded annually. Forest loss slowing but insufficient. Extinction rates accelerating each decade.',
+  bearing:65, coneP50:58, coneP80:80, coneHalf:22,
+  headline:'Terrestrial biodiversity is in active regression. Bearing: +65° east. Species extinction is accelerating decade-on-decade while the economic systems that drive habitat loss remain structurally unchanged.',
+  history:[
+    {year:2021,bearing:50,status:'stagnation'},
+    {year:2022,bearing:65,status:'regression'},
+    {year:2023,bearing:65,status:'regression'},
+    {year:2024,bearing:65,status:'regression'},
+    {year:2025,bearing:65,status:'regression'},
+  ],
+  issues:[
+    {label:'Species extinction crisis',bearing:70,pestle:'Environmental',onset:'Structural — accelerating',resolution:'Worsening',
+     action:'47,282 species face extinction risk. Red List Index declined 12% since 1993, with accelerating decline each decade. 1 million species potentially threatened globally. Central and Southern Asia showing steepest recent declines.'},
+    {label:'Deforestation continues',bearing:60,pestle:'Environmental',onset:'Structural',resolution:'Slowing but insufficient',
+     action:'Forest loss declined from 12 to 10 million ha/year (2015–2020) — progress but at this rate halting deforestation as required by SDG 15 would take another 25 years. Brazil and Indonesia showing recent progress.'},
+  ],
+  blips:[
+    {label:'Failure of climate mitigation',bearing:78,range:0.55,size:14,type:'threat',cat:'Environmental',
+     wef2yr:null,wef10yr:null,magnitude:'High',direction:'+78°',
+     bearing_effect:'Climate change is the primary emerging driver of terrestrial biodiversity loss, adding to and amplifying habitat destruction, invasive species, and overexploitation',
+     rationale:'Climate-driven wildfires, drought, and phenological disruption are converting SDG 15 from a land-use problem into a climate-land compound crisis. Wildfire emissions in 2023 were 6,687 Mt CO₂ — more than double fossil fuel emissions from the EU.',
+     objective:'SDG 15 — Life on Land',causes:[],caused_by:[]},
+    {label:'Biodiversity loss & ecosystem collapse',bearing:70,range:0.65,size:14,type:'threat',cat:'Environmental',
+     wef2yr:26,wef10yr:2,magnitude:'High',direction:'+70°',
+     bearing_effect:'The WEF 2016 node N10 is a direct threat to SDG 15 — ecosystem collapse is the mechanism by which biodiversity loss becomes self-reinforcing',
+     rationale:'The Red List Index shows accelerating decline across all major species groups: amphibians, corals, cycads, and mammals. Loss of keystone species removes ecological functions that sustain the broader ecosystem.',
+     objective:'SDG 15 — Life on Land',causes:[{label:'Man-made environmental catastrophe',delta:'+0.10',note:'Ecosystem collapse is a direct pathway to large-scale environmental catastrophe'}],caused_by:[{label:'Failure of climate mitigation',delta:'+0.20',note:'Climate warming is the emerging primary driver of accelerating biodiversity loss'}]},
+    {label:'Kunming-Montreal framework',bearing:352,range:0.55,size:10,type:'opportunity',cat:'Environmental',
+     wef2yr:null,wef10yr:null,magnitude:'High',direction:'−8°',capability:'Low',
+     bearing_effect:'The 30×30 target — protecting 30% of land and water by 2030 — provides the policy mandate; execution requires financing and enforcement at unprecedented scale',
+     rationale:'Protected areas demonstrably conserve biodiversity when properly managed. The Kunming-Montreal Global Biodiversity Framework commits 196 countries to 30×30. Delivery finance is currently 18% of estimated need.',
+     objective:'SDG 15 — Life on Land',causes:[],caused_by:[]},
+  ],
+  chat:[
+    {role:'board',text:'Why did SDG 15 shift from stagnation to regression after 2021?'},
+    {role:'analyst',text:'Two concurrent changes. First, 2022 saw the Russian invasion of Ukraine, which triggered a surge in global agricultural commodity prices, increasing the economic incentive to convert natural land to cropland — directly accelerating deforestation in frontier forest regions. Second, 2023 saw record wildfires globally — 6,687 Mt CO₂ from wildfires alone, with extensive habitat destruction across Canada, Greece, Hawaii, and Australia. Both represented a genuine step-change in the intensity of threat, not just a data revision.'},
+  ],
+  network:{
+    headline:'Terrestrial biodiversity risk sits at the intersection of environmental and societal nodes — biodiversity loss feeds back into food and water security, connecting SDG 15 to the entire economic risk cluster.',
+    chains:[
+      {path:['Failure of climate mitigation','Extreme weather events','Biodiversity loss & ecosystem collapse','Food crisis'],weights:[3,2,2],effect:'Climate-biodiversity-food cascade — the most severe long-term compound risk'},
+      {path:['Biodiversity loss & ecosystem collapse','Man-made environmental catastrophe','Profound social instability'],weights:[1,1],effect:'Ecosystem collapse cascade — biodiversity loss triggers catastrophe and societal instability'},
+    ]
+  }
+};
+
 // Build SDG ordered list for tabs
-const SDG_ORDER = [1,2,8,13,16,17];
+const SDG_ORDER = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17];
+
+// Cross-SDG view sentinel
+const CROSS_SDG_ID = 0;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // FILTER STATE
@@ -1209,7 +1822,130 @@ function drawBearingLabel(bearing) {
 // ═══════════════════════════════════════════════════════════════════════════
 // MAIN RENDER
 // ═══════════════════════════════════════════════════════════════════════════
+// ── Historical track ─────────────────────────────────────────────────────
+function drawHistoryTrack(sdg) {
+  const hist = sdg.history;
+  if(!hist || hist.length < 2) return;
+  const TRACK_R = 0.88;
+  const color = SDG_COLOR[sdg.id] || '#4fc3f7';
+
+  // Draw connecting line first (behind dots)
+  ctx.save();
+  ctx.strokeStyle = color + '55';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([3,3]);
+  ctx.beginPath();
+  hist.forEach((h,i) => {
+    const p = polarXY(h.bearing, TRACK_R);
+    if(i===0) ctx.moveTo(p.x, p.y);
+    else ctx.lineTo(p.x, p.y);
+  });
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Draw dots with year labels
+  const STATUS_COLOR = {
+    'on-track':'#4caf50','moderate':'#8bc34a','marginal':'#ff9800',
+    'stagnation':'#ff5722','regression':'#f44336'
+  };
+  hist.forEach(h => {
+    const p = polarXY(h.bearing, TRACK_R);
+    const dc = STATUS_COLOR[h.status] || '#aaa';
+
+    // Dot
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 5, 0, Math.PI*2);
+    ctx.fillStyle = dc;
+    ctx.fill();
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+
+    // Year label — offset radially outward
+    const angle = bearingToAngle(h.bearing);
+    const lx = p.x + Math.cos(angle)*14;
+    const ly = p.y + Math.sin(angle)*14;
+    ctx.font = 'bold 9px monospace';
+    ctx.fillStyle = '#ddd';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(String(h.year).slice(2), lx, ly);
+  });
+  ctx.restore();
+}
+
+// ── Cross-SDG view ───────────────────────────────────────────────────────
+function renderCrossSdg() {
+  ctx.clearRect(0,0,CW,CH);
+
+  // Use SDG 1 as structural template for rings/compass
+  const template = { coneP80:45, coneHalf:0 };
+  drawBg();
+  drawRings(template);
+  drawCompass('ALL SDGs — AGGREGATE BEARING');
+
+  // Draw each SDG bearing arrow (thin, labelled)
+  SDG_ORDER.forEach(id => {
+    const sdg = SDGs[id];
+    if(!sdg) return;
+    const color = SDG_COLOR[id] || '#888';
+    const angle = bearingToAngle(sdg.bearing);
+    const endR = MAX_R * 0.72;
+    const ex = CX + endR * Math.cos(angle);
+    const ey = CY + endR * Math.sin(angle);
+
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.5;
+    ctx.globalAlpha = 0.75;
+    ctx.beginPath();
+    ctx.moveTo(CX, CY);
+    ctx.lineTo(ex, ey);
+    ctx.stroke();
+
+    // SDG number label at tip
+    ctx.font = 'bold 9px monospace';
+    ctx.fillStyle = color;
+    ctx.globalAlpha = 1;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const lx = CX + (endR+14)*Math.cos(angle);
+    const ly = CY + (endR+14)*Math.sin(angle);
+    ctx.fillText(String(id), lx, ly);
+    ctx.restore();
+  });
+
+  // Aggregate vector sum bearing
+  let sumX = 0, sumY = 0;
+  SDG_ORDER.forEach(id => {
+    const sdg = SDGs[id];
+    if(!sdg) return;
+    const angle = bearingToAngle(sdg.bearing);
+    sumX += Math.cos(angle);
+    sumY += Math.sin(angle);
+  });
+  const aggAngle = Math.atan2(sumY, sumX);
+  const aggBearing = ((aggAngle * 180 / Math.PI) + 360) % 360;
+
+  drawArrow(aggBearing, '#ffffff');
+
+  drawOrigin();
+  drawBorder();
+  drawBearingLabel(Math.round(aggBearing));
+
+  // Legend strip at bottom
+  ctx.save();
+  ctx.font = '10px monospace';
+  ctx.fillStyle = '#888';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText('Aggregate SDG vector sum — all 17 goals weighted equally', CX, CH - 8);
+  ctx.restore();
+}
+
 function renderRadar() {
+  if(activeSdg === CROSS_SDG_ID) { renderCrossSdg(); return; }
+
   ctx.clearRect(0,0,CW,CH);
   const sdg = SDGs[activeSdg];
   if(!sdg) return;
@@ -1229,6 +1965,9 @@ function renderRadar() {
 
   // Issues (Now ring)
   (sdg.issues||[]).filter(i=>issueVisible(i)).forEach(i=>drawIssueDiamond(i));
+
+  // Historical track
+  drawHistoryTrack(sdg);
 
   // Main bearing arrow
   drawArrow(sdg.bearing, SDG_COLOR[sdg.id]||'#4fc3f7');
@@ -1588,13 +2327,31 @@ function setSdg(id) {
   });
   hideTip();
   renderRadar();
+  // Cross-SDG view has no analysis/network/chat panels
+  if(id === CROSS_SDG_ID) {
+    document.getElementById('analysis-panel').innerHTML = '<p style="color:#888;padding:1rem">Select an individual SDG to see analysis.</p>';
+    document.getElementById('network-panel').innerHTML = '<p style="color:#888;padding:1rem">Select an individual SDG to see network.</p>';
+    document.getElementById('chat-panel').innerHTML = '<p style="color:#888;padding:1rem">Select an individual SDG to see chat.</p>';
+    return;
+  }
   if(activeTab==='analysis') renderAnalysis();
   else if(activeTab==='network') renderNetwork();
   else renderChat();
 }
 
-// Build SDG buttons
+// Build SDG buttons — ALL SDGs first
 const tabsEl = document.getElementById('sdg-tabs');
+
+// Cross-SDG aggregate view button
+const allBtn = document.createElement('button');
+allBtn.className = 'sdg-btn';
+allBtn.dataset.sdg = CROSS_SDG_ID;
+allBtn.textContent = 'ALL SDGs';
+allBtn.style.borderColor = '#ffffff55';
+allBtn.style.fontWeight = 'bold';
+allBtn.addEventListener('click', ()=>setSdg(CROSS_SDG_ID));
+tabsEl.appendChild(allBtn);
+
 SDG_ORDER.forEach(id=>{
   const sdg=SDGs[id];
   const col=SDG_COLOR[id];
