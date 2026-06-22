@@ -129,19 +129,35 @@ The confidence band also propagates upward through the tier structure. A program
 
 ## 7. The AI's Role
 
-The AI operates in two distinct modes and must not be confused between them.
+The AI operates in three distinct modes and must not be confused between them. Mode 1 has two sub-modes corresponding to two structurally different problems: first-time data population, and ongoing data quality maintenance. Conflating them produces an AI that is either too passive (a coach when a parser is needed) or too invasive (a parser when a coach is needed).
 
-**Mode 1 — Data Quality Coach (upstream, with internal data owners)**
+**Mode 1a — Document Ingestion (first engagement, populating the data model)**
 
-The AI works with the people who own risks, actions, and capabilities to maximise the quality and completeness of the data before any board-level assessment. It does not fill in gaps — it asks the questions that prompt owners to fill them. It challenges capability ratings unsupported by action register evidence. It identifies risks without parent uncertainty records. It flags assumptions that have not been recorded against objectives. It produces a completeness score per record and per assessment cycle.
+On first engagement with a client organisation, the AI reads the organisation's own strategic and risk documents — Annual Reports, Board Papers, Risk Committee minutes, regulatory submissions, strategic plans — and produces a draft Risk Radar data model. It does not wait for data owners to enter records. It extracts them.
 
-The AI in Mode 1 is the structured interrogator of the data, not of the decision makers. Its output is a data set that can be trusted — not perfect, but transparently incomplete where gaps remain.
+The extraction produces: blips positioned by bearing and range derived from the disclosed severity language; causal links drawn from disclosed risk interdependency statements; KRIs populated from disclosed performance tables; True North derived from the strategic objective or mission statement; and active issues identified from language indicating confirmed, ongoing conditions rather than probabilistic future risks.
+
+Each extracted data point is locked to its source passage — document title, section, and page reference — so that every blip on the radar carries a traceable citation. Confidence tiers are assigned automatically by source type: externally audited data (statutory accounts, assurance statements) = Verified; formally disclosed data (Annual Report risk section, regulatory submissions) = Disclosed; management-provided workshop or interview input = Asserted; AI inference from narrative context = Inferred.
+
+A human review step validates each extraction before it enters the live model. The reviewer sees the extracted data point alongside the source passage and approves, corrects, or rejects it. Approved data locks. Rejected data is flagged for manual entry. The AI does not bypass human judgement — it eliminates the research burden that makes manual data entry prohibitive at scale.
+
+The output of Mode 1a is a pre-loaded radar, source-traceable and confidence-tiered, ready for a board session within hours of document ingestion rather than weeks of manual research.
+
+**Mode 1b — Data Quality Coach (subsequent cycles, with internal data owners)**
+
+In assessment cycles after the first, the AI shifts from parser to interrogator. It compares the current data model against the new document set, identifies what has changed since the previous cycle, proposes updates to blip positions and confidence tiers, and flags where previously high-confidence data has not been refreshed and should be revalidated.
+
+It works with the people who own risks, actions, and capabilities to maintain quality and completeness between board sessions. It does not fill in gaps — it asks the questions that prompt owners to fill them. It challenges capability ratings unsupported by action register evidence. It identifies risks without parent uncertainty records. It flags assumptions that have not been recorded against objectives. It produces a completeness score per record and per assessment cycle.
+
+The AI in Mode 1b is the structured interrogator of the data, not of the decision makers. Its output is a data set that can be trusted — not perfect, but transparently incomplete where gaps remain, and explicitly labelled by provenance tier so that the board can distinguish what is known from what is asserted.
 
 **Mode 2 — Board Navigator (downstream, with decision makers)**
 
 Once an assessment meets the minimum completeness threshold, the AI shifts role entirely. It becomes the decision maker's navigator — answering natural language questions about bearing and its causes, surfacing the chain of evidence behind any blip, simulating the bearing consequences of decision branches, and flagging KRIs trending in the wrong direction since the last assessment.
 
 Every Mode 2 answer carries three elements: context (what is happening and why), confidence (how reliable is this reading), and call to action (what would need to change to shift the bearing). The AI never presents a conclusion without its evidence chain. The board can always drill into the reasoning behind any statement.
+
+Mode 2 also carries an explicit responsibility that the POC experience identified as missing: translation by governance role. A bearing of +42° east means something different to a Non-Executive Director (is management being challenged?), an institutional investor (what is the earnings implication?), and a risk officer (which control is failing?). The AI does not present a single interpretation — it contextualises the bearing reading for the specific governance role of the person asking. The Mode 2 interface should surface role context as an input before generating a response.
 
 The AI does not make strategic decisions. It maximises the context available to the people who do.
 
