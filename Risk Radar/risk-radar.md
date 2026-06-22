@@ -78,7 +78,7 @@ The cone represents the range of plausible futures, widening with time and uncer
 
 The cone has three drivers:
 
-**External driver** — threats and uncertainties in the environment. A hostile regulatory environment, a volatile supply chain, a technology disruption that could arrive at any of several time horizons. These widen the cone from outside.
+**External driver** — threats and uncertainties in the environment. A hostile regulatory environment, a volatile supply chain, a technology disruption that could arrive at any of several time horizons. These widen the cone from outside. Where these threats are causally connected — one triggering or amplifying another — the cone is wider and more asymmetric than an independent treatment would suggest. The risk correlation network in Section 11.5 captures those connections formally.
 
 **Internal driver** — the fragility of the assumptions underlying the strategic objectives themselves. An objective that rests on an unconfirmed budget assumption, an unratified regulatory requirement, or a market forecast with low confidence has a wider cone than one resting on evidenced, confirmed assumptions. This is the driver most commonly missed by conventional ERM.
 
@@ -145,7 +145,7 @@ The AI does not make strategic decisions. It maximises the context available to 
 
 Risk Radar adopts the RiskLeap Risk Ontology (Loopnut Consultoria Ltda, March 2026) as its vocabulary, with extensions for the directional model.
 
-The core distinction the ontology establishes — and which conventional ERM conflates — is between UNCERTAINTY (the condition that exists: the cause layer) and RISK (the effect of that condition on a specific objective: the consequence layer). A skills gap is an uncertainty. The bearing deflection that skills gap causes on the talent and culture objective is a risk. One uncertainty can produce multiple risks across multiple objectives. This is where cascade effects originate.
+The core distinction the ontology establishes — and which conventional ERM conflates — is between UNCERTAINTY (the condition that exists: the cause layer) and RISK (the effect of that condition on a specific objective: the consequence layer). A skills gap is an uncertainty. The bearing deflection that skills gap causes on the talent and culture objective is a risk. One uncertainty can produce multiple risks across multiple objectives. This is where cascade effects originate — and where the risk correlation network described in Section 11.5 provides formal structure for what the ontology identifies as a causal relationship.
 
 The ontology's causal chain runs: UNCERTAINTY → causes → RISK → informs → DECISION → triggers → ACTION → triggers → OBSERVATION → informs → INDICATOR → influences → OBJECTIVE. This is a feedback loop, not a linear chain.
 
@@ -233,7 +233,7 @@ Across all frameworks surveyed, five gaps appear consistently:
 
 2. **No dynamic bearing assessment.** Standards operate on annual review and compliance cycles. Boards need continuous visibility into whether conditions since the last board meeting have shifted their strategic bearing.
 
-3. **No objective-relative risk prioritisation.** Risk materiality is assessed in the abstract — against size, probability, and impact in general. A risk that is highly material to one strategic objective may be irrelevant to another. No standard addresses this.
+3. **No objective-relative risk prioritisation.** Risk materiality is assessed in the abstract — against size, probability, and impact in general. A risk that is highly material to one strategic objective may be irrelevant to another. No standard addresses this. No existing platform surfaces causal chain leverage — which single risk node, if mitigated, collapses the most downstream consequence bearing. Risk Radar's correlation network model (Section 11.5) produces exactly this output.
 
 4. **No operationalised cone of possibilities.** Shell scenario planning and horizon scanning exist, but they are workshop-based and periodic. No framework provides continuous, dynamically updated scenario bounds.
 
@@ -315,6 +315,39 @@ Edge weights require calibration at two levels:
 The minimum viable approach is importance-rated weights elicited from data owners. Full calibration against historical outcome data is the aspirational state, reachable after two or more assessment cycles have produced a comparative record.
 
 Within-tier edge weights (KRI to Objective, Objective to Objective) are structurally different from tier-to-tier edge weights. Tier-to-tier edges carry two distinct weights: a `materiality_weight` for bottom-up bearing aggregation and a `cascade_weight` for top-down True North propagation. These serve different purposes and must not be conflated. Section 13.3 defines both.
+
+The within-tier network of risk-to-risk lateral edges is a separate structure from the tier-to-tier hierarchy. Its treatment — and the effect of that structure on simulation behaviour — is in Section 11.5.
+
+### 11.5 The Risk Correlation Network
+
+The three-regime simulation model in Sections 11.2–11.4 treats each shock event as an independent Bernoulli trial: threat T1 fires with probability p₁, threat T2 fires with probability p₂, and the two are statistically independent. This is computationally convenient but structurally false for most risk portfolios. In practice, risks share causal drivers, and the firing of one event changes the probability of others firing in the same assessment window.
+
+A contractor insolvency raises the probability of programme delay, which raises the probability of a planning consent lapse, which triggers a contractual penalty clause. The Ofgem price review adversely decided raises the cost of capital, which raises the probability of debt refinancing stress. None of these relationships are captured in an independent-shock model, and the consequence is systematic underestimation of tail risk — the very region of the distribution where the percentile selector is most sensitive.
+
+**The risk correlation network is a directed graph** whose nodes are the Regime 2 shock events and whose edges carry two parameters:
+
+- `conditional_probability_delta` — how much the probability of the target node changes when the source node fires. Expressed as a signed delta: +0.15 means the target becomes 15 percentage points more likely; −0.10 means 10 points less likely (a threat that, if it fires, reduces the viability of a competing threat).
+- `magnitude_scaling` — how much the target node's bearing displacement changes when the source node has fired. A regulatory adverse decision may increase the magnitude of a downstream financial shock because lenders reprice the regulatory environment, not just the event itself.
+
+This is distinct from the tier-to-tier hierarchy. The tier graph is hierarchical: bearing aggregates upward and True North propagates downward. The risk correlation network is lateral: it connects shock events within a single tier's risk inventory to each other.
+
+**In the Monte Carlo simulation**, the independent-draw model is replaced with a two-pass sampling procedure:
+
+*Pass 1 — Draw the trigger set.* For each shock node in topological sort order (causes before effects), draw a Bernoulli trial. If the node's source predecessors have fired, apply their `conditional_probability_delta` values to adjust the base probability before drawing. The result is a consistent set of triggered events that respects the causal structure.
+
+*Pass 2 — Apply bearing effects.* For each triggered event, compute its bearing displacement (base magnitude, scaled by any `magnitude_scaling` from fired predecessors), resolve the direction, and sum the vector contributions across all triggered events as in the independent model.
+
+The output of this two-pass procedure is structurally identical to the independent model — a bearing position per simulation run — but the distribution it produces has a fatter tail on the side of the dominant causal chain. Events that share upstream causes cluster in the same simulation runs; they do not cancel each other out across independent draws.
+
+**The board-visible consequence** is that the P80 and P90 gap widens relative to an independent model. Where the independent model might show P50 at 28° and P80 at 49°, the correlated model might show P50 at 30° and P80 at 63° — because the bad-tail scenarios contain multiple co-firing events that share a common trigger, not independent unlucky draws. The cone is visibly asymmetric and heavier in the direction of the dominant causal chain.
+
+**Causal chain identification.** The risk correlation graph has a second board-level output beyond the cone shape: it surfaces the highest-impact causal pathways. A path analysis across the directed graph (computing expected bearing impact weighted by joint path probability) identifies which chains of events, if any single node in the chain were interrupted, would most reduce tail risk. This is the intervention leverage question: where in the causal network does a single action produce the greatest reduction in P80 bearing deviation?
+
+This reframes the board's relationship to risk response. In an independent model, the question is "which individual risk do we mitigate?" In a network model, the question is "which node in the causal chain, if broken, collapses the most downstream tail risk?" The two answers are often different, and the network answer is typically more efficient: a single capability investment that addresses a common cause node simultaneously reduces the probability of multiple downstream consequence nodes.
+
+**Practical elicitation.** Capturing a full correlation matrix is analytically demanding and typically produces unreliable estimates from practitioners who have not encountered the question before. Risk Radar uses a more tractable approach: for each risk, data owners are asked a single structured question — "if this risk materialises, which other risks on your register become significantly more or less likely?" — and the answers are encoded as directional edges with a qualitative weight (High / Medium / Low delta → 0.20 / 0.10 / 0.05). This is sufficient to reshape the tail of the distribution meaningfully without requiring precision that practitioners cannot provide.
+
+The correlation network is elicited incrementally: a risk register with no edges is valid and falls back to the independent model. Edges are added as the organisation's understanding of its causal structure matures. The first assessment cycle establishes the independent baseline. Subsequent cycles layer in the relationships that the first cycle's outcomes revealed. This is consistent with the instrument's broader philosophy: structured judgement that improves with use, not precision that demands expertise the client does not yet have.
 
 ---
 
@@ -439,3 +472,189 @@ The board must be able to distinguish between two different alert conditions tha
 **True North deviation** — the subordinate's True North has drifted from the parent's True North because cascade weights have not fully transmitted the parent's strategic pivot. The programme may be executing well toward an objective that is no longer the right one. Corrective action is strategic redesign: restate the programme objective to align with the updated parent north.
 
 Both conditions produce visible displacement on the radar, but they require fundamentally different responses. The instrument must surface which condition applies — and the two-weight edge model is what makes that diagnosis possible.
+
+---
+
+# Part III — Empirical Evidence from the Tier 0 Proof of Concepts
+
+*Part III records the findings from the first two Tier 0 proof-of-concept implementations completed in June 2026: WEF.html (17 UN Sustainable Development Goals mapped against WEF 2026 Global Risk data) and Shell.html (Shell plc 9 principal risks across five Annual Reports, 2021–2025). These were single-file HTML/Canvas instruments, not production software. Their value is evidentiary: they are the first external test of the theoretical model against real data and real audiences.*
+
+*Where the POC findings confirm the theoretical model, that confirmation is recorded. Where they contradict, qualify, or extend it, those findings take precedence over the theory. Building the instrument and observing how people actually engage with it is more reliable than predicting engagement from first principles.*
+
+---
+
+## 14. What the POCs Confirmed
+
+### 14.1 The radar metaphor works at first contact
+
+Every reviewer understood the instrument within seconds without instruction. True North, bearing deviation, blip proximity, and cone width all read intuitively. No reviewer asked what the degrees meant. Several asked immediately whether the instrument was pointing in the right direction. The central claim in Section 2 — that the output must be usable in the room where decisions are made, without explanation — held in practice.
+
+This validates Assumption 1 in Section 9: senior decision makers can engage with the spatial metaphor without a literacy barrier.
+
+### 14.2 Blips as navigable objects produce a qualitatively different cognitive response
+
+Positioning individual risks as objects on a screen — rather than rows in a register — changed what reviewers did first. They scanned the radar before reading any text. The spatial relationship between adjacent blips surfaced causal intuition before any network diagram was opened: a cyberattack blip sitting visually proximate to an HSSE blip prompted the question "are those connected?" before the Risk Network tab was touched.
+
+This is the practical confirmation of the radar metaphor claim in Section 4.2: bearing is a structured judgement, and the spatial rendering makes the structure legible without requiring the reviewer to read it.
+
+### 14.3 The Risk Network tab was opened before the Analysis tab
+
+In the Shell build, the panel tab sequence was Analysis / Risk Network / Decisions / Board Q&A. Every reviewer opened Risk Network first. This was the opposite of what a conventional risk report produces. The implication is significant and contradicts the implied hierarchy in the theoretical model: the causal network is not a supporting feature — it is the primary cognitive tool. The radar provides spatial intuition; the network provides the reasoning. The theoretical model in Sections 11.4 and 11.5 treats the correlation network as a computational backend. The POC evidence suggests it should be a primary front-end output.
+
+### 14.4 History track on the outer ring is immediately read as accountability
+
+The year labels on the outer ring — collapsing consecutive same-bearing years into range labels (e.g. "22–24") — were interpreted without explanation as "this risk has not moved in three years." That reading is directionally correct and precisely what the track is intended to convey. The follow-on question was consistent: "why has it not moved?" That question is the most valuable thing a board instrument can prompt, and a static risk register never produces it.
+
+This validates the track history dimension in Section 5 — "accumulated bearing record" — and confirms it earns its place as a primary encoding dimension rather than a decorative feature.
+
+### 14.5 Opportunities rendered north-west of True North worked geometrically without labelling
+
+Positioning opportunity blips west of north — pulling toward the objective rather than deflecting from it — was understood spatially without colour or label. The visual grammar of the radar handles the threat/opportunity distinction directionally, which is more effective than the conventional approach of distinguishing them by row colour in a register.
+
+This confirms the compass metaphor in Section 4.2: opportunities exert pull toward a bearing when capability exists. The geometry does the work.
+
+### 14.6 ActiveDeviation records on the inner Now ring read correctly as confirmed, not probabilistic
+
+The three Shell active issues positioned on the inner ring — Hague ruling appeal pending, process safety events up 43%, CSRD mandatory reporting — were immediately distinguished from the outer blips by every reviewer without instruction. The proximity to centre (the current position) communicated "this is happening now" without text. This validates the ActiveDeviation concept from Section 8 and the Regime 3 deterministic offset from Section 11.2: reviewers intuitively understood that these objects behave differently from the probabilistic blips on the outer rings.
+
+### 14.7 The blade panel tab sequence maps to a real board session flow
+
+The sequence Analysis / Network / Decisions / Board Q&A was not designed against a board session model — it emerged from implementation choices made on practical grounds. In retrospect it mirrors how a well-run board risk discussion actually progresses: current position → causal reasoning → route options → challenge questions. This alignment is a design finding worth preserving as a deliberate principle in the production instrument.
+
+---
+
+## 15. What the POCs Broke or Qualified
+
+### 15.1 The aggregate bearing is visually authoritative regardless of how many caveats surround it
+
+Both POCs used unweighted vector sums to produce the aggregate bearing: the WEF aggregate across 17 SDGs and the Shell aggregate across 9 principal risks. Both included explicit caveats in the blade panel noting the aggregate was unweighted and directional only.
+
+Reviewers read the bearing number first. The caveat was noted last, if at all. The number on the canvas is visually authoritative in a way that text in a panel is not — and it carries the false authority of precision regardless of how the text qualifies it.
+
+This is a material conflict with the instrument's stated commitment in Section 6 to honest, confidence-scaled outputs. The theoretical model's solution — the confidence multiplier from data completeness, narrowing or widening the bearing arrow — is correct but insufficient on its own. The aggregate bearing number needs to either carry a visible uncertainty band or be suppressed entirely until a defensible weighting methodology is applied. Displaying an unweighted aggregate to a board is arguably more misleading than displaying no aggregate at all.
+
+The practical resolution: the aggregate bearing should only be displayed when at least two conditions are met — a weighting methodology has been defined and approved by the assessment owner, and the confidence-band rendering clearly distinguishes the weighted mean from the uncertainty envelope. This is technically achievable through the weighted circular mean (Section 13.1) and the two-source bearing arrow width (Section 11.3), but both need to be implemented before the aggregate is presented to a board audience.
+
+### 15.2 The tool mirrors its source data — it cannot challenge it
+
+Both POCs were built entirely from publicly disclosed data: Shell.html from Shell's own Annual Reports; WEF.html from WEF's own risk rankings. In both cases the instrument is an accurate and structured presentation of what the source organisation chose to say about itself. It cannot, by design, surface what the organisation chose not to say.
+
+The persona review against a Shell Non-Executive Director produced the sharpest finding: the blade panel confirmed management's narrative. A Board-facing tool that only reflects management input is a compliance artefact, not a strategic instrument. The NED's role is to challenge management, not to receive a structured presentation of management's own view.
+
+This is a structural limitation of the data architecture, not a visual design problem. The theoretical model addresses data quality in Section 6 through completeness scoring, but completeness is about how thoroughly the data has been entered — not about whether the data is independent of the management view being assessed. These are different problems.
+
+The resolution requires independent data streams alongside management-provided data. For a listed company like Shell, these exist: analyst consensus on risk severity, regulatory findings, litigation outcomes, competitor disclosures, ESG rating agency assessments. For internal programme use, they are peer reviews, internal audit findings, and third-party assessments. The confidence tier system is the mechanism for distinguishing management-disclosed from independently verified data — but this only works if independent data is actually in the model. The Mode 1 AI (Section 7) needs an explicit responsibility to flag when the data model contains only management-provided inputs and no independent triangulation.
+
+### 15.3 Confidence tiers are insufficiently prominent in the visual design
+
+In the Shell build, confidence tiers appear as small text badges (High / Medium / Low) in the blade panel. On the radar canvas, a Low-confidence blip and a High-confidence blip are visually identical in size, opacity, and rendering.
+
+This is architecturally dishonest. The theoretical model in Section 6 describes confidence as a multiplier that narrows or widens the bearing arrow. That design is correct. It was not implemented in the POC, and the gap between what the theory says and what the POC shows is instructive: a visually prominent confidence signal on the canvas is a production requirement, not a nice-to-have.
+
+The minimum viable implementation: Low-confidence blips rendered with significantly reduced opacity or with a dashed boundary, so that a board looking at the radar can immediately distinguish what is known from what is inferred. The confidence band on the bearing arrow (narrow = high confidence, wide = low confidence) is the aggregate expression of this principle at the level of the overall bearing.
+
+### 15.4 Velocity is entirely absent from both builds
+
+The theoretical model in Section 4.2 describes bearing as "strategic velocity — direction plus magnitude." Neither POC achieves this. The history track shows where a bearing has been at discrete points, but it does not show how fast it is moving or whether it is accelerating.
+
+The Shell POC exposed this gap sharply: process safety events went from 63 to 90 Tier 1+2 events in one year, a 43% increase. The bearing for the HSSE blip moved from 38° to 35° — a marginal improvement — because the SIF-F personal safety metric improved over the same period, partially offsetting the process safety deterioration. A KRI that moved 43% in one year is behaviourally different from one that has been stable for five years at the same absolute value, and the radar does not distinguish between them.
+
+Rate of change is the most decision-relevant signal in a dynamic risk environment: it tells the board whether a situation is self-correcting or self-reinforcing before the bearing value itself moves enough to trigger governance attention.
+
+The resolution requires a new field on every blip: `trend`, expressing the direction and pace of change at the KRI level. The visual encoding on the canvas should reflect this — a velocity indicator or trail showing not just where the blip is but whether it is accelerating toward or away from True North. This is distinct from the history track, which records discrete historical positions. The trend indicator is a forward-looking signal derived from the rate of change of the most recent two or three assessment cycles.
+
+### 15.5 The tool speaks to risk experts, not decision makers
+
+The Shell build was persona-reviewed against four audiences: Non-Executive Director, Institutional Investor, Group Risk Officer, and Energy Transition Analyst. The instrument served the Risk Officer most effectively — the taxonomy was correct, the causal chains were real, the data sources were cited. It failed the other three personas for different reasons:
+
+- **NED:** received management's narrative, not a challenge to it.
+- **Investor:** no financial translation — no earnings at risk, no NAV sensitivity, no dividend stress test. The bearing deviation has no financial consequence attached to it.
+- **Analyst:** the tool uses the organisation's own framing throughout, with no independent triangulation. An analyst would use it as a primary source, not an assessment.
+
+The theoretical model targets "board and C-suite" as primary customers (Section 5). The POC evidence shows the product currently serves the risk function that operates one level below that audience. The gap is not in the visual design or the data model — it is in the translation layer between risk language and decision language. A bearing of +42° east is a risk expert's description. A board member needs to know what it means for their strategic choices. An investor needs to know what it means for their position.
+
+The resolution is an explicit persona translation layer in the blade panel — a "what this means for your decision" section that contextualises the bearing reading for the specific governance role of the person looking at it. The Mode 2 AI (Section 7) is the natural engine for this: it already has the responsibility to answer natural language questions about bearing and its causes. Extending it to answer "what does this mean for my role" is a natural scope addition.
+
+### 15.6 The data entry problem is materially larger than the theory assumes
+
+Section 8 identifies data entry as "the primary integration mechanism" and acknowledges the dependency on internal data owners. The POC experience sharpened this considerably. Populating Shell.html required reading approximately 400 pages of Annual Report material across five years to generate 12 blips, 3 active issues, 4 causal chains, and 9 KRIs. That is not a data entry problem — it is a research problem.
+
+For a production instrument serving a live board, this cost is prohibitive if repeated each assessment cycle. The solution that emerged from the POC experience is structural: the Annual Report — or its internal equivalent, the organisation's own strategic and risk documentation — becomes the ingestion source, not a reference for manual entry.
+
+The Annual Report boot sequence works as follows: the organisation's own documents (Annual Reports, Board Papers, Risk Committee minutes, strategic plans) are passed to the Claude API or equivalent with a structured extraction prompt calibrated to the Risk Radar data model. The AI produces a draft data object — blips, bearings, confidence tiers, causal links, source citations — in minutes. A human review step validates and locks each extracted data point to its source passage. Approved data enters the radar pre-loaded and source-traceable. The confidence tier is automatic: audited KPI from a financial statement = High; disclosed qualitative language from the risk section = Medium; contextual inference from narrative prose = Low.
+
+This architecture is not a post-launch feature. It is the practical resolution to a data problem that makes the production instrument viable. Without it, the data entry cost ensures the tool is populated once, at onboarding, and not maintained. The Mode 1 AI (Section 7) needs to be extended beyond its current definition — data quality coaching — to include document ingestion and structured extraction as a primary function.
+
+### 15.7 The decision layer exists as text but does not interact with the radar
+
+The theoretical model in Section 9 describes a two-layer instrument: radar for situational awareness, decision branches for route planning. The Shell Decisions tab implements this in minimal form — three route options with projected bearing shifts displayed as text.
+
+The decision simulation does not interact with the canvas. Selecting a decision route does not move any blips, redraw the cone, or show the projected bearing on the radar. The decision layer is a panel, not a navigation instrument. The theoretical model in Section 4 promises more than the POC delivers on this dimension.
+
+The production instrument requires the decision layer to be visually integrated with the radar: selecting a decision option should overlay a projected cone on the canvas, showing the new bearing that would result if that route were taken, alongside the current bearing cone, so the two can be compared spatially. This is the "route planning layer" described in the concept — candidate routes visible as overlays on the situational awareness layer. Without that visual integration, the Decisions tab is a text panel that happens to be next to a radar rather than a decision simulation instrument.
+
+---
+
+## 16. Structural Revisions to the Model
+
+The POC findings require four revisions to the theoretical model. These are not corrections to errors in the theory — the theory is sound. They are extensions and prioritisation changes that the empirical evidence demands.
+
+### 16.1 The causal network is co-equal with the radar, not a backend computation
+
+The theoretical model treats the risk correlation network (Section 11.5) as a computational backend — it shapes the simulation's tail distribution and surfaces intervention leverage points. The POC evidence shows that the network is the first thing reviewers engage with at the front end. Reframing: the network is not an input to the simulation that happens to be explorable. It is a primary instrument output that shapes how the board understands the radar in front of them.
+
+The architectural consequence: the Risk Network tab should be the default open panel when the blade opens, not the Analysis tab. The network view should be directly linked to the canvas — clicking a blip on the radar should highlight that node's connections in the network panel simultaneously. The network and the radar are two representations of the same model, and the interface should make that relationship explicit.
+
+### 16.2 Independent data is a first-day product requirement
+
+The theoretical model's data architecture assumes that data quality is the primary variable: complete, well-evidenced data produces a trustworthy bearing. The POC evidence adds a second dimension: even complete, well-evidenced management data cannot serve the board's challenge function because it reflects management's own view. Independence of data sources is as important as completeness of data entry, and it is not addressed in the current theoretical model.
+
+Revision: the confidence tier system must distinguish four states, not three:
+- **Verified** — independently audited or externally confirmed (e.g. statutory audit, regulator finding, third-party assessment)
+- **Disclosed** — management-disclosed in a formal document (Annual Report, Board Paper, regulatory submission)
+- **Asserted** — management-provided without formal disclosure (workshop input, internal assessment)
+- **Inferred** — contextual derivation by the AI from available evidence
+
+The visual encoding must make these distinctions legible on the canvas. A Verified blip and an Inferred blip should look demonstrably different to a board member scanning the radar. This replaces the binary High/Medium/Low confidence tier with a four-state provenance model that is more honest about the nature of the evidence behind each blip.
+
+### 16.3 Velocity requires a new field and new visual encoding at the blip level
+
+The theoretical model describes bearing as direction plus magnitude but has no mechanism for encoding rate of change at the individual blip level. The history track records positions at discrete time points. That is not velocity — it is a position history.
+
+Revision: every blip requires a `trend` field expressing rate of change over the most recent two or three assessment cycles. The values are: `accelerating_toward_north`, `stable`, `decelerating_toward_north`, `accelerating_away_from_north`, `decelerating_away_from_north`. The visual encoding should render this as a directional indicator on the blip — a short trailing vector showing not just where the blip is but whether it is moving toward or away from True North and at what rate.
+
+This is distinct from the projected track (forward-looking, from the Monte Carlo simulation) and from the history track (backward-looking position record). The trend indicator is a first-derivative signal derived from recent history, designed to trigger governance attention before the bearing value itself moves enough to cross a threshold.
+
+### 16.4 The Annual Report boot sequence is the data architecture
+
+The practical resolution to the data entry problem (Section 15.6) reframes how the Mode 1 AI is defined. In the current theoretical model (Section 7), Mode 1 is a data quality coach: it interrogates existing records and raises completeness. That is correct but incomplete. The first-time data population problem — which the POC exposed as requiring a research-scale effort for even a single organisation — is not solved by a quality coach. It requires a document parser.
+
+Revision: Mode 1 AI has two sub-modes.
+
+**Mode 1a — Document Ingestion.** On first engagement with a client organisation, the AI reads the organisation's own strategic and risk documents (Annual Reports, Board Papers, Risk Committee minutes, strategic plans) and produces a draft Risk Radar data model: blips positioned by bearing and range derived from disclosed severity language, causal links drawn from disclosed interdependency statements, KRIs populated from disclosed performance tables, confidence tiers assigned automatically by source type. Human review validates and locks each extraction with its source citation.
+
+**Mode 1b — Data Quality Coach.** In subsequent assessment cycles, the AI compares the current data model against the new document set, identifies what has changed, proposes updates, and flags where previously High-confidence data has not been refreshed and should be revalidated.
+
+The confidence tier assignment is automatic in Mode 1a: externally audited data (statutory accounts, assurance statements) = Verified; formally disclosed data (Annual Report risk section, regulatory submissions) = Disclosed; workshop or interview data = Asserted; AI inference from narrative = Inferred. This makes the provenance model in Section 16.2 operationally tractable — the tier is set by the extraction source, not manually entered.
+
+---
+
+## 17. What Has Not Changed
+
+The following propositions from the theoretical model survive the POC experience without revision.
+
+**True North is non-negotiable.** Without a defined strategic objective, the bearing is meaningless. Both POCs confirmed this: the tool is only coherent when the destination is explicit. Any prospective client who cannot or will not define True North cannot use the instrument. This is not a limitation — it is a diagnostic.
+
+**Qualitative inputs (H/M/L) are sufficient and more defensible than numerical scoring.** No POC reviewer asked for percentages or asked how a degree value was computed. Several noted the High/Medium/Low severity language as more credible than numerical scoring because it does not claim precision that the underlying data cannot support. The argument in Section 2 — "structured judgement, not measurement" — held in practice.
+
+**The market gap is real.** Neither POC surfaced a competing instrument that integrates situational awareness, causal network, and decision simulation in a single board-level visual output. The gap identified in Section 10 remains open. No existing ERM platform, scenario planning tool, or governance framework closes it.
+
+**COSO ERM 2017 and ISO 31000:2018 alignment is genuine and creates real demand.** Both frameworks mandate objective-led risk management. Both leave the same implementation gap. The standards create a governance obligation that Risk Radar is structurally positioned to fulfil. The Section 10 standards survey confirmed this across more than twenty frameworks.
+
+**The four-tier architecture is the right scope.** The Tier 0 POCs (WEF and Shell operating at the equivalent of a group board level) confirmed that the board-level visual is the right entry point. Tiers 1–3 as the data supply chain that makes the board instrument credible is the correct design priority sequence. Build the board instrument first. The lower tiers follow.
+
+**The instrument is only as trustworthy as the data behind it — and that must be visible.** This principle (Section 6) was not just confirmed by the POCs; it was the dominant concern raised by every persona reviewer. The mechanism for making data trustworthiness visible — confidence tiers, provenance encoding, bearing arrow width — is more important in the production instrument than any visual enhancement to the radar itself.
+
+---
+
+*Part III added June 2026 following completion of WEF.html and Shell.html Tier 0 proof-of-concept implementations.*
