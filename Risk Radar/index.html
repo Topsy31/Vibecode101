@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Risk Radar — Strategic Navigation</title>
+  <title>Risk Radar — Worked Examples</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -17,285 +17,627 @@
       overflow: hidden;
     }
 
-    #app {
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-    }
-
-    /* Toolbar */
+    /* ── Toolbar ── */
     #toolbar {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      padding: 12px 24px;
+      gap: 16px;
+      padding: 10px 20px;
       background: #0d1220;
       border-bottom: 1px solid #1e2a40;
       flex-shrink: 0;
+      flex-wrap: wrap;
     }
 
     .brand {
-      font-size: 1.1rem;
-      font-weight: 600;
-      letter-spacing: 0.08em;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
       color: #4fc3f7;
       text-transform: uppercase;
+      flex-shrink: 0;
+      margin-right: 8px;
     }
 
-    .scenario-switcher {
+    .example-tabs {
       display: flex;
-      gap: 8px;
+      gap: 4px;
+      flex-wrap: wrap;
     }
 
-    .scenario-btn {
-      padding: 6px 16px;
+    .ex-btn {
+      padding: 5px 13px;
       background: #1a2235;
       border: 1px solid #2a3550;
       border-radius: 4px;
-      color: #8a9bb5;
-      cursor: pointer;
-      font-size: 0.85rem;
-      transition: all 0.2s;
-    }
-
-    .scenario-btn:hover { border-color: #4fc3f7; color: #e0e6f0; }
-    .scenario-btn.active { background: #1a3a5c; border-color: #4fc3f7; color: #4fc3f7; }
-
-    /* Main layout */
-    #main {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
-    }
-
-    /* Radar panel */
-    #radar-panel {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      flex: 1;
-      padding: 20px;
-      gap: 16px;
-    }
-
-    #radar-canvas {
-      max-width: min(700px, calc(100vh - 160px));
-      max-height: min(700px, calc(100vh - 160px));
-      width: 100%;
-      height: auto;
-      border-radius: 50%;
-      box-shadow: 0 0 60px rgba(79, 195, 247, 0.08);
-    }
-
-    /* Branch controls */
-    #branch-controls {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-
-    .branch-label {
-      font-size: 0.75rem;
-      color: #4a5a75;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      margin-right: 4px;
-    }
-
-    .branch-btn {
-      padding: 5px 14px;
-      background: #1a2235;
-      border: 1px solid #2a3550;
-      border-radius: 20px;
       color: #8a9bb5;
       cursor: pointer;
       font-size: 0.8rem;
-      transition: all 0.2s;
+      white-space: nowrap;
+      transition: all 0.18s;
     }
+    .ex-btn:hover { border-color: #4fc3f7; color: #e0e6f0; }
+    .ex-btn.active { background: #1a3a5c; border-color: #4fc3f7; color: #4fc3f7; font-weight: 600; }
 
-    .branch-btn:hover { border-color: #7986cb; color: #e0e6f0; }
-    .branch-btn.active { background: #1f2b4a; border-color: #7986cb; color: #b0beff; }
-
-    /* Objectives panel */
-    #objectives-panel {
-      width: 320px;
-      min-width: 280px;
-      background: #0d1220;
-      border-left: 1px solid #1e2a40;
-      padding: 24px 20px;
-      overflow-y: auto;
-      flex-shrink: 0;
-    }
-
-    #objectives-panel h2 {
-      font-size: 0.9rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: #4fc3f7;
-      margin-bottom: 4px;
-    }
-
-    .objectives-subtitle {
-      font-size: 0.75rem;
-      color: #4a5a75;
-      margin-bottom: 20px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-
-    #objectives-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    /* Objective items */
-    .obj-item {
-      border-radius: 6px;
-      overflow: hidden;
-    }
-
-    .obj-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 12px;
-      cursor: pointer;
-      transition: background 0.15s;
-      background: #131a2e;
-      border: 1px solid #1e2a40;
-      border-radius: 6px;
-    }
-
-    .obj-header:hover { background: #18213a; }
-    .obj-header.expanded { border-radius: 6px 6px 0 0; border-bottom-color: transparent; }
-
-    .obj-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      flex-shrink: 0;
-      transition: background 0.4s;
-    }
-
-    .obj-name {
-      flex: 1;
-      font-size: 0.82rem;
-      color: #c8d4e8;
-      line-height: 1.3;
-    }
-
-    .obj-status {
-      font-size: 0.7rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      transition: color 0.4s;
-    }
-
-    .obj-expand-icon {
-      font-size: 0.6rem;
-      color: #4a5a75;
-      transition: transform 0.2s;
-    }
-
-    .obj-header.expanded .obj-expand-icon { transform: rotate(180deg); }
-
-    /* Sub-objectives */
-    .obj-children {
+    /* ── PESTLE filter bar ── */
+    #pestle-bar {
       display: none;
-      flex-direction: column;
-      gap: 2px;
-      background: #0f1624;
-      border: 1px solid #1e2a40;
-      border-top: none;
-      border-radius: 0 0 6px 6px;
-      padding: 4px 8px 8px;
-    }
-
-    .obj-children.open { display: flex; }
-
-    .obj-child {
-      display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 7px 10px;
-      border-radius: 4px;
-    }
-
-    .obj-child-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
+      gap: 6px;
+      padding: 7px 20px;
+      background: #111927;
+      border-bottom: 1px solid #243048;
       flex-shrink: 0;
-      transition: background 0.4s;
+      flex-wrap: wrap;
     }
 
-    .obj-child-name {
-      flex: 1;
-      font-size: 0.77rem;
-      color: #8a9bb5;
-    }
+    #pestle-bar.visible { display: flex; }
 
-    .obj-child-status {
-      font-size: 0.68rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      transition: color 0.4s;
-    }
-
-    /* Legend */
-    #legend {
-      margin-top: 24px;
-      padding-top: 16px;
-      border-top: 1px solid #1e2a40;
-    }
-
-    #legend p {
-      font-size: 0.7rem;
-      color: #4a5a75;
+    .pestle-label {
+      font-size: 0.65rem;
+      font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.1em;
-      margin-bottom: 10px;
+      color: #7a8fa8;
+      margin-right: 4px;
+      white-space: nowrap;
     }
 
-    .legend-items {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .legend-item {
+    .pf-btn {
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-size: 0.75rem;
-      color: #6a7a95;
+      gap: 5px;
+      padding: 4px 11px 4px 8px;
+      border-radius: 12px;
+      border: 1px solid #2e3f58;
+      background: #182030;
+      color: #c8d8f0;
+      cursor: pointer;
+      font-size: 0.73rem;
+      font-weight: 600;
+      transition: all 0.15s;
+      white-space: nowrap;
     }
 
-    .legend-dot {
+    .pf-btn:hover { border-color: #4a6080; background: #1e2a40; color: #e8f0ff; }
+
+    .pf-btn .pf-pip {
       width: 8px;
       height: 8px;
       border-radius: 50%;
       flex-shrink: 0;
     }
 
-    /* Hover tooltip */
+    .pf-btn.off { opacity: 0.4; }
+    .pf-btn.off .pf-pip { background: #3a4a60 !important; }
+
+    .pf-sep {
+      width: 1px;
+      height: 18px;
+      background: #243048;
+      margin: 0 3px;
+    }
+
+    .pf-all {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      padding: 4px 10px;
+      background: #1e2a40;
+      border: 1px solid #3a5070;
+      border-radius: 4px;
+      color: #a0b8d0;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .pf-all:hover { border-color: #4fc3f7; color: #e0f0ff; background: #1a3050; }
+
+    /* ── Main layout ── */
+    #main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── Radar panel ── */
+    #radar-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      padding: 16px;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    #radar-wrap {
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    #radar-canvas {
+      display: block;
+      border-radius: 50%;
+      box-shadow: 0 0 60px rgba(79,195,247,0.07);
+    }
+
+    /* ── Info panel ── */
+    #info-panel {
+      width: 360px;
+      min-width: 300px;
+      background: #0d1220;
+      border-left: 1px solid #1e2a40;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    /* Panel tab bar */
+    #panel-tabs {
+      display: flex;
+      border-bottom: 1px solid #1e2a40;
+      flex-shrink: 0;
+    }
+
+    .panel-tab {
+      flex: 1;
+      padding: 9px 0;
+      background: none;
+      border: none;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #4a5a75;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+
+    .panel-tab:hover { color: #8a9bb5; }
+    .panel-tab.active { color: #4fc3f7; border-bottom-color: #4fc3f7; }
+
+    #info-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 18px;
+    }
+
+    /* ── Chat panel ── */
+    #chat-panel {
+      flex: 1;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    #chat-panel.visible { display: flex; }
+
+    #chat-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 16px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .chat-msg {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .chat-meta {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .chat-avatar {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.6rem;
+      font-weight: 800;
+      flex-shrink: 0;
+      letter-spacing: 0;
+    }
+
+    .chat-avatar.board  { background: #1a3050; color: #90caf9; border: 1px solid #2a4a70; }
+    .chat-avatar.analyst { background: #1a2e20; color: #80cbc4; border: 1px solid #2a4a38; }
+
+    .chat-name {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .chat-name.board   { color: #90caf9; }
+    .chat-name.analyst { color: #80cbc4; }
+
+    .chat-time {
+      font-size: 0.6rem;
+      color: #3a4a60;
+      margin-left: auto;
+    }
+
+    .chat-bubble {
+      padding: 9px 12px;
+      border-radius: 8px;
+      font-size: 0.76rem;
+      line-height: 1.6;
+      margin-left: 29px;
+    }
+
+    .chat-bubble.board {
+      background: #0f1e35;
+      border: 1px solid #1e3050;
+      color: #c8d8f0;
+    }
+
+    .chat-bubble.analyst {
+      background: #0d1e18;
+      border: 1px solid #1a3028;
+      color: #b0ccc8;
+    }
+
+    .chat-bubble strong { color: #e0eaf8; }
+    .chat-bubble em     { color: #ffa726; font-style: normal; }
+    .chat-bubble .hi    { color: #4fc3f7; font-weight: 700; }
+    .chat-bubble .warn  { color: #ef5350; font-weight: 700; }
+    .chat-bubble .good  { color: #26a69a; font-weight: 700; }
+
+    .chat-divider {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 4px 0;
+    }
+
+    .chat-divider span {
+      font-size: 0.6rem;
+      color: #2a3a50;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      white-space: nowrap;
+    }
+
+    .chat-divider::before, .chat-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #1a2438;
+    }
+
+    .info-ex-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #4fc3f7;
+      margin-bottom: 4px;
+    }
+
+    .info-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #e0e8f8;
+      margin-bottom: 6px;
+      line-height: 1.3;
+    }
+
+    .info-objective {
+      font-size: 0.75rem;
+      color: #8a9bb5;
+      background: rgba(79,195,247,0.06);
+      border-left: 2px solid #4fc3f7;
+      padding: 7px 10px;
+      border-radius: 0 4px 4px 0;
+      margin-bottom: 14px;
+      line-height: 1.5;
+    }
+
+    .info-objective strong {
+      display: block;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #4fc3f7;
+      margin-bottom: 3px;
+    }
+
+    .info-section {
+      margin-bottom: 14px;
+    }
+
+    .info-section-title {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #4a5a75;
+      margin-bottom: 6px;
+    }
+
+    .info-text {
+      font-size: 0.78rem;
+      color: #8a9bb5;
+      line-height: 1.6;
+    }
+
+    .info-text strong { color: #c8d4e8; }
+    .info-text em { color: #ffa726; font-style: normal; }
+
+    /* Force breakdown rows */
+    .force-list {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      margin-top: 4px;
+    }
+
+    .force-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 9px;
+      border-radius: 5px;
+      background: #0f1624;
+      border: 1px solid #1a2438;
+    }
+
+    .force-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .force-name {
+      flex: 1;
+      font-size: 0.73rem;
+      color: #a0b0c8;
+      line-height: 1.3;
+    }
+
+    .force-value {
+      font-size: 0.72rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    /* Distribution table */
+    .dist-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.72rem;
+      margin-top: 4px;
+    }
+
+    .dist-table th {
+      text-align: left;
+      color: #4a5a75;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      font-size: 0.62rem;
+      padding: 4px 6px;
+      border-bottom: 1px solid #1a2438;
+    }
+
+    .dist-table td {
+      padding: 4px 6px;
+      color: #8a9bb5;
+      border-bottom: 1px solid #111826;
+    }
+
+    .dist-table tr.highlight td { color: #4fc3f7; font-weight: 700; background: rgba(79,195,247,0.05); }
+    .dist-table tr.shift-neg td { color: #26a69a; }
+
+    /* Subsidiary aggregation rows */
+    .sub-list {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      margin-top: 4px;
+    }
+
+    .sub-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 9px;
+      border-radius: 5px;
+      background: #0f1624;
+      border: 1px solid #1a2438;
+    }
+
+    .sub-name { font-size: 0.73rem; color: #a0b0c8; }
+    .sub-bearing { font-size: 0.73rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .sub-weight { font-size: 0.68rem; color: #4a5a75; }
+
+    /* Cascade table */
+    .cascade-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.72rem;
+      margin-top: 4px;
+    }
+
+    .cascade-table th {
+      text-align: left;
+      color: #4a5a75;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      font-size: 0.62rem;
+      padding: 4px 6px;
+      border-bottom: 1px solid #1a2438;
+    }
+
+    .cascade-table td {
+      padding: 4px 6px;
+      color: #8a9bb5;
+      border-bottom: 1px solid #111826;
+      vertical-align: top;
+    }
+
+    .cascade-table td:first-child { color: #c8d4e8; }
+
+    /* Result callout */
+    .result-box {
+      background: #0f1930;
+      border: 1px solid #2a4060;
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-top: 10px;
+    }
+
+    .result-box-label {
+      font-size: 0.62rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #4a5a75;
+      margin-bottom: 4px;
+    }
+
+    .result-bearing {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #4fc3f7;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .result-sub {
+      font-size: 0.72rem;
+      color: #6a7a95;
+      line-height: 1.5;
+    }
+
+    /* Issue badge */
+    .issue-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(41,182,246,0.12);
+      border: 1px solid rgba(41,182,246,0.35);
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 0.7rem;
+      color: #29b6f6;
+      margin-bottom: 8px;
+    }
+
+    .issue-badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #29b6f6;
+      box-shadow: 0 0 5px #ef5350;
+      flex-shrink: 0;
+    }
+
+    /* Regime badge */
+    .regime-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 8px;
+    }
+
+    .regime-1 { background: rgba(79,195,247,0.12); color: #4fc3f7; border: 1px solid rgba(79,195,247,0.3); }
+    .regime-2 { background: rgba(255,167,38,0.12); color: #ffa726; border: 1px solid rgba(255,167,38,0.3); }
+    .regime-3 { background: rgba(239,83,80,0.12); color: #ef5350; border: 1px solid rgba(239,83,80,0.3); }
+
+    /* Divider */
+    .info-divider {
+      height: 1px;
+      background: #1a2438;
+      margin: 12px 0;
+    }
+
+    /* Percentile bar visual */
+    .pct-bar-wrap {
+      margin-top: 6px;
+      background: #0f1624;
+      border: 1px solid #1a2438;
+      border-radius: 5px;
+      padding: 8px 10px;
+    }
+
+    .pct-bar-track {
+      position: relative;
+      height: 8px;
+      background: #1a2438;
+      border-radius: 4px;
+      margin-bottom: 6px;
+      margin-top: 10px;
+    }
+
+    .pct-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: linear-gradient(90deg, #26a69a, #ffa726, #ef5350);
+    }
+
+    .pct-marker {
+      position: absolute;
+      top: -14px;
+      transform: translateX(-50%);
+      font-size: 0.62rem;
+      font-weight: 700;
+      color: #4fc3f7;
+      white-space: nowrap;
+    }
+
+    .pct-marker::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 2px;
+      height: 8px;
+      background: #4fc3f7;
+    }
+
+    .pct-axis {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.6rem;
+      color: #4a5a75;
+    }
+
+    /* ── Tooltip ── */
     #radar-tooltip {
       position: fixed;
       pointer-events: none;
-      z-index: 100;
-      width: 260px;
+      z-index: 200;
+      width: 270px;
       background: #0d1525;
       border: 1px solid #2a3a55;
       border-radius: 8px;
-      padding: 14px 16px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(79,195,247,0.08);
+      padding: 13px 15px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.7);
       display: none;
     }
 
@@ -305,964 +647,1584 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
 
-    .tt-dot {
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
+    .tt-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
 
-    .tt-label {
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: #e0e8f8;
-      flex: 1;
-    }
+    .tt-label { font-size: 0.85rem; font-weight: 700; color: #e0e8f8; flex: 1; }
 
-    .tt-type {
-      font-size: 0.68rem;
-      font-weight: 600;
+    .tt-badge {
+      font-size: 0.62rem;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.07em;
-      padding: 2px 7px;
-      border-radius: 10px;
+      padding: 2px 6px;
+      border-radius: 8px;
     }
 
-    .tt-type.threat      { background: rgba(239,83,80,0.15); color: #ef5350; border: 1px solid rgba(239,83,80,0.3); }
-    .tt-type.opportunity { background: rgba(38,166,154,0.15); color: #26a69a; border: 1px solid rgba(38,166,154,0.3); }
+    .tt-badge.threat      { background: rgba(239,83,80,0.15); color: #ef5350; border: 1px solid rgba(239,83,80,0.3); }
+    .tt-badge.opportunity { background: rgba(38,166,154,0.15); color: #26a69a; border: 1px solid rgba(38,166,154,0.3); }
+    .tt-badge.issue       { background: rgba(41,182,246,0.15); color: #29b6f6; border: 1px solid rgba(41,182,246,0.4); }
+    .tt-badge.subsidiary  { background: rgba(121,134,203,0.15); color: #7986cb; border: 1px solid rgba(121,134,203,0.3); }
 
     .tt-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 6px;
-      margin-bottom: 10px;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
+      margin-bottom: 8px;
     }
 
     .tt-cell {
       background: #131e33;
-      border-radius: 5px;
-      padding: 6px 8px;
-      text-align: center;
+      border-radius: 4px;
+      padding: 5px 7px;
     }
 
     .tt-cell-label {
-      font-size: 0.62rem;
+      font-size: 0.6rem;
       color: #4a5a75;
       text-transform: uppercase;
       letter-spacing: 0.07em;
-      margin-bottom: 3px;
+      margin-bottom: 2px;
     }
 
     .tt-cell-value {
       font-size: 0.78rem;
-      font-weight: 600;
+      font-weight: 700;
       color: #c8d4e8;
     }
 
-    .tt-cell-value.high     { color: #ef5350; }
-    .tt-cell-value.medium   { color: #ffa726; }
-    .tt-cell-value.low      { color: #26a69a; }
+    .tt-cell-value.high   { color: #ef5350; }
+    .tt-cell-value.medium { color: #ffa726; }
+    .tt-cell-value.low    { color: #26a69a; }
+    .tt-cell-value.pos    { color: #26a69a; }
+    .tt-cell-value.neg    { color: #ef5350; }
 
     .tt-bearing {
-      font-size: 0.75rem;
+      font-size: 0.73rem;
       color: #7986cb;
-      margin-bottom: 8px;
-      line-height: 1.4;
-      padding: 6px 8px;
+      margin-bottom: 7px;
+      padding: 5px 8px;
       background: rgba(121,134,203,0.08);
       border-left: 2px solid #7986cb;
-      border-radius: 0 4px 4px 0;
+      border-radius: 0 3px 3px 0;
+      line-height: 1.45;
     }
 
     .tt-rationale {
-      font-size: 0.73rem;
+      font-size: 0.72rem;
       color: #6a7a95;
       line-height: 1.5;
-    }
-
-    .tt-objective {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-top: 8px;
-      padding-top: 8px;
-      border-top: 1px solid #1e2a40;
-      font-size: 0.72rem;
-      color: #4a5a75;
-    }
-
-    .tt-objective span { color: #8a9bb5; }
-
-    /* Bearing rationale panel */
-    #bearing-rationale {
-      margin-top: 10px;
-      padding: 10px 14px;
-      background: #0d1220;
-      border: 1px solid #1e2a40;
-      border-radius: 6px;
-      font-size: 0.75rem;
-      color: #6a7a95;
-      line-height: 1.55;
-      max-width: 560px;
-      text-align: center;
-    }
-
-    #bearing-rationale strong {
-      display: block;
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #4a5a75;
-      margin-bottom: 4px;
     }
   </style>
 </head>
 <body>
-  <div id="app">
-    <header id="toolbar">
-      <span class="brand">Risk Radar</span>
-      <div class="scenario-switcher">
-        <button class="scenario-btn active" data-scenario="A">Scenario A — Improving</button>
-        <button class="scenario-btn" data-scenario="B">Scenario B — Deteriorating</button>
-      </div>
-    </header>
 
-    <main id="main">
-      <section id="radar-panel">
-        <canvas id="radar-canvas" width="700" height="700"></canvas>
-        <div id="branch-controls">
-          <p class="branch-label">Decision Branches</p>
-          <button class="branch-btn active" data-branch="0">Current Bearing</button>
-          <button class="branch-btn" data-branch="1">Branch A</button>
-          <button class="branch-btn" data-branch="2">Branch B</button>
-          <button class="branch-btn" data-branch="3">Branch C</button>
-        </div>
-        <div id="bearing-rationale">
-          <strong>Why this bearing?</strong>
-          <span id="bearing-rationale-text"></span>
-        </div>
-      </section>
+<div id="app" style="display:flex;flex-direction:column;height:100vh;">
+  <header id="toolbar">
+    <span class="brand">Risk Radar</span>
+    <div class="example-tabs">
+      <button class="ex-btn active" data-ex="1">Ex 1 — Tier 0 Raw Inputs</button>
+      <button class="ex-btn" data-ex="2">Ex 2 — Tier Aggregation</button>
+      <button class="ex-btn" data-ex="3">Ex 3 — North Cascade</button>
+      <button class="ex-btn" data-ex="4">Ex 4 — Regime 1: Volatility</button>
+      <button class="ex-btn" data-ex="5">Ex 5 — Regime 2: Shocks</button>
+      <button class="ex-btn" data-ex="6">Ex 6 — Regime 3: Issue</button>
+      <button class="ex-btn" data-ex="6a">Ex 6a — PESTLE Stress Test</button>
+    </div>
+  </header>
 
-      <div id="radar-tooltip">
-        <div class="tt-header">
-          <div class="tt-dot" id="tt-dot"></div>
-          <span class="tt-label" id="tt-label"></span>
-          <span class="tt-type" id="tt-type"></span>
-        </div>
-        <div class="tt-grid">
-          <div class="tt-cell">
-            <div class="tt-cell-label">Likelihood</div>
-            <div class="tt-cell-value" id="tt-likelihood"></div>
-          </div>
-          <div class="tt-cell">
-            <div class="tt-cell-label">Impact</div>
-            <div class="tt-cell-value" id="tt-impact"></div>
-          </div>
-          <div class="tt-cell">
-            <div class="tt-cell-label">Capability</div>
-            <div class="tt-cell-value" id="tt-capability"></div>
-          </div>
-        </div>
-        <div class="tt-bearing" id="tt-bearing"></div>
-        <div class="tt-rationale" id="tt-rationale"></div>
-        <div class="tt-objective">
-          Primary objective: <span id="tt-objective"></span>
-          &nbsp;·&nbsp; Horizon: <span id="tt-horizon"></span>
-        </div>
-      </div>
-
-      <section id="objectives-panel">
-        <h2>Strategic Objectives</h2>
-        <p class="objectives-subtitle">True North alignment</p>
-        <ul id="objectives-list"></ul>
-        <div id="legend">
-          <p>Status Key</p>
-          <div class="legend-items">
-            <div class="legend-item"><div class="legend-dot" style="background:#26a69a"></div> Strong — on track</div>
-            <div class="legend-item"><div class="legend-dot" style="background:#ffa726"></div> Moderate — at risk</div>
-            <div class="legend-item"><div class="legend-dot" style="background:#ef5350"></div> Weak — off bearing</div>
-            <div class="legend-item"><div class="legend-dot" style="background:#b71c1c;box-shadow:0 0 4px #b71c1c"></div> Critical — needs action</div>
-          </div>
-        </div>
-      </section>
-    </main>
+  <div id="pestle-bar">
+    <span class="pestle-label">Filter:</span>
+    <button class="pf-all" id="pf-all-btn">All on</button>
+    <div class="pf-sep"></div>
+    <button class="pf-btn" data-pestle="P"><span class="pf-pip" style="background:#ab47bc"></span>Political</button>
+    <button class="pf-btn" data-pestle="E"><span class="pf-pip" style="background:#ef5350"></span>Economic</button>
+    <button class="pf-btn" data-pestle="S"><span class="pf-pip" style="background:#ffa726"></span>Social</button>
+    <button class="pf-btn" data-pestle="T"><span class="pf-pip" style="background:#26a69a"></span>Technology</button>
+    <button class="pf-btn" data-pestle="L"><span class="pf-pip" style="background:#7986cb"></span>Legal</button>
+    <button class="pf-btn" data-pestle="En"><span class="pf-pip" style="background:#66bb6a"></span>Environmental</button>
+    <div class="pf-sep"></div>
+    <button class="pf-btn" data-pestle="type-threat"><span class="pf-pip" style="background:#ef5350"></span>Threats</button>
+    <button class="pf-btn" data-pestle="type-opportunity"><span class="pf-pip" style="background:#26a69a"></span>Opportunities</button>
+    <button class="pf-btn" data-pestle="type-issue"><span class="pf-pip" style="background:#29b6f6"></span>Issues</button>
   </div>
 
-  <script>
-    // ─── Data ────────────────────────────────────────────────────────────────
-
-    const SCENARIOS = {
-      A: {
-        label: 'Scenario A — Improving',
-        trackHistory: [
-          { bearing: 168, month: -12 },
-          { bearing: 145, month: -11 },
-          { bearing: 122, month: -10 },
-          { bearing: 100, month: -9  },
-          { bearing: 82,  month: -8  },
-          { bearing: 64,  month: -7  },
-          { bearing: 52,  month: -6  },
-          { bearing: 40,  month: -5  },
-          { bearing: 34,  month: -4  },
-          { bearing: 28,  month: -3  },
-          { bearing: 22,  month: -2  },
-          { bearing: 18,  month: -1  },
-        ],
-        threats: [
-          {
-            label: 'Skills Gap', bearing: 45, range: 0.45, size: 14, type: 'threat',
-            horizon: '6–12 months',
-            likelihood: 'High', impact: 'High', capability: 'Low',
-            bearingEffect: 'Deflecting bearing 12° east — low internal capability to absorb this threat',
-            objective: 'Talent & Culture',
-            rationale: 'Insufficient mid-level technical talent is creating drag on delivery velocity. Because capability to respond is Low, this threat has outsized deflection on bearing.',
-          },
-          {
-            label: 'Regulatory Change', bearing: 320, range: 0.65, size: 11, type: 'threat',
-            horizon: '1–2 years',
-            likelihood: 'Medium', impact: 'High', capability: 'Medium',
-            bearingEffect: 'Deflecting bearing 8° west — partial capability to manage compliance',
-            objective: 'Regulatory Compliance',
-            rationale: 'Incoming data regulation will require significant compliance investment. Existing legal capability partially mitigates exposure, placing this west of north.',
-          },
-          {
-            label: 'Competitor Move', bearing: 80, range: 0.70, size: 9, type: 'threat',
-            horizon: '2–5 years',
-            likelihood: 'Medium', impact: 'Medium', capability: 'Medium',
-            bearingEffect: 'Deflecting bearing 6° east — moderate exposure, longer horizon reduces urgency',
-            objective: 'Market Positioning',
-            rationale: 'A well-funded competitor is investing in overlapping product capability. The long time horizon and moderate capability exposure limit near-term bearing impact.',
-          },
-          {
-            label: 'Market Expansion', bearing: 10, range: 0.50, size: 13, type: 'opportunity',
-            horizon: '1 year',
-            likelihood: 'High', impact: 'High', capability: 'High',
-            bearingEffect: 'Pulling bearing 14° toward north — strong capability alignment to capture this',
-            objective: 'Revenue Growth',
-            rationale: 'Adjacent market segment is underserved and aligns with existing product strengths. High capability to capture means this opportunity creates strong magnetic pull toward north.',
-          },
-          {
-            label: 'Tech Partnership', bearing: 355, range: 0.60, size: 11, type: 'opportunity',
-            horizon: '1–2 years',
-            likelihood: 'Medium', impact: 'High', capability: 'Medium',
-            bearingEffect: 'Pulling bearing 5° west of north — capability to execute partnership is developing',
-            objective: 'Strategic Partnerships',
-            rationale: 'A strategic technology partnership could accelerate platform capability. Partial internal capability to execute means pull is moderate, positioned slightly west of true north.',
-          },
-        ],
-        branches: [
-          {
-            label: 'Current Bearing',
-            projectedBearing: 18,
-            coneHalfAngle: 22,
-            color: '#4fc3f7',
-            objectiveImpact: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            bearingRationale: 'Current trajectory reflects the net vector of active threats and opportunities. Skills Gap is the dominant eastward deflection force. Market Expansion opportunity is pulling toward north but insufficient to fully correct. Cone width of ±22° reflects moderate uncertainty in medium-term planning horizon.',
-          },
-          {
-            label: 'Branch A: Invest in Capability',
-            projectedBearing: 5,
-            coneHalfAngle: 16,
-            color: '#26a69a',
-            objectiveImpact: [1, 1, 0, 1, 0, 0, -1, 0, 1, 0, 0, 1],
-            bearingRationale: 'Targeted investment in technical talent and platform capability neutralises the Skills Gap threat and strengthens the organisation\'s position to capture the Market Expansion opportunity. Bearing corrects to near True North. Cone narrows to ±16° as capability investment reduces uncertainty.',
-          },
-          {
-            label: 'Branch B: Strategic Pivot',
-            projectedBearing: 32,
-            coneHalfAngle: 30,
-            color: '#ffa726',
-            objectiveImpact: [-1, 0, 1, -1, 1, 0, 0, -1, 0, 1, 0, -1],
-            bearingRationale: 'Pivoting toward an adjacent market moves the organisation further east of True North. The pivot trades Revenue Growth and Technology Capability for Customer Experience and Market Positioning gains. Cone widens to ±30° — strategic pivots introduce significant execution uncertainty.',
-          },
-          {
-            label: 'Branch C: Consolidate',
-            projectedBearing: 12,
-            coneHalfAngle: 18,
-            color: '#7986cb',
-            objectiveImpact: [0, -1, 0, 0, -1, 1, 1, 0, 0, 0, 1, 0],
-            bearingRationale: 'Consolidation focuses resources on defending current position and improving regulatory and partnership standing. Bearing moves modestly toward north. Cone narrows slightly to ±18° as reduced strategic ambition lowers uncertainty, but Revenue Growth opportunity cost is not recaptured.',
-          },
-        ],
-        baseObjectiveStatus: [0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1],
-      },
-
-      B: {
-        label: 'Scenario B — Deteriorating',
-        trackHistory: [
-          { bearing: 5,  month: -12 },
-          { bearing: 8,  month: -11 },
-          { bearing: 12, month: -10 },
-          { bearing: 16, month: -9  },
-          { bearing: 20, month: -8  },
-          { bearing: 24, month: -7  },
-          { bearing: 28, month: -6  },
-          { bearing: 33, month: -5  },
-          { bearing: 37, month: -4  },
-          { bearing: 39, month: -3  },
-          { bearing: 41, month: -2  },
-          { bearing: 42, month: -1  },
-        ],
-        threats: [
-          {
-            label: 'Talent Flight', bearing: 55, range: 0.35, size: 16, type: 'threat',
-            horizon: '0–6 months',
-            likelihood: 'High', impact: 'High', capability: 'Low',
-            bearingEffect: 'Deflecting bearing 18° east — largest single contributor to bearing drift',
-            objective: 'Talent & Culture',
-            rationale: 'Senior technical staff attrition is accelerating. Near-term horizon and critically low capability to retain talent makes this the dominant bearing deflection force.',
-          },
-          {
-            label: 'Tech Disruption', bearing: 30, range: 0.55, size: 14, type: 'threat',
-            horizon: '1–2 years',
-            likelihood: 'High', impact: 'High', capability: 'Low',
-            bearingEffect: 'Deflecting bearing 14° east — emerging platform shift with low response capability',
-            objective: 'Technology Capability',
-            rationale: 'A new technology platform is gaining market adoption rapidly. Current tech stack has limited adaptability, and investment in capability has been deferred, compounding exposure.',
-          },
-          {
-            label: 'Cash Constraint', bearing: 100, range: 0.40, size: 12, type: 'threat',
-            horizon: '6–12 months',
-            likelihood: 'High', impact: 'Medium', capability: 'Low',
-            bearingEffect: 'Deflecting bearing 10° east — limits options across multiple strategic responses',
-            objective: 'Financial Resilience',
-            rationale: 'Runway at current burn is under 12 months. This constrains the ability to respond to other threats and limits investment in strategic opportunities, amplifying overall bearing drift.',
-          },
-          {
-            label: 'Regulatory Risk', bearing: 340, range: 0.60, size: 10, type: 'threat',
-            horizon: '1–2 years',
-            likelihood: 'Medium', impact: 'High', capability: 'Low',
-            bearingEffect: 'Deflecting bearing 6° west — capability gap means this could worsen',
-            objective: 'Regulatory Compliance',
-            rationale: 'Data protection regulation changes will require significant compliance programme. Low legal and compliance capability means this sits west as an undermanaged exposure.',
-          },
-          {
-            label: 'Niche Opportunity', bearing: 5, range: 0.75, size: 9, type: 'opportunity',
-            horizon: '2–5 years',
-            likelihood: 'Low', impact: 'High', capability: 'Low',
-            bearingEffect: 'Minimal pull toward north — too distant and capability too low to capture',
-            objective: 'Revenue Growth',
-            rationale: 'A niche market segment exists near true north, but the time horizon is long and current capability to capture is critically low. Magnetic pull exists but is too weak to correct current bearing drift.',
-          },
-        ],
-        branches: [
-          {
-            label: 'Current Bearing',
-            projectedBearing: 42,
-            coneHalfAngle: 45,
-            color: '#4fc3f7',
-            objectiveImpact: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            bearingRationale: 'Current trajectory is significantly off True North and deteriorating. Talent Flight is the dominant deflection force at 18° east. Tech Disruption and Cash Constraint compound the drift. The single Niche Opportunity is too distant and capability too low to correct course. Cone width of ±45° reflects high strategic uncertainty.',
-          },
-          {
-            label: 'Branch A: Invest in Capability',
-            projectedBearing: 28,
-            coneHalfAngle: 35,
-            color: '#26a69a',
-            objectiveImpact: [1, 0, 1, 0, 1, -1, 0, 1, 0, 0, 1, 0],
-            bearingRationale: 'Emergency capability investment in talent retention and technology stabilisation begins to correct the dominant Talent Flight deflection. Bearing moves from 42° to 28° east of True North — meaningful improvement but significant drift remains. Cone narrows to ±35° as intervention reduces uncertainty.',
-          },
-          {
-            label: 'Branch B: Strategic Pivot',
-            projectedBearing: 58,
-            coneHalfAngle: 55,
-            color: '#ffa726',
-            objectiveImpact: [-1, -1, 0, -1, 0, 0, -1, 0, -1, 0, 0, -2],
-            bearingRationale: 'A strategic pivot under these conditions worsens bearing significantly — moving from 42° to 58° east of True North. Attempting a pivot while Talent Flight and Cash Constraint are active consumes resources needed to stabilise, amplifying all existing deflections. Cone widens to ±55° — critically high uncertainty.',
-          },
-          {
-            label: 'Branch C: Consolidate',
-            projectedBearing: 35,
-            coneHalfAngle: 38,
-            color: '#7986cb',
-            objectiveImpact: [0, 1, 0, 1, -1, 1, 0, 0, 1, -1, 0, 1],
-            bearingRationale: 'Consolidation — reducing operational scope and protecting cash runway — provides modest bearing correction to 35° east of True North. It does not resolve the Talent Flight or Tech Disruption threats but prevents further drift by stabilising Financial Resilience. Cone narrows slightly to ±38°.',
-          },
-        ],
-        baseObjectiveStatus: [1, 2, 1, 2, 3, 1, 2, 1, 3, 1, 2, 2],
-      },
-    };
-
-    const OBJECTIVES = [
-      { name: 'Revenue Growth',         children: ['Expand into new markets', 'Increase retention rate', 'Launch premium tier'] },
-      { name: 'Operational Efficiency', children: ['Reduce cost per transaction', 'Automate manual workflows'] },
-      { name: 'Talent & Culture',        children: ['Reduce attrition below 10%', 'Build leadership pipeline'] },
-      { name: 'Technology Capability',  children: ['Migrate to cloud infrastructure', 'Implement data platform'] },
-      { name: 'Customer Experience',    children: ['NPS above 60', 'Reduce onboarding time by 40%'] },
-      { name: 'Regulatory Compliance',  children: ['ISO 27001 certification', 'GDPR audit readiness'] },
-      { name: 'Strategic Partnerships', children: ['Sign 3 channel partners', 'API ecosystem launch'] },
-      { name: 'Financial Resilience',   children: ['18-month cash runway', 'Diversify revenue streams'] },
-      { name: 'Innovation Pipeline',    children: ['2 new products in development', 'R&D budget at 15% revenue'] },
-      { name: 'Market Positioning',     children: ['Analyst recognition (Gartner/Forrester)', 'Thought leadership content'] },
-      { name: 'ESG Commitments',        children: ['Carbon neutral by 2027', 'Diversity targets met'] },
-      { name: 'Risk Management',        children: ['Board risk appetite statement', 'Quarterly ERM review cycle'] },
-    ];
-
-    const STATUS_LABELS  = ['Strong', 'Moderate', 'Weak', 'Critical'];
-    const STATUS_CLASSES = ['strong', 'moderate', 'weak', 'critical'];
-    const STATUS_COLORS  = ['#26a69a', '#ffa726', '#ef5350', '#b71c1c'];
-
-    // ─── State ───────────────────────────────────────────────────────────────
-    let activeScenario = 'A';
-    let activeBranch   = 0;
-
-    // ─── Canvas ──────────────────────────────────────────────────────────────
-    const canvas = document.getElementById('radar-canvas');
-    const ctx    = canvas.getContext('2d');
-    const CX     = canvas.width  / 2;   // 350
-    const CY     = canvas.height / 2;   // 350
-    const MAX_R  = 300;
-
-    function bearingToAngle(deg) {
-      return (deg - 90) * Math.PI / 180;
-    }
-
-    function polarPoint(bearing, fraction) {
-      const a = bearingToAngle(bearing);
-      const r = fraction * MAX_R;
-      return { x: CX + r * Math.cos(a), y: CY + r * Math.sin(a) };
-    }
-
-    function drawBackground() {
-      // Base fill
-      ctx.beginPath();
-      ctx.arc(CX, CY, MAX_R + 2, 0, Math.PI * 2);
-      ctx.fillStyle = '#070b14';
-      ctx.fill();
-
-      // Radial gradient glow
-      const grad = ctx.createRadialGradient(CX, CY, 0, CX, CY, MAX_R);
-      grad.addColorStop(0,   'rgba(79, 195, 247, 0.06)');
-      grad.addColorStop(0.5, 'rgba(79, 195, 247, 0.02)');
-      grad.addColorStop(1,   'rgba(0, 0, 0, 0)');
-      ctx.beginPath();
-      ctx.arc(CX, CY, MAX_R, 0, Math.PI * 2);
-      ctx.fillStyle = grad;
-      ctx.fill();
-
-      // Subtle spokes every 30°
-      for (let b = 0; b < 360; b += 30) {
-        const p = polarPoint(b, 1.0);
-        ctx.beginPath();
-        ctx.moveTo(CX, CY);
-        ctx.lineTo(p.x, p.y);
-        ctx.strokeStyle = 'rgba(79, 195, 247, 0.05)';
-        ctx.lineWidth = 1;
-        ctx.stroke();
-      }
-    }
-
-    function drawRangeRings() {
-      const rings = [
-        { fraction: 0.25, label: '6 months' },
-        { fraction: 0.50, label: '1 year'   },
-        { fraction: 0.75, label: '2 years'  },
-        { fraction: 1.00, label: '5 years'  },
-      ];
-      rings.forEach(ring => {
-        ctx.beginPath();
-        ctx.arc(CX, CY, ring.fraction * MAX_R, 0, Math.PI * 2);
-        ctx.strokeStyle = 'rgba(79, 195, 247, 0.14)';
-        ctx.lineWidth = 1;
-        ctx.stroke();
-
-        ctx.fillStyle = 'rgba(79, 195, 247, 0.35)';
-        ctx.font = '10px Segoe UI, system-ui, sans-serif';
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(ring.label, CX + ring.fraction * MAX_R + 6, CY - 5);
-      });
-    }
-
-    function drawCompassRose() {
-      const cardinals = [
-        { bearing: 0,   label: 'N', highlight: true  },
-        { bearing: 90,  label: 'E', highlight: false },
-        { bearing: 180, label: 'S', highlight: false },
-        { bearing: 270, label: 'W', highlight: false },
-      ];
-      cardinals.forEach(c => {
-        const outer = polarPoint(c.bearing, 1.08);
-        ctx.fillStyle   = c.highlight ? '#4fc3f7' : 'rgba(79, 195, 247, 0.4)';
-        ctx.font        = c.highlight ? 'bold 13px Segoe UI' : '11px Segoe UI';
-        ctx.textAlign   = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(c.label, outer.x, outer.y);
-      });
-
-      // True North label
-      ctx.fillStyle   = 'rgba(79, 195, 247, 0.5)';
-      ctx.font        = '9px Segoe UI';
-      ctx.textAlign   = 'center';
-      ctx.textBaseline = 'bottom';
-      ctx.fillText('TRUE NORTH', CX, CY - MAX_R - 14);
-
-      // North tick
-      ctx.beginPath();
-      ctx.moveTo(CX, CY - MAX_R);
-      ctx.lineTo(CX, CY - MAX_R - 10);
-      ctx.strokeStyle = '#4fc3f7';
-      ctx.lineWidth   = 2;
-      ctx.stroke();
-    }
-
-    function drawCone(branch) {
-      const bearing    = branch.projectedBearing;
-      const halfAngle  = branch.coneHalfAngle;
-      const color      = branch.color;
-
-      // Four time bands — cone widens as range increases
-      const bands = [
-        { outerFraction: 0.25, innerFraction: 0,    alpha: 0.22 },
-        { outerFraction: 0.50, innerFraction: 0.25, alpha: 0.16 },
-        { outerFraction: 0.75, innerFraction: 0.50, alpha: 0.10 },
-        { outerFraction: 1.00, innerFraction: 0.75, alpha: 0.06 },
-      ];
-
-      bands.forEach(band => {
-        const outerHalf = halfAngle * band.outerFraction;
-        const innerHalf = halfAngle * band.innerFraction;
-
-        const startOuter = bearingToAngle(bearing - outerHalf);
-        const endOuter   = bearingToAngle(bearing + outerHalf);
-        const startInner = bearingToAngle(bearing - innerHalf);
-        const endInner   = bearingToAngle(bearing + innerHalf);
-
-        ctx.beginPath();
-        ctx.arc(CX, CY, band.outerFraction * MAX_R, startOuter, endOuter);
-        if (band.innerFraction === 0) {
-          ctx.lineTo(CX, CY);
-        } else {
-          ctx.arc(CX, CY, band.innerFraction * MAX_R, endInner, startInner, true);
-        }
-        ctx.closePath();
-
-        const alphaHex = Math.round(band.alpha * 255).toString(16).padStart(2, '0');
-        ctx.fillStyle  = color + alphaHex;
-        ctx.fill();
-      });
-
-      // Cone boundary lines
-      const leftEdge  = polarPoint(bearing - halfAngle, 1.0);
-      const rightEdge = polarPoint(bearing + halfAngle, 1.0);
-
-      ctx.setLineDash([4, 5]);
-      ctx.lineWidth = 1;
-
-      ctx.beginPath();
-      ctx.moveTo(CX, CY);
-      ctx.lineTo(leftEdge.x, leftEdge.y);
-      ctx.strokeStyle = color + '66';
-      ctx.stroke();
-
-      ctx.beginPath();
-      ctx.moveTo(CX, CY);
-      ctx.lineTo(rightEdge.x, rightEdge.y);
-      ctx.stroke();
-
-      ctx.setLineDash([]);
-    }
-
-    function drawTrackHistory(scenario) {
-      const track = scenario.trackHistory;
-      if (track.length < 2) return;
-
-      // Oldest point at outer edge, newest near centre
-      const points = track.map((t, i) => {
-        const fraction = 0.90 - (i / (track.length - 1)) * 0.82;
-        return polarPoint(t.bearing, fraction);
-      });
-
-      // Trail line
-      ctx.beginPath();
-      ctx.moveTo(points[0].x, points[0].y);
-      points.slice(1).forEach(p => ctx.lineTo(p.x, p.y));
-      ctx.strokeStyle = 'rgba(200, 215, 240, 0.18)';
-      ctx.lineWidth   = 1.5;
-      ctx.setLineDash([3, 4]);
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      // Assessment dots
-      points.forEach((p, i) => {
-        const alpha = 0.18 + (i / (points.length - 1)) * 0.55;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(200, 215, 240, ${alpha.toFixed(2)})`;
-        ctx.fill();
-      });
-
-      // Labels
-      ctx.fillStyle    = 'rgba(200, 215, 240, 0.3)';
-      ctx.font         = '9px Segoe UI';
-      ctx.textAlign    = 'center';
-      ctx.textBaseline = 'bottom';
-      ctx.fillText('−12mo', points[0].x, points[0].y - 5);
-
-      ctx.textBaseline = 'middle';
-      ctx.textAlign    = 'left';
-      ctx.fillText('Now', points[points.length - 1].x + 6, points[points.length - 1].y);
-    }
-
-    function drawBearingArrow(bearing, color) {
-      const tip = polarPoint(bearing, 0.84);
-      const a   = bearingToAngle(bearing);
-      const arrowLen = 14;
-
-      // Shaft
-      ctx.beginPath();
-      ctx.moveTo(CX, CY);
-      ctx.lineTo(tip.x, tip.y);
-      ctx.strokeStyle = color;
-      ctx.lineWidth   = 2.5;
-      ctx.shadowColor = color;
-      ctx.shadowBlur  = 8;
-      ctx.stroke();
-      ctx.shadowBlur  = 0;
-
-      // Arrowhead
-      ctx.beginPath();
-      ctx.moveTo(tip.x, tip.y);
-      ctx.lineTo(tip.x - arrowLen * Math.cos(a - 0.28), tip.y - arrowLen * Math.sin(a - 0.28));
-      ctx.lineTo(tip.x - arrowLen * Math.cos(a + 0.28), tip.y - arrowLen * Math.sin(a + 0.28));
-      ctx.closePath();
-      ctx.fillStyle  = color;
-      ctx.shadowColor = color;
-      ctx.shadowBlur  = 6;
-      ctx.fill();
-      ctx.shadowBlur  = 0;
-    }
-
-    function drawThreats(threats) {
-      threats.forEach(t => {
-        const p     = polarPoint(t.bearing, t.range);
-        const isOpp = t.type === 'opportunity';
-        const color = isOpp ? '#26a69a' : '#ef5350';
-        const glow  = isOpp ? 'rgba(38,166,154,0.25)' : 'rgba(239,83,80,0.25)';
-
-        // Glow halo
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, t.size * 0.7, 0, Math.PI * 2);
-        ctx.fillStyle = glow;
-        ctx.fill();
-
-        // Blip
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, t.size * 0.38, 0, Math.PI * 2);
-        ctx.fillStyle   = color;
-        ctx.shadowColor = color;
-        ctx.shadowBlur  = 6;
-        ctx.fill();
-        ctx.shadowBlur  = 0;
-
-        // Label
-        ctx.fillStyle    = 'rgba(220, 232, 248, 0.7)';
-        ctx.font         = '9px Segoe UI';
-        ctx.textAlign    = 'center';
-        ctx.textBaseline = 'bottom';
-        ctx.fillText(t.label, p.x, p.y - t.size * 0.42 - 3);
-      });
-    }
-
-    function drawOrigin() {
-      // Inner pulse rings
-      ctx.beginPath();
-      ctx.arc(CX, CY, 12, 0, Math.PI * 2);
-      ctx.strokeStyle = 'rgba(79, 195, 247, 0.2)';
-      ctx.lineWidth   = 1;
-      ctx.stroke();
-
-      // Centre dot
-      ctx.beginPath();
-      ctx.arc(CX, CY, 5, 0, Math.PI * 2);
-      ctx.fillStyle   = '#4fc3f7';
-      ctx.shadowColor = '#4fc3f7';
-      ctx.shadowBlur  = 10;
-      ctx.fill();
-      ctx.shadowBlur  = 0;
-    }
-
-    function drawBearingInfo(branch) {
-      const deg  = Math.round(branch.projectedBearing);
-      const absDeg = Math.abs(deg);
-      const dir  = deg === 0 ? 'True North' : deg > 0 ? `${absDeg}° east of True North` : `${absDeg}° west of True North`;
-
-      ctx.fillStyle    = branch.color;
-      ctx.font         = 'bold 11px Segoe UI';
-      ctx.textAlign    = 'center';
-      ctx.textBaseline = 'top';
-      ctx.fillText(`Bearing: ${dir}`, CX, CY + MAX_R + 14);
-    }
-
-    function drawScopeBorder() {
-      ctx.beginPath();
-      ctx.arc(CX, CY, MAX_R, 0, Math.PI * 2);
-      ctx.strokeStyle = 'rgba(79, 195, 247, 0.22)';
-      ctx.lineWidth   = 2;
-      ctx.stroke();
-    }
-
-    function renderRadar() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      const scenario = SCENARIOS[activeScenario];
-      const branch   = scenario.branches[activeBranch];
-
-      drawBackground();
-      drawRangeRings();
-      drawCompassRose();
-      drawCone(branch);
-      drawTrackHistory(scenario);
-      drawThreats(scenario.threats);
-      drawBearingArrow(branch.projectedBearing, branch.color);
-      drawOrigin();
-      drawScopeBorder();
-      drawBearingInfo(branch);
-    }
-
-    // ─── Objectives Panel ─────────────────────────────────────────────────────
-
-    function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
-    function dotColor(status)  { return STATUS_COLORS[status]; }
-
-    function renderObjectives() {
-      const scenario = SCENARIOS[activeScenario];
-      const branch   = scenario.branches[activeBranch];
-      const list     = document.getElementById('objectives-list');
-
-      // Preserve which items are open
-      const openIndexes = new Set(
-        [...document.querySelectorAll('.obj-children.open')].map(el => parseInt(el.dataset.index, 10))
-      );
-
-      list.innerHTML = '';
-
-      OBJECTIVES.forEach((obj, i) => {
-        const status = clamp(scenario.baseObjectiveStatus[i] + branch.objectiveImpact[i], 0, 3);
-        const color  = dotColor(status);
-        const label  = STATUS_LABELS[status];
-
-        const li = document.createElement('li');
-        li.className = 'obj-item';
-
-        const header = document.createElement('div');
-        header.className = 'obj-header';
-        if (openIndexes.has(i)) header.classList.add('expanded');
-
-        header.innerHTML = `
-          <div class="obj-dot" style="background:${color}${status === 3 ? ';box-shadow:0 0 5px ' + color : ''}"></div>
-          <span class="obj-name">${obj.name}</span>
-          <span class="obj-status" style="color:${color}">${label}</span>
-          <span class="obj-expand-icon">▼</span>
-        `;
-
-        const children = document.createElement('div');
-        children.className = 'obj-children';
-        children.dataset.index = i;
-        if (openIndexes.has(i)) children.classList.add('open');
-
-        obj.children.forEach((childName, j) => {
-          // Odd children get a slight nudge toward parent status to show variation
-          const childStatus = clamp(status + (j % 2 === 1 && branch.objectiveImpact[i] < 0 ? 1 : 0), 0, 3);
-          const cColor = dotColor(childStatus);
-          const cLabel = STATUS_LABELS[childStatus];
-
-          const child = document.createElement('div');
-          child.className = 'obj-child';
-          child.innerHTML = `
-            <div class="obj-child-dot" style="background:${cColor}"></div>
-            <span class="obj-child-name">${childName}</span>
-            <span class="obj-child-status" style="color:${cColor}">${cLabel}</span>
-          `;
-          children.appendChild(child);
-        });
-
-        header.addEventListener('click', () => {
-          const isOpen = children.classList.contains('open');
-          document.querySelectorAll('.obj-children.open').forEach(el => el.classList.remove('open'));
-          document.querySelectorAll('.obj-header.expanded').forEach(el => el.classList.remove('expanded'));
-          if (!isOpen) {
-            children.classList.add('open');
-            header.classList.add('expanded');
-          }
-        });
-
-        li.appendChild(header);
-        li.appendChild(children);
-        list.appendChild(li);
-      });
-    }
-
-    // ─── Interaction ──────────────────────────────────────────────────────────
-
-    function syncBranchButtons() {
-      const scenario = SCENARIOS[activeScenario];
-      document.querySelectorAll('.branch-btn').forEach(btn => {
-        const idx = parseInt(btn.dataset.branch, 10);
-        btn.textContent = scenario.branches[idx].label;
-        btn.classList.toggle('active', idx === activeBranch);
-      });
-    }
-
-    function setActiveScenario(key) {
-      activeScenario = key;
-      activeBranch   = 0;
-      document.querySelectorAll('.scenario-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.scenario === key);
-      });
-      syncBranchButtons();
-      renderRadar();
-      renderObjectives();
-      renderBearingRationale();
-      hideTooltip();
-    }
-
-    function setActiveBranch(index) {
-      activeBranch = index;
-      syncBranchButtons();
-      renderRadar();
-      renderObjectives();
-      renderBearingRationale();
-    }
-
-    document.querySelectorAll('.scenario-btn').forEach(btn => {
-      btn.addEventListener('click', () => setActiveScenario(btn.dataset.scenario));
+  <main id="main">
+    <section id="radar-panel">
+      <div id="radar-wrap">
+        <canvas id="radar-canvas" width="660" height="660"></canvas>
+      </div>
+    </section>
+
+    <div id="radar-tooltip">
+      <div class="tt-header">
+        <div class="tt-dot" id="tt-dot"></div>
+        <span class="tt-label" id="tt-label"></span>
+        <span class="tt-badge" id="tt-badge"></span>
+      </div>
+      <div class="tt-grid" id="tt-grid"></div>
+      <div class="tt-bearing" id="tt-bearing"></div>
+      <div class="tt-rationale" id="tt-rationale"></div>
+    </div>
+
+    <section id="info-panel">
+      <div id="panel-tabs">
+        <button class="panel-tab active" data-tab="analysis">Analysis</button>
+        <button class="panel-tab" data-tab="chat">Board Q&amp;A</button>
+      </div>
+      <div id="info-scroll"></div>
+      <div id="chat-panel">
+        <div id="chat-scroll"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+// ─── Constants ───────────────────────────────────────────────────────────────
+const CW = 660, CH = 660;
+const CX = CW / 2, CY = CH / 2;
+const MAX_R = 295;
+
+// ─── Geometry helpers ────────────────────────────────────────────────────────
+function toRad(deg) { return deg * Math.PI / 180; }
+function bearingToAngle(deg) { return toRad(deg - 90); }
+function polarXY(bearingDeg, fraction) {
+  const a = bearingToAngle(bearingDeg);
+  const r = fraction * MAX_R;
+  return { x: CX + r * Math.cos(a), y: CY + r * Math.sin(a) };
+}
+
+// ─── Example data ────────────────────────────────────────────────────────────
+const EXAMPLES = {
+
+  // ── Example 1 ──────────────────────────────────────────────────────────────
+  1: {
+    bearing: 105,
+    anchorBearing: null,
+    coneP50: 95,
+    coneP80: 105,
+    coneHalf: 30,
+    asymmetric: false,
+    showSubsidiaries: false,
+    showNorthDelta: false,
+    issues: [
+      { label: 'Contractor Insolvency', bearing: 55, range: 0.38, magnitude: 'High', anchorOffset: '+55°', onset: '3 months ago', action: 'Emergency procurement (in progress)', resolution: 'Unknown' }
+    ],
+    blips: [
+      { label: 'Regulatory Price Review', bearing: 45,  range: 0.52, size: 15, type: 'threat',
+        magnitude: '0.81', direction: '+45°', completeness: '90%',
+        bearing_effect: 'Pulls bearing +45° east — dominant probabilistic force',
+        rationale: 'Ofgem/regulatory permitted return review could squeeze revenue. High magnitude, high completeness — the single largest probabilistic deflector.',
+        objective: 'Revenue & Return on Capital' },
+      { label: 'Supply Chain Inflation', bearing: 30,  range: 0.60, size: 11, type: 'threat',
+        magnitude: '0.38', direction: '+30°',  completeness: '75%',
+        bearing_effect: 'Pulls bearing +30° east — reinforces regulatory threat',
+        rationale: 'Civil materials inflation is compounding cost overruns. Medium magnitude; reinforces the eastward drift established by the regulatory threat.',
+        objective: 'Cost & Margin Management' },
+      { label: 'Competitor Undercutting', bearing: 340, range: 0.68, size: 9,  type: 'threat',
+        magnitude: '0.12', direction: '−20°', completeness: '60%',
+        bearing_effect: 'Small westward pull — low magnitude, poor completeness',
+        rationale: 'Digital contract competitor is undercutting on price. Low magnitude and only 60% evidenced — a minor corrective westward force.',
+        objective: 'Market Positioning' },
+      { label: 'Green Infrastructure', bearing: 10,  range: 0.50, size: 13, type: 'opportunity',
+        magnitude: '0.36', direction: '+10°', completeness: '80%', capability: 'Medium',
+        bearing_effect: 'Partially corrective — pulls toward north but insufficient',
+        rationale: 'Government green infrastructure programme is largely aligned with True North. High opportunity but only Medium capability to capture — effective force 0.36. Not enough to correct the threat portfolio.',
+        objective: 'Strategic Growth' },
+      { label: 'Digital Metering Acquisition', bearing: 325, range: 0.72, size: 8,  type: 'opportunity',
+        magnitude: '0.065', direction: '−35°', completeness: '65%', capability: 'Low',
+        bearing_effect: 'Negligible pull — Low capability makes this near-invisible',
+        rationale: 'Potential acquisition target exists but Low capability to execute means effective force is only 0.065 — effectively noise.',
+        objective: 'Digital Transformation' },
+    ],
+  },
+
+  // ── Example 2 ──────────────────────────────────────────────────────────────
+  2: {
+    bearing: 41.5,
+    anchorBearing: null,
+    coneP50: 38,
+    coneP80: 41.5,
+    coneHalf: 40,
+    asymmetric: false,
+    showSubsidiaries: true,
+    showNorthDelta: false,
+    issues: [],
+    blips: [],
+    subsidiaries: [
+      { label: 'Energy Networks',    bearing: 35,  weight: 0.55, color: '#4fc3f7', range: 0.62,
+        bearing_effect: '+35° east — regulatory pressure on permitted returns',
+        rationale: 'Dominant subsidiary by revenue (55% weight). Regulatory pressure and asset replacement risk are pushing bearing east. Moderately evidenced.',
+        revenue: '55%', issue: false },
+      { label: 'Civil Construction', bearing: 80,  weight: 0.30, color: '#ef5350', range: 0.72,
+        bearing_effect: '+80° east — contractor insolvency + cost overruns',
+        rationale: 'Active contractor insolvency issue has displaced bearing severely east. 30% weight means this is the primary driver of group drift despite not being the largest subsidiary.',
+        revenue: '30%', issue: true },
+      { label: 'Digital Services',   bearing: 345, weight: 0.15, color: '#26a69a', range: 0.55,
+        bearing_effect: '−15° west — new contracts, market position improving',
+        rationale: 'The only subsidiary improving relative to True North. Light weighting (15%) limits the corrective effect on group bearing. Partly explains why group bearing is worse than Energy Networks alone.',
+        revenue: '15%', issue: false },
+    ],
+  },
+
+  // ── Example 3 ──────────────────────────────────────────────────────────────
+  3: {
+    bearing: 66.5,
+    anchorBearing: null,
+    coneP50: 60,
+    coneP80: 66.5,
+    coneHalf: 35,
+    asymmetric: false,
+    showSubsidiaries: true,
+    showNorthDelta: true,
+    northDelta: -25,
+    issues: [],
+    blips: [],
+    subsidiaries: [
+      { label: 'Energy Networks',    bearing: 35,  weight: 0.55, color: '#4fc3f7', range: 0.62,
+        newDeviation: 57.5, newNorth: -22.5, cascadeWeight: 0.90,
+        bearing_effect: 'Bearing unchanged at +35° — but True North shifted −22.5°',
+        rationale: 'High cascade weight (0.90): Energy Networks is central to the new strategy. Its True North has shifted 22.5° west. Apparent deviation increases from +35° to +57.5° — not because execution worsened, but because the destination moved.',
+        revenue: '55%', issue: false },
+      { label: 'Civil Construction', bearing: 80,  weight: 0.30, color: '#ef5350', range: 0.72,
+        newDeviation: 90.0, newNorth: -10, cascadeWeight: 0.40,
+        bearing_effect: 'Bearing unchanged at +80° — True North shifted −10°',
+        rationale: 'Low cascade weight (0.40): the board is winding this down, not redesigning it. True North shifts only 10° west — deliberate insulation. Deviation worsens from +80° to +90° — the cost of that insulation is now visible.',
+        revenue: '30%', issue: true },
+      { label: 'Digital Services',   bearing: 345, weight: 0.15, color: '#26a69a', range: 0.55,
+        newDeviation: 6.25, newNorth: -21.25, cascadeWeight: 0.85,
+        bearing_effect: 'Bearing unchanged at −15° — True North shifted −21.25°',
+        rationale: 'High cascade weight (0.85): early-stage, central to new strategy. True North shifts 21.25° west — very close to where Digital Services was already pointing. Deviation shrinks from −15° to +6.25°. It was already heading toward the new destination.',
+        revenue: '15%', issue: false },
+    ],
+  },
+
+  // ── Example 4 ──────────────────────────────────────────────────────────────
+  4: {
+    bearing: 31.8,
+    anchorBearing: null,
+    coneP50: 27.2,
+    coneP80: 31.8,
+    coneHalf: null,
+    asymmetric: false,
+    showSubsidiaries: false,
+    showNorthDelta: false,
+    regime: 1,
+    issues: [],
+    blips: [
+      { label: 'K1: Ofgem Return', bearing: 0, range: 0.38, size: 9, type: 'kri',
+        magnitude: '0.72', direction: 'Weight: 0.50', completeness: 'Medium volatility σ=0.03',
+        bearing_effect: 'Highest-weighted KRI — drives most bearing variation',
+        rationale: 'Ofgem permitted return utilisation is at 0.72. At weight 0.50 it dominates the objective score. Medium volatility (σ=0.03) means it can drift ±0.09 over 3 months under Gaussian noise alone.',
+        objective: 'Regulatory Return Objective' },
+      { label: 'K2: Asset Completion', bearing: 20, range: 0.44, size: 8, type: 'kri',
+        magnitude: '0.58', direction: 'Weight: 0.30', completeness: 'Low volatility σ=0.01',
+        bearing_effect: 'Second driver — stable but below target',
+        rationale: 'Asset replacement programme at 0.58 — below the 0.70 target. Low volatility means it drifts slowly. Its below-target position is the structural source of bearing deviation.',
+        objective: 'Asset Management Objective' },
+      { label: 'K3: Compliance', bearing: 355, range: 0.50, size: 7, type: 'kri',
+        magnitude: '0.81', direction: 'Weight: 0.20', completeness: 'Low volatility σ=0.01',
+        bearing_effect: 'Positive contributor — partially corrects bearing',
+        rationale: 'Regulatory compliance score at 0.81 is above target. Low weight (0.20) limits its corrective effect, but it prevents the bearing from being worse.',
+        objective: 'Regulatory Return Objective' },
+    ],
+    distribution: [
+      { pct: 'P10', value: 21.3 }, { pct: 'P25', value: 23.8 },
+      { pct: 'P50', value: 27.2, active: true }, { pct: 'P75', value: 30.7 },
+      { pct: 'P80', value: 31.8, governed: true }, { pct: 'P90', value: 33.9 },
+      { pct: 'P95', value: 35.6 },
+    ],
+  },
+
+  // ── Example 5 ──────────────────────────────────────────────────────────────
+  5: {
+    bearing: 48.7,
+    anchorBearing: null,
+    coneP50: 28.9,
+    coneP80: 48.7,
+    coneHalf: null,
+    asymmetric: true,
+    coneLeft: 7.8,
+    coneRight: 34.9,
+    showSubsidiaries: false,
+    showNorthDelta: false,
+    regime: 2,
+    issues: [],
+    blips: [
+      { label: 'Ofgem Price Reset', bearing: 45, range: 0.52, size: 14, type: 'threat',
+        magnitude: '+28°', direction: '35% probability', completeness: 'East shock',
+        bearing_effect: 'Dominant shock — pushes bearing +28° east if triggered',
+        rationale: 'If the Ofgem price control reset has an adverse outcome, it deflects Energy Networks bearing by +28° east. At 35% trigger probability it dominates the upper tail of the distribution. At P80, this shock has triggered in most simulation runs.',
+        objective: 'Revenue & Return on Capital' },
+      { label: 'Grid Connection Delays', bearing: 30, range: 0.65, size: 11, type: 'threat',
+        magnitude: '+18°', direction: '20% probability', completeness: 'East shock',
+        bearing_effect: 'Secondary shock — +18° east if triggered',
+        rationale: 'Grid connection delays on renewable upgrade projects. 20% probability, +18° displacement. When this combines with the Ofgem shock (6% of runs), bearing reaches +46° from shocks alone before Regime 1 noise.',
+        objective: 'Programme Delivery' },
+      { label: 'National Grid Contract', bearing: 350, range: 0.60, size: 11, type: 'opportunity',
+        magnitude: '−19.8°', direction: '15% probability', completeness: 'West pull',
+        bearing_effect: 'Opportunity pull — −19.8° west if triggered (capability-scaled)',
+        rationale: 'Emergency network contract from National Grid would pull bearing west toward True North. High capability (0.9 scale) makes this effective at −19.8°. At 15% probability, it creates the modest left tail of the distribution. When it offsets the grid delays shock, the net effect is near-zero.',
+        objective: 'Commercial Growth' },
+    ],
+    distribution: [
+      { pct: 'P10', value: 21.1 }, { pct: 'P25', value: 24.2 },
+      { pct: 'P50', value: 28.9, active: true }, { pct: 'P65', value: 36.4 },
+      { pct: 'P80', value: 48.7, governed: true }, { pct: 'P90', value: 57.3 },
+      { pct: 'P95', value: 63.8 },
+    ],
+  },
+
+  // ── Example 6 ──────────────────────────────────────────────────────────────
+  6: {
+    bearing: 37.5,
+    anchorBearing: 28,
+    coneP50: 29.1,
+    coneP80: 37.5,
+    coneHalf: null,
+    asymmetric: true,
+    coneLeft: 8.3,
+    coneRight: 22.5,
+    showSubsidiaries: false,
+    showNorthDelta: false,
+    regime: 3,
+    issues: [
+      { label: 'Ofgem Price Review — Formal Notice', bearing: 45, range: 0.48, magnitude: 'Confirmed', anchorOffset: '+28°', onset: 'This assessment cycle', action: 'A1: Engage regulatory counsel — in progress', resolution: '18 months (price control period end)' }
+    ],
+    blips: [
+      { label: 'Grid Connection Delays', bearing: 30, range: 0.65, size: 11, type: 'threat',
+        magnitude: '+18°', direction: '20% probability', completeness: 'Remaining shock',
+        bearing_effect: 'Remaining stochastic threat — +18° east if triggered',
+        rationale: 'Grid delays remain a probabilistic threat now that the Ofgem event has become a confirmed Issue. It is one of only two remaining sources of cone width in the simulation.',
+        objective: 'Programme Delivery' },
+      { label: 'National Grid Contract', bearing: 350, range: 0.60, size: 11, type: 'opportunity',
+        magnitude: '−19.8°', direction: '15% probability', completeness: 'Remaining opportunity',
+        bearing_effect: 'Remaining opportunity — partially offsets grid delays if both trigger',
+        rationale: 'The National Grid contract opportunity remains stochastic. If it triggers alongside the grid delays (2% combined probability), the net bearing shift from these two events is near-zero.',
+        objective: 'Commercial Growth' },
+    ],
+    distribution: [
+      { pct: 'P10', value: 20.8, compare: 21.1, shift: -0.3 },
+      { pct: 'P25', value: 24.0, compare: 24.2, shift: -0.2 },
+      { pct: 'P50', value: 29.1, compare: 28.9, shift: +0.2, active: true },
+      { pct: 'P80', value: 37.5, compare: 48.7, shift: -11.2, governed: true },
+      { pct: 'P90', value: 46.0, compare: 57.3, shift: -11.3 },
+      { pct: 'P95', value: 51.6, compare: 63.8, shift: -12.2 },
+    ],
+  },
+  // ── Example 6a — PESTLE stress test ────────────────────────────────────────
+  '6a': {
+    bearing: 52,
+    anchorBearing: 28,
+    coneP50: 34,
+    coneP80: 52,
+    coneHalf: null,
+    asymmetric: true,
+    coneLeft: 14,
+    coneRight: 38,
+    showSubsidiaries: false,
+    showNorthDelta: false,
+    regime: 3,
+    issues: [
+      { label: 'Ofgem Price Decision', bearing: 45, pestle: 'P',
+        onset: 'Q1 this year', action: 'A1: Regulatory counsel engaged', resolution: '18 months' },
+      { label: 'Contractor Insolvency', bearing: 70, pestle: 'E',
+        onset: '3 months ago', action: 'A2: Emergency procurement', resolution: 'Unknown' },
+      { label: 'Planning Consent Refused', bearing: 15, pestle: 'L',
+        onset: 'Last month', action: 'A3: Appeal lodged', resolution: '6–12 months' },
+    ],
+    blips: [
+      // ── Political
+      { label: 'Energy Policy Shift', bearing: 40, range: 0.55, size: 13, type: 'threat', pestle: 'P',
+        magnitude: 'High', direction: '+40°', completeness: '85%', capability: null,
+        bearing_effect: 'Regulatory intent shifting against permitted returns',
+        rationale: 'Government energy review may tighten price controls further beyond the confirmed Ofgem decision. High magnitude; moderately evidenced.',
+        objective: 'Revenue & Return' },
+      { label: 'Windfall Tax Extension', bearing: 55, range: 0.72, size: 11, type: 'threat', pestle: 'P',
+        magnitude: 'High', direction: '+55°', completeness: '70%', capability: null,
+        bearing_effect: 'Threatens post-tax returns on capital-intensive projects',
+        rationale: 'Treasury signals windfall levy extension to infrastructure operators. High impact if enacted; 70% evidenced.',
+        objective: 'Revenue & Return' },
+      { label: 'Green Infrastructure Mandate', bearing: 355, range: 0.48, size: 12, type: 'opportunity', pestle: 'P',
+        magnitude: 'High', direction: '−5°', completeness: '90%', capability: 'High',
+        bearing_effect: 'Policy tailwind — near-north pull, High capability',
+        rationale: 'Government mandate for accelerated green infrastructure investment aligns directly with True North. High capability to capture.',
+        objective: 'Strategic Growth' },
+      { label: 'Devolution Risk', bearing: 80, range: 0.82, size: 8, type: 'threat', pestle: 'P',
+        magnitude: 'Medium', direction: '+80°', completeness: '55%', capability: null,
+        bearing_effect: 'Regional authority control could fragment delivery timelines',
+        rationale: 'Devolved planning powers may create inconsistent consent environments across our project geography. Medium magnitude; poorly evidenced.',
+        objective: 'Programme Delivery' },
+
+      // ── Economic
+      { label: 'Materials Inflation', bearing: 30, range: 0.60, size: 12, type: 'threat', pestle: 'E',
+        magnitude: 'High', direction: '+30°', completeness: '80%', capability: null,
+        bearing_effect: 'Civil materials 22% above budget baseline',
+        rationale: 'Steel, concrete, and cable costs remain elevated. Directly compresses margin on fixed-price contracts. High magnitude, well-evidenced.',
+        objective: 'Cost & Margin' },
+      { label: 'Interest Rate Pressure', bearing: 50, range: 0.67, size: 11, type: 'threat', pestle: 'E',
+        magnitude: 'High', direction: '+50°', completeness: '90%', capability: null,
+        bearing_effect: 'Refinancing risk on £400m floating-rate debt',
+        rationale: 'Base rate trajectory increases cost of refinancing the 2026 debt maturity. High magnitude, fully evidenced by forward curves.',
+        objective: 'Capital Structure' },
+      { label: 'FX Exposure', bearing: 25, range: 0.78, size: 8, type: 'threat', pestle: 'E',
+        magnitude: 'Medium', direction: '+25°', completeness: '65%', capability: null,
+        bearing_effect: 'EUR-denominated equipment procurement costs rising',
+        rationale: 'Sterling weakness adds ~4% to imported equipment costs. Medium magnitude; partially hedged.',
+        objective: 'Cost & Margin' },
+      { label: 'Green Bond Market', bearing: 5, range: 0.55, size: 10, type: 'opportunity', pestle: 'E',
+        magnitude: 'Medium', direction: '+5°', completeness: '75%', capability: 'Medium',
+        bearing_effect: 'Favourable financing terms available for qualifying projects',
+        rationale: 'Green bond issuance could reduce cost of capital by 40–60bp on eligible assets. Medium capability to structure qualifying instruments.',
+        objective: 'Capital Structure' },
+      { label: 'Insurance Market Hardening', bearing: 35, range: 0.88, size: 7, type: 'threat', pestle: 'E',
+        magnitude: 'Low', direction: '+35°', completeness: '80%', capability: null,
+        bearing_effect: 'Project insurance premiums up 18% year-on-year',
+        rationale: 'Lloyd\'s market has hardened on infrastructure risk following two major contractor failures. Low impact in isolation but amplifies cost pressure.',
+        objective: 'Cost & Margin' },
+
+      // ── Social
+      { label: 'Community Opposition', bearing: 65, range: 0.52, size: 10, type: 'threat', pestle: 'S',
+        magnitude: 'Medium', direction: '+65°', completeness: '70%', capability: null,
+        bearing_effect: 'Local protests delaying consents on 3 sites',
+        rationale: 'Anti-infrastructure sentiment in rural areas has generated formal objections at planning stage. Medium impact through delay costs.',
+        objective: 'Programme Delivery' },
+      { label: 'Skills & Labour Shortage', bearing: 75, range: 0.62, size: 11, type: 'threat', pestle: 'S',
+        magnitude: 'High', direction: '+75°', completeness: '85%', capability: null,
+        bearing_effect: 'Civil engineering skills pipeline critically constrained',
+        rationale: 'Ageing workforce and post-Brexit visa constraints have reduced available qualified civil engineers by ~15%. High impact on delivery timelines.',
+        objective: 'People & Capability' },
+      { label: 'ESG Reputation Risk', bearing: 50, range: 0.88, size: 7, type: 'threat', pestle: 'S',
+        magnitude: 'Low', direction: '+50°', completeness: '55%', capability: null,
+        bearing_effect: 'Social media scrutiny on environmental incidents',
+        rationale: 'Two minor environmental incidents have attracted social media attention. Reputational risk is low in isolation but could affect licence renewal.',
+        objective: 'Regulatory Compliance' },
+      { label: 'Net Zero Sentiment', bearing: 350, range: 0.70, size: 9, type: 'opportunity', pestle: 'S',
+        magnitude: 'Medium', direction: '−10°', completeness: '80%', capability: 'High',
+        bearing_effect: 'Public support for green infrastructure enables faster consenting',
+        rationale: 'Positive public sentiment toward net zero infrastructure improves consent timelines and reduces community opposition risk on qualifying projects.',
+        objective: 'Strategic Growth' },
+
+      // ── Technology
+      { label: 'Grid Digitalisation', bearing: 345, range: 0.50, size: 12, type: 'opportunity', pestle: 'T',
+        magnitude: 'High', direction: '−15°', completeness: '80%', capability: 'High',
+        bearing_effect: 'Smart grid technology enables new regulated revenue streams',
+        rationale: 'Digital metering and grid management technology creates new regulated asset categories. High capability through Digital Services subsidiary.',
+        objective: 'Strategic Growth' },
+      { label: 'Cyber Threat — OT Systems', bearing: 60, range: 0.58, size: 11, type: 'threat', pestle: 'T',
+        magnitude: 'High', direction: '+60°', completeness: '75%', capability: null,
+        bearing_effect: 'Operational technology vulnerabilities in grid control systems',
+        rationale: 'Nation-state-level cyber threats to operational technology have increased. High impact if a grid control system is compromised; 75% evidenced through NIS assessments.',
+        objective: 'Operational Resilience' },
+      { label: 'AI Maintenance Optimisation', bearing: 358, range: 0.78, size: 8, type: 'opportunity', pestle: 'T',
+        magnitude: 'Medium', direction: '−2°', completeness: '60%', capability: 'Medium',
+        bearing_effect: 'Predictive maintenance reduces capex requirement',
+        rationale: 'AI-driven asset maintenance scheduling could reduce unplanned outage costs by 12–18%. Medium capability; pilot in progress.',
+        objective: 'Cost & Margin' },
+      { label: 'Legacy System Risk', bearing: 45, range: 0.83, size: 7, type: 'threat', pestle: 'T',
+        magnitude: 'Low', direction: '+45°', completeness: '85%', capability: null,
+        bearing_effect: 'SCADA systems end-of-life in 2027',
+        rationale: 'Three SCADA installations reach end-of-vendor-support in 2027. Low immediate impact but creates a known future cliff if not addressed.',
+        objective: 'Operational Resilience' },
+
+      // ── Legal
+      { label: 'Environmental Liability', bearing: 35, range: 0.65, size: 10, type: 'threat', pestle: 'L',
+        magnitude: 'Medium', direction: '+35°', completeness: '70%', capability: null,
+        bearing_effect: 'Historic land contamination liability on 2 sites',
+        rationale: 'Legal review has identified potential contamination liability on two acquired sites. Medium magnitude; outcome of environmental survey pending.',
+        objective: 'Financial Resilience' },
+      { label: 'Contract Dispute — Civil JV', bearing: 55, range: 0.75, size: 9, type: 'threat', pestle: 'L',
+        magnitude: 'Medium', direction: '+55°', completeness: '80%', capability: null,
+        bearing_effect: 'JV partner disputing £18m variation claim',
+        rationale: 'Joint venture partner on the Midlands substation project is contesting a £18m contract variation. Arbitration expected Q3.',
+        objective: 'Cost & Margin' },
+      { label: 'Data Protection Breach Risk', bearing: 40, range: 0.92, size: 6, type: 'threat', pestle: 'L',
+        magnitude: 'Low', direction: '+40°', completeness: '60%', capability: null,
+        bearing_effect: 'GDPR exposure from customer data integration project',
+        rationale: 'Customer data migration project has created temporary GDPR compliance gaps. Low probability of material breach; mitigation in progress.',
+        objective: 'Regulatory Compliance' },
+      { label: 'IP from Grid Tech', bearing: 355, range: 0.85, size: 7, type: 'opportunity', pestle: 'L',
+        magnitude: 'Low', direction: '−5°', completeness: '50%', capability: 'Low',
+        bearing_effect: 'Patent portfolio from digitalisation programme has licensing potential',
+        rationale: 'Digital Services R&D has generated three provisional patents. Licensing opportunity is speculative; Low capability to commercialise.',
+        objective: 'Strategic Growth' },
+
+      // ── Environmental
+      { label: 'Flood Risk — Asset Base', bearing: 55, range: 0.58, size: 11, type: 'threat', pestle: 'En',
+        magnitude: 'High', direction: '+55°', completeness: '80%', capability: null,
+        bearing_effect: '23% of grid assets in Environment Agency flood zones',
+        rationale: '23% of network assets sit in EA flood zones 2 or 3. Physical climate risk assessments show material vulnerability by 2035 under IPCC scenario RCP4.5.',
+        objective: 'Asset Resilience' },
+      { label: 'Extreme Weather Events', bearing: 70, range: 0.68, size: 10, type: 'threat', pestle: 'En',
+        magnitude: 'High', direction: '+70°', completeness: '75%', capability: null,
+        bearing_effect: 'Storm frequency increasing outage rates',
+        rationale: 'Severe storm events have increased 30% over the past decade. Grid resilience investment is required but competes with regulated capex allowances.',
+        objective: 'Operational Resilience' },
+      { label: 'Biodiversity Net Gain', bearing: 80, range: 0.82, size: 8, type: 'threat', pestle: 'En',
+        magnitude: 'Medium', direction: '+80°', completeness: '65%', capability: null,
+        bearing_effect: 'BNG requirements adding 8–12 weeks to project consenting',
+        rationale: 'Mandatory Biodiversity Net Gain requirements under the Environment Act are adding consent complexity. Medium cost and programme impact.',
+        objective: 'Programme Delivery' },
+      { label: 'Carbon Credit Revenue', bearing: 2, range: 0.75, size: 8, type: 'opportunity', pestle: 'En',
+        magnitude: 'Medium', direction: '+2°', completeness: '55%', capability: 'Medium',
+        bearing_effect: 'Verified carbon units from grid projects eligible for UK ETS',
+        rationale: 'Grid upgrade projects may qualify for UK Emissions Trading Scheme credits. Medium capability; regulatory confirmation awaited.',
+        objective: 'Strategic Growth' },
+      { label: 'Nature-Based Solutions', bearing: 356, range: 0.88, size: 7, type: 'opportunity', pestle: 'En',
+        magnitude: 'Low', direction: '−4°', completeness: '45%', capability: 'Low',
+        bearing_effect: 'NbS offsets could reduce BNG cost burden',
+        rationale: 'Nature-based solutions on owned land could offset Biodiversity Net Gain costs at lower expense. Early-stage concept; Low capability and evidence.',
+        objective: 'Cost & Margin' },
+    ],
+  },
+};
+
+// ─── Chat data ───────────────────────────────────────────────────────────────
+// Each message: { role: 'board'|'analyst', name, text, time }
+const CHATS = {
+
+  1: [
+    { role:'board',   name:'Chair',          time:'09:04', text:'The arrow is pointing almost due east. In plain terms, what does that mean for us?' },
+    { role:'analyst', name:'Risk Lead',      time:'09:05', text:'It means the organisation is currently tracking <em>105° away from its strategic objective</em> — almost perpendicular to True North. If you imagine True North as the destination on a chart, we are presently heading hard to the right of it. Left uncorrected, we arrive somewhere we did not plan to go.' },
+    { role:'board',   name:'SID',            time:'09:06', text:'What is the single biggest contributor to that drift?' },
+    { role:'analyst', name:'Risk Lead',      time:'09:06', text:'The contractor insolvency on the Northern Rail project — that is the blue diamond on the inner ring. It is already confirmed, not a future possibility, and it is displacing the cone anchor by <em>+55° before any probabilistic force is applied</em>. If we resolve that one item, the bearing improves to approximately +65°. Everything else on the radar is secondary to that.' },
+    { role:'board',   name:'CFO',            time:'09:08', text:'The regulatory price review threat is large. Are we double-counting that with the contractor issue?' },
+    { role:'analyst', name:'Risk Lead',      time:'09:09', text:'No — they are independent forces. The regulatory review is a <strong>probabilistic threat</strong> with its own bearing effect of +45° if it crystallises. The contractor insolvency is a <strong>confirmed event</strong> already baked into the baseline. They are additive, not overlapping. That is partly why the total bearing is so severe.' },
+    { role:'board',   name:'NED',            time:'09:10', text:'Our strengths — regulatory relationships and delivery teams — are they doing any work for us at all?' },
+    { role:'analyst', name:'Risk Lead',      time:'09:11', text:'Barely. The net propulsion from strengths after subtracting weaknesses is only <hi>+0.09</hi> — effectively noise. The balance sheet weakness and skills gap are consuming most of what the strengths provide. We are not getting strategic lift from our capability base at present.' },
+    { role:'board',   name:'Chair',          time:'09:13', text:'What should we be asking management to do before the next board cycle?' },
+    { role:'analyst', name:'Risk Lead',      time:'09:13', text:'Three actions in priority order. First, confirm the emergency procurement timeline for the contractor replacement — that is the highest-leverage single intervention. Second, instruct management to evidence the regulatory relationships strength more completely; it is currently only 90% evidenced and if that deteriorates the propulsion figure falls further. Third, ask for a capability development plan against the skills gap weakness — it is the drag that is most within our control to address.' },
+  ],
+
+  2: [
+    { role:'board',   name:'Chair',          time:'10:15', text:'We have three subsidiaries on the screen. Which one is causing the group to drift?' },
+    { role:'analyst', name:'Risk Lead',      time:'10:15', text:'Civil Construction is the primary driver despite being only 30% of group revenue. Its bearing of <warn>+80°</warn> is extreme, and even at 0.30 weight it pulls the group aggregate well east of where Energy Networks alone would put us. If Civil Construction did not exist, the group bearing would be close to +25°.' },
+    { role:'board',   name:'CEO',            time:'10:16', text:'Energy Networks is our biggest business at 55% weight. Why is it not dominating the group position more?' },
+    { role:'analyst', name:'Risk Lead',      time:'10:17', text:'It is dominating — but its own bearing is already <em>+35° east</em>, so it is not a corrective force. It anchors the group east of True North. Digital Services at −15° is the only subsidiary pulling west, but at 15% weight its corrective effect is modest. We do not have a counterweight large enough to offset the combined eastward drift.' },
+    { role:'board',   name:'SID',            time:'10:18', text:'What is the cone width telling us — it looks significantly wider than I would expect?' },
+    { role:'analyst', name:'Risk Lead',      time:'10:19', text:'The cone adds <em>±40°</em> from aggregation alone — that is the circular standard deviation of the three subsidiary bearings. When subsidiaries point in very different directions, the group-level uncertainty is high even if each subsidiary is individually confident. Civil Construction at +80° and Digital Services at −15° are 95° apart. That spread is structural uncertainty, not measurement error.' },
+    { role:'board',   name:'CFO',            time:'10:21', text:'If Civil Construction resolves its contractor issue and improves to roughly the same bearing as Energy Networks, what happens to the group?' },
+    { role:'analyst', name:'Risk Lead',      time:'10:21', text:'Group bearing moves from <warn>+41.5°</warn> to <good>+28.1°</good> — a 13° improvement. Cone width also narrows significantly because the spread between subsidiaries reduces. That is the highest-value intervention visible on this radar. It delivers both a better bearing and reduced uncertainty simultaneously.' },
+    { role:'board',   name:'NED',            time:'10:23', text:'Should we be concerned that Digital Services is only 15% of group revenue while showing the best strategic alignment?' },
+    { role:'analyst', name:'Risk Lead',      time:'10:24', text:'That is a strategic composition question as much as a risk question. Digital Services is heading in the right direction but is too small to be decisive. If the board wanted to improve the group bearing structurally — rather than just fixing the current Civil Construction issue — the longer-term answer is to grow the weight of Digital Services relative to Civil Construction. That is a portfolio decision, not an operational one.' },
+  ],
+
+  3: [
+    { role:'board',   name:'Chair',          time:'11:30', text:'The board has just agreed a strategic pivot. What does this screen show us about the impact on our subsidiaries?' },
+    { role:'analyst', name:'Risk Lead',      time:'11:31', text:'The dashed blue line is the new True North — 25° west of the old one. None of the subsidiaries have changed what they are doing, but what they are being measured against has moved. Two of the three now look worse on paper as a direct result of the board\'s decision, not because execution has deteriorated.' },
+    { role:'board',   name:'SID',            time:'11:32', text:'That seems counterintuitive. We approved a better strategy and our numbers got worse?' },
+    { role:'analyst', name:'Risk Lead',      time:'11:33', text:'Correct — and that is the instrument working as intended. Declaring a more ambitious or better-directed north makes current misalignment <strong>visible rather than hidden</strong>. An instrument that makes you look better when you set a harder target is not giving you honest information. The deviation numbers reflect the gap between where the subsidiaries are heading and where the board now wants them to go.' },
+    { role:'board',   name:'CEO',            time:'11:34', text:'Civil Construction is showing a 90° deviation. That is almost perpendicular to strategy. Is that a problem?' },
+    { role:'analyst', name:'Risk Lead',      time:'11:35', text:'It is a <warn>structural misalignment</warn>, not a performance failure. Civil Construction has a low cascade weight of 0.40, which was a deliberate board decision — it signals that Civil Construction is not central to the new strategy. But the consequence is that its True North barely moved, so its existing bearing of +80° now reads as a near-total deviation. The board needs to decide: accelerate Civil Construction\'s wind-down, or redesign its objectives so its bearing improves.' },
+    { role:'board',   name:'NED',            time:'11:37', text:'Digital Services was slightly off-course before the pivot. Now it shows only 6° deviation. What changed?' },
+    { role:'analyst', name:'Risk Lead',      time:'11:38', text:'Nothing changed in Digital Services — that is the point. It was already heading toward what the board has now declared as strategy. The cascade mechanism makes that visible. Digital Services had a cascade weight of 0.85, so its True North shifted 21° west — very close to where it was already pointing. The strategy caught up with what Digital Services was doing, not the other way around.' },
+    { role:'board',   name:'Chair',          time:'11:40', text:'How do we use this information in the next management cycle?' },
+    { role:'analyst', name:'Risk Lead',      time:'11:41', text:'Three things. First, validate with Energy Networks management that their programmes can genuinely reorient 22.5° — that is a significant ask and needs resourcing. Second, have an explicit conversation with Civil Construction about their wind-down timeline; the 90° deviation is the cost of a low cascade weight and the board should own that consciously. Third, consider increasing resource allocation to Digital Services — it is the only subsidiary already aligned to the new strategy and it has only 15% of group weight.' },
+  ],
+
+  4: [
+    { role:'board',   name:'Chair',          time:'14:00', text:'What is Regime 1 actually showing us, and why does it matter?' },
+    { role:'analyst', name:'Risk Lead',      time:'14:01', text:'Regime 1 models the normal background noise in our KRI readings — the month-to-month variation that happens even when nothing specific goes wrong. Think of it as the <em>baseline volatility</em> of the instrument itself. We run 1,000 scenarios and observe where the bearing ends up across those runs.' },
+    { role:'board',   name:'SID',            time:'14:02', text:'The P50 is 27.2° and the P80 is 31.8°. What is the practical difference between those two numbers?' },
+    { role:'analyst', name:'Risk Lead',      time:'14:03', text:'P50 is the median outcome — half of all simulation runs end up better, half worse. P80 means that in <strong>80% of modelled scenarios</strong>, we end up at 31.8° or better. Governing at P80 means we are planning for a somewhat adverse outcome, not the typical one. With only Regime 1 active, the gap between them is just <hi>4.6°</hi> — a modest conservatism margin.' },
+    { role:'board',   name:'CFO',            time:'14:04', text:'If the gap between P50 and P80 is only 4.6°, what is the point of the simulation? It seems like a lot of computation for a small number.' },
+    { role:'analyst', name:'Risk Lead',      time:'14:05', text:'That is exactly the right challenge. Regime 1 alone is <warn>insufficient</warn> for the percentile selector to do real strategic work. The distribution is roughly symmetric — P80 is just P50 plus a fixed margin regardless of direction. It cannot distinguish "Ofgem has gone badly" from "routine measurement drift." That requires Regime 2, which adds directional shocks. The value of Regime 1 is establishing the baseline before layering in the events that actually matter.' },
+    { role:'board',   name:'NED',            time:'14:07', text:'K1 is the Ofgem return utilisation at 0.72. What does that number mean in practice?' },
+    { role:'analyst', name:'Risk Lead',      time:'14:08', text:'It means we are utilising 72% of the permitted return that Ofgem allows us. 1.0 would be full utilisation. It is the highest-weighted KRI at 0.50, so it has the greatest influence on the objective score. At 0.72 it is acceptable but not strong — and it has medium volatility, meaning it can drift by ±9 percentage points over a quarter under routine variation alone before any specific event occurs.' },
+    { role:'board',   name:'Chair',          time:'14:10', text:'What would move this number most significantly before next quarter?' },
+    { role:'analyst', name:'Risk Lead',      time:'14:11', text:'The asset completion rate — K2 — is the structural drag. At 0.58 against a 0.70 target it is suppressing the objective score and contributing to bearing deviation. It improves as the asset replacement programme completes, but that is a multi-quarter journey. In the short term, the most controllable lever is the compliance score K3, which at 0.81 is a positive contributor — management should prioritise maintaining it above 0.78 or it begins to erode the partial offset it currently provides.' },
+  ],
+
+  5: [
+    { role:'board',   name:'Chair',          time:'15:00', text:'The cone looks noticeably different from the previous example — it is bulging to the right. What is causing that?' },
+    { role:'analyst', name:'Risk Lead',      time:'15:01', text:'Regime 2 adds <em>directional shocks</em> — specific events that each carry a probability of occurring and a bearing displacement if they do. Two of our three shocks push east: the Ofgem price reset at +28° and grid connection delays at +18°. The one corrective event — the National Grid contract opportunity — pulls west at −19.8°. Because the threats are more probable and larger than the opportunity, the distribution is skewed east. The cone is wider on the right because the bad outcomes are bigger and more likely than the good ones.' },
+    { role:'board',   name:'SID',            time:'15:02', text:'P80 has jumped from 31.8° to 48.7°. That is a big move. What triggered it?' },
+    { role:'analyst', name:'Risk Lead',      time:'15:03', text:'At P80, the Ofgem price reset has triggered in most simulation runs. A 35% probability event means it triggers in roughly one in three individual scenarios — but when we look at the worst 20% of outcomes, that event is almost always present. The P80 is not just "P50 plus a margin" any more. It is a <strong>qualitatively different position</strong>: a world where Ofgem has moved against us and grid delays have also materialised.' },
+    { role:'board',   name:'CEO',            time:'15:05', text:'What is the probability that both the Ofgem reset and the grid delays hit simultaneously?' },
+    { role:'analyst', name:'Risk Lead',      time:'15:05', text:'Approximately <hi>6%</hi> — treated as independent events, 35% × 20%. In that scenario the bearing reaches +46° from shocks alone, before Regime 1 noise adds further variation. That combination appears in roughly 60 of our 1,000 simulation runs and dominates the P90 and above outcomes.' },
+    { role:'board',   name:'CFO',            time:'15:07', text:'The National Grid opportunity is pulling west. How much is it actually helping us?' },
+    { role:'analyst', name:'Risk Lead',      time:'15:08', text:'It creates the short left tail of the distribution — the scenarios where the cone extends slightly west. At 15% probability and −19.8° displacement it is meaningful but not decisive. When it triggers alone, it partially corrects the baseline. When it triggers alongside grid delays, the two effects largely cancel. The critical observation is that we have <warn>one opportunity against two threats</warn> and the threats are both larger and more probable.' },
+    { role:'board',   name:'NED',            time:'15:10', text:'Should we be doing anything to increase the probability or magnitude of that National Grid opportunity?' },
+    { role:'analyst', name:'Risk Lead',      time:'15:11', text:'Yes — and the capability dimension is important here. The opportunity is scaled by our capability to capture it, currently rated at 0.9 out of 1.0. We are already well-positioned. The lever is therefore <good>probability</good>, not capability. Management should be asked what actions would move that 15% probability to 25% or 30% — specifically whether a proactive commercial approach to National Grid would accelerate the decision timeline.' },
+  ],
+
+  6: [
+    { role:'board',   name:'Chair',          time:'16:00', text:'The Ofgem review has now been confirmed. The last time we looked at this, it was a 35% probability threat. How has the picture changed?' },
+    { role:'analyst', name:'Risk Lead',      time:'16:01', text:'It has changed in two important ways. First, the bearing arrow has moved — the <em>+28° displacement</em> is now applied in every simulation run, not just 35% of them. Second — and counterintuitively — the cone has <strong>narrowed</strong>. We have more certainty about a worse outcome than we had about an uncertain one.' },
+    { role:'board',   name:'SID',            time:'16:02', text:'The cone narrowing feels wrong. We have just received bad news. Why is our uncertainty going down?' },
+    { role:'analyst', name:'Risk Lead',      time:'16:03', text:'Before confirmation, the Ofgem shock either happened (+28°) or it did not (0°) — that 28° range was a major source of variance between simulation runs. Now it always happens. The event is no longer a source of <em>difference</em> between scenarios, only a fixed anchor. The remaining variance comes only from grid delays and the National Grid opportunity, which is a much smaller pool of uncertainty. Certainty about a bad outcome reduces uncertainty about the range of futures.' },
+    { role:'board',   name:'CFO',            time:'16:05', text:'P80 has dropped from 48.7° to 37.5°. Does that mean we are in a better position than before?' },
+    { role:'analyst', name:'Risk Lead',      time:'16:06', text:'<warn>No.</warn> The P80 tail has compressed, but the baseline has shifted east. P50 is now 29.1° — slightly worse than before at 28.9°. The meaningful comparison is not P80 to P80 but <strong>where the arrow is pointing</strong>. The arrow has moved from approximately 27° to anchored at 28° plus residual noise. We are in a deterministically worse position. The narrower cone is cold comfort.' },
+    { role:'board',   name:'CEO',            time:'16:08', text:'Action A1 — engaging regulatory counsel — is in progress. What does resolution actually look like on this radar?' },
+    { role:'analyst', name:'Risk Lead',      time:'16:09', text:'If the price control review resolves favourably at 18 months, the +28° anchor decays linearly. At 9 months it is approximately <hi>+14°</hi>, at 18 months it returns to 0°. The board would watch the arrow gradually return toward True North as the action progresses. We can set a trigger: if the anchor has not reduced below +20° by month 6, that is an early warning that the resolution is not on track.' },
+    { role:'board',   name:'NED',            time:'16:11', text:'Are there any decisions the board should take now, given that the event is confirmed?' },
+    { role:'analyst', name:'Risk Lead',      time:'16:12', text:'Three. First, approve the regulatory counsel engagement formally — A1 needs board-level mandate, not just management action. Second, instruct management to assess whether the grid connection delay threat should now be treated as higher probability given the regulatory environment — the two risks share a regulatory driver and may not be independent. Third, consider whether the National Grid opportunity timeline should be accelerated — it is currently 15% probability but in the current climate a favourable contract announcement would have reputational value beyond its bearing effect.' },
+  ],
+
+  '6a': [
+    { role:'board',   name:'Chair',          time:'09:00', text:'There is a lot more on the radar this time. What is the most important thing I should be looking at first?' },
+    { role:'analyst', name:'Risk Lead',      time:'09:01', text:'Start with the three blue diamonds on the inner ring — those are confirmed Issues already affecting our position. Ofgem price decision, contractor insolvency, and a refused planning consent. Everything else on the radar is probabilistic. Those three are already in the baseline. Combined, they account for roughly two-thirds of the current +52° bearing.' },
+    { role:'board',   name:'SID',            time:'09:02', text:'I can see risks in different colours. What does the colour coding tell me?' },
+    { role:'analyst', name:'Risk Lead',      time:'09:03', text:'Each colour is a PESTLE category — the domain the risk originates from. <strong style="color:#ab47bc">Purple is Political</strong>, <strong style="color:#ef5350">red is Economic</strong>, <strong style="color:#ffa726">amber is Social</strong>, <strong style="color:#26a69a">teal is Technology</strong>, <strong style="color:#7986cb">indigo is Legal</strong>, <strong style="color:#66bb6a">green is Environmental</strong>. The filter bar above lets you switch categories on and off. I would suggest starting with Economic — it has the densest cluster of eastward-pointing threats.' },
+    { role:'board',   name:'CFO',            time:'09:04', text:'If I filter to Economic only, what am I looking at?' },
+    { role:'analyst', name:'Risk Lead',      time:'09:05', text:'Four threats and one opportunity. Materials inflation at +30°, interest rate pressure at +50°, FX exposure at +25°, and insurance market hardening at +35°. The single opportunity is the green bond market at +5° — nearly aligned with True North but only Medium capability to capture. The Economic cluster as a whole is pushing us solidly east with no meaningful westward correction from within that category.' },
+    { role:'board',   name:'CEO',            time:'09:07', text:'Which PESTLE category is most corrective — which one has the best opportunities relative to its threats?' },
+    { role:'analyst', name:'Risk Lead',      time:'09:08', text:'Technology is the most balanced. It has two threats — cyber risk and legacy systems — but also two opportunities: grid digitalisation pulling <hi>−15°</hi> with High capability, and AI maintenance optimisation at −2°. If you filter to Technology alone, you will see the corrective arrows pointing toward True North. It is the one category where our capability to capture opportunities is genuinely strong.' },
+    { role:'board',   name:'NED',            time:'09:10', text:'The Social category has a skills shortage blip. It looks close to the origin. Does that mean it is near-term?' },
+    { role:'analyst', name:'Risk Lead',      time:'09:11', text:'No — the radial position indicates the <em>time horizon</em> the risk bites hardest, not its current status. Skills shortage sits at roughly 0.62 range — about 18 months out on the ring scale. It is not on the inner Issue ring, so it is still probabilistic, but it is closer on the horizon than, say, devolution risk which sits near the outer ring at 5 years. The arrow direction — northeast — tells you it is pulling us away from True North.' },
+    { role:'board',   name:'Chair',          time:'09:13', text:'If I had to pick one non-Political category to focus management attention on this quarter, which would it be?' },
+    { role:'analyst', name:'Risk Lead',      time:'09:14', text:'Economic. It has the highest density of high-magnitude threats, all pointing east, and only one partially corrective opportunity with Medium capability. The interest rate refinancing risk is the most time-sensitive — the 2026 debt maturity gives us less than 18 months to act. Materials inflation is the most evidenced. Either of those individually would justify a board-level intervention; together they warrant a dedicated CFO paper before the next cycle.' },
+    { role:'board',   name:'SID',            time:'09:16', text:'Looking at Environmental — flood risk and extreme weather are both large. Are we treating those as insurance problems or as strategic ones?' },
+    { role:'analyst', name:'Risk Lead',      time:'09:17', text:'Currently insurance, which is the wrong framing. The flood risk assessment shows <warn>23% of our network assets</warn> are in flood zones 2 or 3. That is not an insurance tail risk — it is a <strong>regulated asset base vulnerability</strong> that Ofgem and investors will increasingly scrutinise. If we cannot demonstrate a physical climate adaptation plan, it will affect our next price control settlement. It belongs in the strategic capex plan, not the insurance renewal.' },
+    { role:'board',   name:'Chair',          time:'09:19', text:'Is there anything on this radar that looks better than it appears — something we might be underweighting as an opportunity?' },
+    { role:'analyst', name:'Risk Lead',      time:'09:20', text:'The green infrastructure mandate under Political. It is rated High magnitude, High capability, nearly aligned with True North at −5°, and 90% evidenced. It is the strongest corrective force on the entire radar and it is already well-supported by our capability base. The reason it does not improve the bearing more is that it is being swamped by the volume of eastward threats. If we were only looking at Political risks, the bearing would be considerably better. The mandate is doing real work — it is just not enough to offset the rest.' },
+  ],
+
+};
+
+// ─── PESTLE colours ──────────────────────────────────────────────────────────
+const PESTLE_COLOR = {
+  P:  '#ab47bc',
+  E:  '#ef5350',
+  S:  '#ffa726',
+  T:  '#26a69a',
+  L:  '#7986cb',
+  En: '#66bb6a',
+};
+
+// Default blip colours (non-PESTLE examples)
+const TYPE_COLOR = {
+  threat:      '#ef5350',
+  opportunity: '#26a69a',
+  kri:         '#7986cb',
+};
+
+// ─── Filter helpers ──────────────────────────────────────────────────────────
+function visibleBlip(b) {
+  if(activeEx !== '6a') return true;
+  if(!typeActive[b.type]) return false;
+  if(b.pestle && !pestleActive[b.pestle]) return false;
+  return true;
+}
+
+function visibleIssue(i) {
+  if(activeEx !== '6a') return true;
+  if(!typeActive['issue']) return false;
+  if(i.pestle && !pestleActive[i.pestle]) return false;
+  return true;
+}
+
+// ─── State ───────────────────────────────────────────────────────────────────
+let activeEx = 1;
+
+// PESTLE filter state — all on by default
+const pestleActive = { P: true, E: true, S: true, T: true, L: true, En: true };
+const typeActive   = { threat: true, opportunity: true, issue: true };
+
+// ─── Canvas ──────────────────────────────────────────────────────────────────
+const canvas = document.getElementById('radar-canvas');
+const ctx    = canvas.getContext('2d');
+
+function drawBg() {
+  ctx.beginPath(); ctx.arc(CX, CY, MAX_R + 2, 0, Math.PI*2);
+  ctx.fillStyle = '#070b14'; ctx.fill();
+  const g = ctx.createRadialGradient(CX,CY,0,CX,CY,MAX_R);
+  g.addColorStop(0,'rgba(79,195,247,0.06)'); g.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.beginPath(); ctx.arc(CX,CY,MAX_R,0,Math.PI*2);
+  ctx.fillStyle = g; ctx.fill();
+  for (let b=0;b<360;b+=30) {
+    const p=polarXY(b,1);
+    ctx.beginPath(); ctx.moveTo(CX,CY); ctx.lineTo(p.x,p.y);
+    ctx.strokeStyle='rgba(79,195,247,0.05)'; ctx.lineWidth=1; ctx.stroke();
+  }
+}
+
+const ISSUE_RANGE = 0.12; // Issues always render on the innermost "Current" ring
+
+function drawRings(ex) {
+  // Innermost ring: Current state — Issues live here
+  const cr = ISSUE_RANGE * MAX_R;
+  ctx.beginPath(); ctx.arc(CX,CY,cr,0,Math.PI*2);
+  ctx.strokeStyle='rgba(41,182,246,0.30)'; ctx.lineWidth=1; ctx.setLineDash([3,4]); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='rgba(41,182,246,0.55)'; ctx.font='10px Segoe UI';
+  ctx.textAlign='left'; ctx.textBaseline='middle';
+  ctx.fillText('Now', CX+cr+5, CY-4);
+
+  // Horizon rings
+  const rings = [
+    {f:0.25,label:'6 mo'},{f:0.50,label:'1 yr'},{f:0.75,label:'2 yr'},{f:1.00,label:'5 yr'}
+  ];
+  rings.forEach(r => {
+    ctx.beginPath(); ctx.arc(CX,CY,r.f*MAX_R,0,Math.PI*2);
+    ctx.strokeStyle='rgba(79,195,247,0.13)'; ctx.lineWidth=1; ctx.stroke();
+    ctx.fillStyle='rgba(79,195,247,0.35)'; ctx.font='10px Segoe UI';
+    ctx.textAlign='left'; ctx.textBaseline='middle';
+    ctx.fillText(r.label, CX+r.f*MAX_R+5, CY-4);
+  });
+}
+
+function drawCompass(northLabel) {
+  const cards = [{b:0,l:'N',hi:true},{b:90,l:'E'},{b:180,l:'S'},{b:270,l:'W'}];
+  cards.forEach(c => {
+    const p=polarXY(c.b,1.09);
+    ctx.fillStyle = c.hi ? '#4fc3f7' : 'rgba(79,195,247,0.38)';
+    ctx.font = c.hi ? 'bold 13px Segoe UI' : '11px Segoe UI';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(c.l, p.x, p.y);
+  });
+  ctx.fillStyle='rgba(79,195,247,0.45)'; ctx.font='9px Segoe UI';
+  ctx.textAlign='center'; ctx.textBaseline='bottom';
+  ctx.fillText(northLabel||'TRUE NORTH', CX, CY-MAX_R-14);
+  ctx.beginPath(); ctx.moveTo(CX,CY-MAX_R); ctx.lineTo(CX,CY-MAX_R-10);
+  ctx.strokeStyle='#4fc3f7'; ctx.lineWidth=2; ctx.stroke();
+}
+
+function drawConeSymmetric(bearing, halfAngle, color, alpha0) {
+  const bands = [
+    {o:0.25,i:0,a:alpha0},{o:0.50,i:0.25,a:alpha0*0.7},
+    {o:0.75,i:0.50,a:alpha0*0.45},{o:1.00,i:0.75,a:alpha0*0.25}
+  ];
+  bands.forEach(b => {
+    const oH = halfAngle * b.o, iH = halfAngle * b.i;
+    const sO=bearingToAngle(bearing-oH), eO=bearingToAngle(bearing+oH);
+    const sI=bearingToAngle(bearing-iH), eI=bearingToAngle(bearing+iH);
+    ctx.beginPath(); ctx.arc(CX,CY,b.o*MAX_R,sO,eO);
+    if(b.i===0) ctx.lineTo(CX,CY);
+    else ctx.arc(CX,CY,b.i*MAX_R,eI,sI,true);
+    ctx.closePath();
+    const hex = Math.round(b.a*255).toString(16).padStart(2,'0');
+    ctx.fillStyle = color+hex; ctx.fill();
+  });
+  [bearing-halfAngle,bearing+halfAngle].forEach(edge=>{
+    const p=polarXY(edge,1);
+    ctx.setLineDash([4,5]); ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(CX,CY); ctx.lineTo(p.x,p.y);
+    ctx.strokeStyle=color+'55'; ctx.stroke(); ctx.setLineDash([]);
+  });
+}
+
+function drawConeAsymmetric(medianBearing, leftDeg, rightDeg, color) {
+  // leftDeg = how far the cone extends left (west) of median
+  // rightDeg = how far the cone extends right (east) of median
+  const leftBearing  = medianBearing - leftDeg;
+  const rightBearing = medianBearing + rightDeg;
+  const frac = [0.25,0.50,0.75,1.00];
+  const alphas = [0.22,0.15,0.09,0.05];
+  frac.forEach((f,i) => {
+    const lH = leftDeg  * f;
+    const rH = rightDeg * f;
+    const startA = bearingToAngle(medianBearing - lH);
+    const endA   = bearingToAngle(medianBearing + rH);
+    ctx.beginPath();
+    ctx.arc(CX,CY,f*MAX_R,startA,endA);
+    ctx.lineTo(CX,CY);
+    ctx.closePath();
+    const hex = Math.round(alphas[i]*255).toString(16).padStart(2,'0');
+    ctx.fillStyle = color+hex; ctx.fill();
+  });
+  const pL=polarXY(medianBearing-leftDeg,1), pR=polarXY(medianBearing+rightDeg,1);
+  ctx.setLineDash([4,5]); ctx.lineWidth=1;
+  [pL,pR].forEach(p=>{
+    ctx.beginPath(); ctx.moveTo(CX,CY); ctx.lineTo(p.x,p.y);
+    ctx.strokeStyle=color+'55'; ctx.stroke();
+  });
+  ctx.setLineDash([]);
+}
+
+function drawArrow(bearing, color, glow) {
+  const tip = polarXY(bearing, 0.82);
+  const a = bearingToAngle(bearing);
+  ctx.beginPath(); ctx.moveTo(CX,CY); ctx.lineTo(tip.x,tip.y);
+  ctx.strokeStyle=color; ctx.lineWidth=2.5;
+  if(glow){ctx.shadowColor=color; ctx.shadowBlur=10;}
+  ctx.stroke(); ctx.shadowBlur=0;
+  const al=14;
+  ctx.beginPath();
+  ctx.moveTo(tip.x,tip.y);
+  ctx.lineTo(tip.x-al*Math.cos(a-0.28),tip.y-al*Math.sin(a-0.28));
+  ctx.lineTo(tip.x-al*Math.cos(a+0.28),tip.y-al*Math.sin(a+0.28));
+  ctx.closePath(); ctx.fillStyle=color;
+  if(glow){ctx.shadowColor=color;ctx.shadowBlur=8;}
+  ctx.fill(); ctx.shadowBlur=0;
+}
+
+function drawAnchorLine(anchorBearing, color) {
+  // dashed line from centre to anchor position, then main arrow continues
+  const anchorPt = polarXY(anchorBearing, 0.32);
+  ctx.beginPath(); ctx.moveTo(CX,CY); ctx.lineTo(anchorPt.x,anchorPt.y);
+  ctx.setLineDash([3,4]); ctx.lineWidth=2; ctx.strokeStyle=color+'99'; ctx.stroke();
+  ctx.setLineDash([]);
+  // small anchor dot
+  ctx.beginPath(); ctx.arc(anchorPt.x,anchorPt.y,5,0,Math.PI*2);
+  ctx.fillStyle=color+'cc'; ctx.fill();
+}
+
+function drawIssueDiamond(bearing, label, pestle) {
+  const p = polarXY(bearing, ISSUE_RANGE);
+  const s = 9;
+  const col = pestle ? PESTLE_COLOR[pestle] : '#29b6f6';
+  // Direction arrow (issues also point in their bearing direction)
+  drawForceArrow(p.x, p.y, bearing, col, s * 2.4);
+  // Glow fill
+  ctx.beginPath();
+  ctx.moveTo(p.x, p.y - s*1.5);
+  ctx.lineTo(p.x + s*1.5, p.y);
+  ctx.lineTo(p.x, p.y + s*1.5);
+  ctx.lineTo(p.x - s*1.5, p.y);
+  ctx.closePath();
+  ctx.fillStyle = hexToRgba(col, 0.15); ctx.fill();
+  // Diamond body
+  ctx.beginPath();
+  ctx.moveTo(p.x, p.y - s);
+  ctx.lineTo(p.x + s, p.y);
+  ctx.lineTo(p.x, p.y + s);
+  ctx.lineTo(p.x - s, p.y);
+  ctx.closePath();
+  ctx.fillStyle = col;
+  ctx.strokeStyle = hexToRgba(col, 0.6); ctx.lineWidth=1.5;
+  ctx.shadowColor = col; ctx.shadowBlur=10; ctx.fill(); ctx.stroke(); ctx.shadowBlur=0;
+  // Label
+  ctx.fillStyle = hexToRgba(col, 0.85); ctx.font='9px Segoe UI';
+  ctx.textAlign='center'; ctx.textBaseline='bottom';
+  ctx.fillText(label, p.x, p.y - s - 3);
+}
+
+// Draw a small directional arrow from (px,py) pointing in bearingDeg.
+// stem = total arrow length in px; used by blips and subsidiaries.
+function drawForceArrow(px, py, bearingDeg, color, stem) {
+  const a   = bearingToAngle(bearingDeg);
+  const tip = { x: px + stem * Math.cos(a), y: py + stem * Math.sin(a) };
+  const hw  = stem * 0.32; // arrowhead half-width angle
+  ctx.beginPath();
+  ctx.moveTo(px, py);
+  ctx.lineTo(tip.x, tip.y);
+  ctx.strokeStyle = color;
+  ctx.lineWidth   = 1.5;
+  ctx.globalAlpha = 0.75;
+  ctx.stroke();
+  // Arrowhead
+  const hl = stem * 0.38;
+  ctx.beginPath();
+  ctx.moveTo(tip.x, tip.y);
+  ctx.lineTo(tip.x - hl * Math.cos(a - 0.38), tip.y - hl * Math.sin(a - 0.38));
+  ctx.lineTo(tip.x - hl * Math.cos(a + 0.38), tip.y - hl * Math.sin(a + 0.38));
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.globalAlpha = 1;
+}
+
+function blipColor(t) {
+  if(t.pestle) return PESTLE_COLOR[t.pestle] || TYPE_COLOR[t.type] || '#ef5350';
+  return TYPE_COLOR[t.type] || '#ef5350';
+}
+
+function hexToRgba(hex, a) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+function drawBlip(t) {
+  const p = polarXY(t.bearing, t.range);
+  const color = blipColor(t);
+  const glow  = hexToRgba(color, 0.28);
+  // Direction arrow — stem length scaled to blip size
+  drawForceArrow(p.x, p.y, t.bearing, color, t.size * 1.6);
+  // Glow halo
+  ctx.beginPath(); ctx.arc(p.x,p.y,t.size*0.72,0,Math.PI*2);
+  ctx.fillStyle=glow; ctx.fill();
+  // Core dot
+  ctx.beginPath(); ctx.arc(p.x,p.y,t.size*0.38,0,Math.PI*2);
+  ctx.fillStyle=color; ctx.shadowColor=color; ctx.shadowBlur=6; ctx.fill(); ctx.shadowBlur=0;
+  // Label
+  ctx.fillStyle='rgba(220,232,248,0.72)'; ctx.font='9px Segoe UI';
+  ctx.textAlign='center'; ctx.textBaseline='bottom';
+  ctx.fillText(t.label, p.x, p.y - t.size*0.42 - 3);
+}
+
+function drawSubsidiary(s, showNewNorth) {
+  const p = polarXY(s.bearing, s.range);
+  const r = 13;
+  // Direction arrow
+  drawForceArrow(p.x, p.y, s.bearing, s.color, r * 2.2);
+  // Glow
+  ctx.beginPath(); ctx.arc(p.x,p.y,r*1.4,0,Math.PI*2);
+  ctx.fillStyle = s.color+'22'; ctx.fill();
+  // Main circle
+  ctx.beginPath(); ctx.arc(p.x,p.y,r,0,Math.PI*2);
+  ctx.fillStyle = s.color; ctx.shadowColor=s.color; ctx.shadowBlur=8; ctx.fill(); ctx.shadowBlur=0;
+  // Issue ring
+  if(s.issue) {
+    ctx.beginPath(); ctx.arc(p.x,p.y,r+4,0,Math.PI*2);
+    ctx.strokeStyle='#29b6f6'; ctx.lineWidth=2;
+    ctx.setLineDash([3,3]); ctx.stroke(); ctx.setLineDash([]);
+  }
+  // Label
+  ctx.fillStyle='rgba(220,232,248,0.8)'; ctx.font='bold 9px Segoe UI';
+  ctx.textAlign='center'; ctx.textBaseline='bottom';
+  ctx.fillText(s.label, p.x, p.y - r - 3);
+  // Deviation label
+  const devText = (showNewNorth && s.newDeviation!=null) ?
+    `${s.newDeviation>0?'+':''}${s.newDeviation}°` :
+    `${s.bearing>0?'+':''}${s.bearing}°`;
+  ctx.fillStyle = s.color; ctx.font='bold 9px Segoe UI';
+  ctx.textBaseline='top';
+  ctx.fillText(devText, p.x, p.y + r + 3);
+}
+
+function drawNewNorthLine(northDelta) {
+  // Draw the new True North direction
+  const newNorthBearing = northDelta; // delta from 0
+  const tip = polarXY(newNorthBearing, 1.0);
+  ctx.beginPath(); ctx.moveTo(CX,CY); ctx.lineTo(tip.x,tip.y);
+  ctx.setLineDash([6,5]); ctx.lineWidth=2;
+  ctx.strokeStyle='rgba(79,195,247,0.4)'; ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle='rgba(79,195,247,0.6)'; ctx.font='bold 9px Segoe UI';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  const labelPt = polarXY(newNorthBearing, 1.12);
+  ctx.fillText('NEW NORTH', labelPt.x, labelPt.y);
+}
+
+function drawOrigin() {
+  ctx.beginPath(); ctx.arc(CX,CY,12,0,Math.PI*2);
+  ctx.strokeStyle='rgba(79,195,247,0.18)'; ctx.lineWidth=1; ctx.stroke();
+  ctx.beginPath(); ctx.arc(CX,CY,5,0,Math.PI*2);
+  ctx.fillStyle='#4fc3f7'; ctx.shadowColor='#4fc3f7'; ctx.shadowBlur=10; ctx.fill(); ctx.shadowBlur=0;
+}
+
+function drawBorder() {
+  ctx.beginPath(); ctx.arc(CX,CY,MAX_R,0,Math.PI*2);
+  ctx.strokeStyle='rgba(79,195,247,0.2)'; ctx.lineWidth=2; ctx.stroke();
+}
+
+function drawBearingLabel(bearing, color) {
+  const abs=Math.abs(Math.round(bearing));
+  const dir = bearing===0 ? 'True North' : bearing>0 ? `+${abs}° east of True North` : `−${abs}° west of True North`;
+  ctx.fillStyle=color; ctx.font='bold 11px Segoe UI';
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  ctx.fillText(`Bearing: ${dir}`, CX, CY+MAX_R+12);
+}
+
+function drawP50marker(bearing) {
+  // Show P50 bearing as a thin line
+  const tip = polarXY(bearing, 0.75);
+  ctx.beginPath(); ctx.moveTo(CX,CY); ctx.lineTo(tip.x,tip.y);
+  ctx.setLineDash([2,4]); ctx.lineWidth=1.5;
+  ctx.strokeStyle='rgba(79,195,247,0.4)'; ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle='rgba(79,195,247,0.5)'; ctx.font='9px Segoe UI';
+  ctx.textAlign='center'; ctx.textBaseline='bottom';
+  const lp = polarXY(bearing, 0.78);
+  ctx.fillText('P50', lp.x, lp.y-2);
+}
+
+// ─── Main render ─────────────────────────────────────────────────────────────
+function renderRadar() {
+  ctx.clearRect(0,0,CW,CH);
+  const ex = EXAMPLES[activeEx];
+
+  drawBg();
+  drawRings(ex);
+  drawCompass('TRUE NORTH');
+
+  // Cone
+  const coneColor = '#4fc3f7';
+  if(ex.asymmetric) {
+    drawConeAsymmetric(ex.coneP50, ex.coneLeft, ex.coneRight, coneColor);
+  } else if(ex.coneHalf) {
+    drawConeSymmetric(ex.coneP80, ex.coneHalf, coneColor, 0.18);
+  } else {
+    // derive half from P50/P80 spread
+    const spread = Math.max(Math.abs(ex.coneP80 - ex.coneP50)*2, 6);
+    drawConeSymmetric(ex.coneP80, spread, coneColor, 0.18);
+  }
+
+  // New north line (ex 3)
+  if(ex.showNorthDelta && ex.northDelta) drawNewNorthLine(ex.northDelta);
+
+  // Subsidiaries
+  if(ex.showSubsidiaries && ex.subsidiaries) {
+    ex.subsidiaries.forEach(s => drawSubsidiary(s, ex.showNorthDelta));
+  }
+
+  // Blips — filtered by PESTLE/type when in 6a
+  if(ex.blips) {
+    ex.blips.filter(b => visibleBlip(b)).forEach(b => drawBlip(b));
+  }
+
+  // Issues — filtered by type when in 6a
+  if(ex.issues && ex.issues.length) {
+    ex.issues.filter(i => visibleIssue(i)).forEach(i => drawIssueDiamond(i.bearing, i.label, i.pestle));
+  }
+
+  // Anchor displacement line (ex 6)
+  if(ex.anchorBearing != null) {
+    drawAnchorLine(ex.anchorBearing, '#29b6f6');
+  }
+
+  // P50 dashed indicator (ex 4,5,6,6a)
+  if(ex.coneP50 != null && (activeEx >= 4 || activeEx === '6a')) {
+    drawP50marker(ex.coneP50);
+  }
+
+  // Main bearing arrow
+  drawArrow(ex.bearing, '#4fc3f7', true);
+
+  drawOrigin();
+  drawBorder();
+  drawBearingLabel(ex.bearing, '#4fc3f7');
+}
+
+// ─── Info panel content ───────────────────────────────────────────────────────
+const INFO = {
+  1: () => `
+    <div class="info-ex-label">Example 1</div>
+    <div class="info-title">Tier 0 Bearing from Raw Inputs</div>
+    <div class="info-objective">
+      <strong>True North</strong>
+      Deliver regulated infrastructure projects generating £180m revenue by FY28, maintaining investment-grade credit rating.
+    </div>
+    <div class="issue-badge">Active Issue: Contractor insolvency — Northern Rail project (+55° anchor offset applied)</div>
+    <div class="info-section">
+      <div class="info-section-title">What is happening</div>
+      <div class="info-text">
+        The board is computing its bearing directly from its own strategic inputs. Two forces pull <em>toward</em> True North (strengths), two impose drag (weaknesses), three threats deflect bearing eastward, two opportunities pull partially corrective. One Issue — a contractor insolvency — is not probabilistic: it has already happened and is displacing the cone anchor before simulation begins.
+      </div>
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">Force breakdown</div>
+      <div class="force-list">
+        <div class="force-row"><div class="force-dot" style="background:#29b6f6"></div><div class="force-name">Issue I1: Contractor insolvency — anchor displacement</div><div class="force-value" style="color:#29b6f6">+55° / 0.40</div></div>
+        <div class="force-row"><div class="force-dot" style="background:#ef5350"></div><div class="force-name">Threat T1: Regulatory price review</div><div class="force-value" style="color:#ef5350">+45° / 0.81</div></div>
+        <div class="force-row"><div class="force-dot" style="background:#ffa726"></div><div class="force-name">Threat T2: Supply chain inflation</div><div class="force-value" style="color:#ffa726">+30° / 0.38</div></div>
+        <div class="force-row"><div class="force-dot" style="background:#ffa726"></div><div class="force-name">Threat T3: Competitor undercutting</div><div class="force-value" style="color:#ffa726">−20° / 0.12</div></div>
+        <div class="force-row"><div class="force-dot" style="background:#26a69a"></div><div class="force-name">Opportunity O1: Green infrastructure</div><div class="force-value" style="color:#26a69a">+10° / 0.36</div></div>
+        <div class="force-row"><div class="force-dot" style="background:#4a5a75"></div><div class="force-name">Net propulsion (strengths minus drag)</div><div class="force-value" style="color:#4a5a75">+0° / 0.09</div></div>
+      </div>
+    </div>
+    <div class="result-box">
+      <div class="result-box-label">Reported bearing (P80)</div>
+      <div class="result-bearing">+105° east</div>
+      <div class="result-sub">The organisation is pointed almost due east. Strengths barely exceed drag (net 0.09). The Issue accounts for roughly 40° of displacement before any probabilistic force is applied. Resolving the contractor insolvency alone would shift bearing to ~+65°.</div>
+    </div>
+  `,
+
+  2: () => `
+    <div class="info-ex-label">Example 2</div>
+    <div class="info-title">Aggregating Three Tier 1 Bearings</div>
+    <div class="info-objective">
+      <strong>True North</strong>
+      Meridian Group: £180m regulated infrastructure revenue by FY28, investment-grade credit maintained.
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">What is happening</div>
+      <div class="info-text">
+        The group board reads the bearings of its three subsidiaries rather than its own raw inputs. The naïve arithmetic mean (+33°) is wrong — it ignores materiality weights and fails at angular wrap-around. The correct method is the <strong>weighted circular mean</strong>: convert each bearing to a unit vector, scale by materiality weight, sum the vectors, recover the angle.
+      </div>
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">Subsidiary inputs</div>
+      <div class="sub-list">
+        <div class="sub-row">
+          <div class="sub-name">Energy Networks</div>
+          <div class="sub-bearing" style="color:#4fc3f7">+35°</div>
+          <div class="sub-weight">w = 0.55</div>
+        </div>
+        <div class="sub-row">
+          <div class="sub-name">Civil Construction <span style="color:#29b6f6;font-size:0.65rem">⚠ Active Issue</span></div>
+          <div class="sub-bearing" style="color:#ef5350">+80°</div>
+          <div class="sub-weight">w = 0.30</div>
+        </div>
+        <div class="sub-row">
+          <div class="sub-name">Digital Services</div>
+          <div class="sub-bearing" style="color:#26a69a">−15°</div>
+          <div class="sub-weight">w = 0.15</div>
+        </div>
+      </div>
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">Aggregation cone: spread contribution</div>
+      <div class="info-text">
+        Circular standard deviation of the three bearings ≈ <strong>±40°</strong>. This is added to the group cone width on top of any individual programme uncertainty. Civil Construction at +80° is the primary driver of spread. If Civil Construction resolves its issue and improves to +35°, the group bearing moves from <em>+41.5°</em> to <em>+28.1°</em>.
+      </div>
+    </div>
+    <div class="result-box">
+      <div class="result-box-label">Group bearing (weighted circular mean)</div>
+      <div class="result-bearing">+41.5° east</div>
+      <div class="result-sub">Arithmetic mean would have given +33.3° — ignoring that Energy Networks is 3.7× more important than Digital Services, and treating all three as equal. The correct figure is +41.5°. Civil Construction is the primary driver despite being only 30% of the portfolio by weight.</div>
+    </div>
+  `,
+
+  3: () => `
+    <div class="info-ex-label">Example 3</div>
+    <div class="info-title">Top-Down True North Cascade</div>
+    <div class="info-objective">
+      <strong>New Group True North (board pivot)</strong>
+      By FY28, derive 70% of revenue from regulated energy and digital assets. Civil construction exposure below 20%.
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">What is happening</div>
+      <div class="info-text">
+        The board has pivoted strategy by −25°. This cascades downward through differential <strong>cascade weights</strong> on each tier-to-tier edge. Subsidiary bearings are unchanged — but what they are measured against has moved. The dashed blue line shows the new group True North direction.
+      </div>
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">Cascade weights and new True Norths</div>
+      <table class="cascade-table">
+        <tr><th>Subsidiary</th><th>Cascade wt</th><th>North shift</th><th>New north</th><th>New deviation</th></tr>
+        <tr><td>Energy Networks</td><td>0.90</td><td>−22.5°</td><td>−22.5°</td><td style="color:#ffa726">+57.5°</td></tr>
+        <tr><td>Civil Construction</td><td>0.40</td><td>−10°</td><td>−10°</td><td style="color:#ef5350">+90.0°</td></tr>
+        <tr><td>Digital Services</td><td>0.85</td><td>−21.25°</td><td>−21.25°</td><td style="color:#26a69a">+6.25°</td></tr>
+      </table>
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">Key insight: Digital Services</div>
+      <div class="info-text">
+        Digital Services had a −15° bearing — it looked like it was drifting slightly west of the old True North. After the pivot, it is only <strong>+6.25° off course</strong>. It was already pointing toward the new strategy before the board declared it. The north cascade makes that visible. Without the cascade mechanism, this alignment would be invisible.
+      </div>
+    </div>
+    <div class="result-box">
+      <div class="result-box-label">Group bearing deviation (post-pivot)</div>
+      <div class="result-bearing">+66.5° east</div>
+      <div class="result-sub">Up from +41.5° before the pivot — not because execution worsened, but because the destination moved. Declaring a better north makes the current misalignment visible rather than hiding it. That is the instrument working correctly.</div>
+    </div>
+  `,
+
+  4: () => `
+    <div class="info-ex-label">Example 4 — Monte Carlo: Regime 1</div>
+    <div class="info-title">Baseline Volatility Only</div>
+    <div class="regime-badge regime-1">Regime 1: Gaussian Noise</div>
+    <div class="info-objective">
+      <strong>Subject: Energy Networks — one objective</strong>
+      KRI-driven bearing deviation from a single objective. Deterministic starting bearing: 27.4°.
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">What is happening</div>
+      <div class="info-text">
+        Symmetric Gaussian noise is applied to each KRI at every monthly timestep (σ per rating: High→0.05, Medium→0.03, Low→0.01). No shocks, no Issues. After 1000 simulation runs of 12 steps, the distribution of final bearing deviations is roughly symmetric around the starting position.
+      </div>
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">1000-run distribution</div>
+      <table class="dist-table">
+        <tr><th>Pct</th><th>Bearing</th><th>Notes</th></tr>
+        <tr><td>P10</td><td>21.3°</td><td>Favourable Gaussian drift</td></tr>
+        <tr><td>P25</td><td>23.8°</td><td></td></tr>
+        <tr class="highlight"><td>P50</td><td>27.2°</td><td>≈ deterministic (27.4°)</td></tr>
+        <tr><td>P75</td><td>30.7°</td><td></td></tr>
+        <tr class="highlight"><td>P80 ★</td><td>31.8°</td><td>Board governs here</td></tr>
+        <tr><td>P90</td><td>33.9°</td><td></td></tr>
+        <tr><td>P95</td><td>35.6°</td><td></td></tr>
+      </table>
+    </div>
+    <div class="result-box">
+      <div class="result-box-label">Key limitation</div>
+      <div class="result-bearing">P80 − P50 = 4.6°</div>
+      <div class="result-sub">The distribution is symmetric. P80 is simply 4.6° east of P50 — a fixed conservatism margin. The percentile selector is not yet doing real strategic work. It cannot distinguish "Ofgem has triggered" from "routine KRI drift." That requires Regime 2 directional shocks.</div>
+    </div>
+  `,
+
+  5: () => `
+    <div class="info-ex-label">Example 5 — Monte Carlo: Regime 2</div>
+    <div class="info-title">Adding Directional Shocks</div>
+    <div class="regime-badge regime-2">Regime 2: Stochastic Directional Shocks</div>
+    <div class="info-objective">
+      <strong>Subject: Energy Networks</strong>
+      Two threats (east-directional) and one opportunity (west pull). The cone is no longer symmetric.
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">What is happening</div>
+      <div class="info-text">
+        Each shock is drawn stochastically per simulation run. The distribution becomes <strong>asymmetric</strong> — the east tail is long (threat-dominated) and the west tail is short (the single opportunity). The P50 is near the no-shock baseline; the P80 is in a qualitatively different regime where the Ofgem reset has triggered.
+      </div>
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">Shock combinations (dominant cases)</div>
+      <div class="force-list">
+        <div class="force-row"><div class="force-dot" style="background:#26a69a"></div><div class="force-name">No shocks trigger (44.2%)</div><div class="force-value" style="color:#26a69a">0° shift</div></div>
+        <div class="force-row"><div class="force-dot" style="background:#ef5350"></div><div class="force-name">Ofgem only triggers (23.8%)</div><div class="force-value" style="color:#ef5350">+28°</div></div>
+        <div class="force-row"><div class="force-dot" style="background:#ffa726"></div><div class="force-name">Grid delays only (11.1%)</div><div class="force-value" style="color:#ffa726">+18°</div></div>
+        <div class="force-row"><div class="force-dot" style="background:#4fc3f7"></div><div class="force-name">Opportunity only (7.8%)</div><div class="force-value" style="color:#4fc3f7">−19.8°</div></div>
+        <div class="force-row"><div class="force-dot" style="background:#ef5350"></div><div class="force-name">Ofgem + Grid (6.0%)</div><div class="force-value" style="color:#ef5350">+46°</div></div>
+      </div>
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">Distribution vs Regime 1</div>
+      <table class="dist-table">
+        <tr><th>Pct</th><th>Regime 1</th><th>Regime 1+2</th><th>Δ</th></tr>
+        <tr><td>P50</td><td>27.2°</td><td>28.9°</td><td>+1.7°</td></tr>
+        <tr class="highlight"><td>P80 ★</td><td>31.8°</td><td>48.7°</td><td style="color:#ef5350">+16.9°</td></tr>
+        <tr><td>P90</td><td>33.9°</td><td>57.3°</td><td style="color:#ef5350">+23.4°</td></tr>
+      </table>
+    </div>
+    <div class="result-box">
+      <div class="result-box-label">Governing at P80 now means:</div>
+      <div class="result-bearing">+48.7°</div>
+      <div class="result-sub">The Ofgem price reset has triggered in most P80 simulation runs. The board is not just adding a safety margin — it is planning for a specific event in a specific direction. P50 and P80 are now in qualitatively different strategic positions, not just numerically different ones.</div>
+    </div>
+  `,
+
+  6: () => `
+    <div class="info-ex-label">Example 6 — Monte Carlo: Regime 3</div>
+    <div class="info-title">ActiveDeviation Shifts the Cone Anchor</div>
+    <div class="regime-badge regime-3">Regime 3: Confirmed Issue (ActiveDeviation)</div>
+    <div class="issue-badge">AD1: Ofgem price control review — formal notice received. Anchor displaced +28° east.</div>
+    <div class="info-objective">
+      <strong>Subject: Energy Networks</strong>
+      Ofgem price review has materialised. S1 transitions from 35%-probability shock to deterministic +28° anchor offset. Linked action A1 in progress.
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">What changed</div>
+      <div class="info-text">
+        S1 is removed from the shock inventory and added to the ActiveDeviation register. The +28° displacement is now applied <strong>deterministically to every simulation run</strong> before stochastic variation begins. The cone anchor shifts east; the cone itself <em>narrows</em>.
+      </div>
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">Distribution before vs after</div>
+      <table class="dist-table">
+        <tr><th>Pct</th><th>Before (Ex5)</th><th>After (Ex6)</th><th>Shift</th></tr>
+        <tr><td>P10</td><td>21.1°</td><td>20.8°</td><td>−0.3°</td></tr>
+        <tr><td>P25</td><td>24.2°</td><td>24.0°</td><td>−0.2°</td></tr>
+        <tr class="highlight"><td>P50</td><td>28.9°</td><td>29.1°</td><td>+0.2°</td></tr>
+        <tr class="highlight shift-neg"><td>P80 ★</td><td>48.7°</td><td>37.5°</td><td>−11.2°</td></tr>
+        <tr class="shift-neg"><td>P90</td><td>57.3°</td><td>46.0°</td><td>−11.3°</td></tr>
+        <tr class="shift-neg"><td>P95</td><td>63.8°</td><td>51.6°</td><td>−12.2°</td></tr>
+      </table>
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">Why the cone narrows when bad news is confirmed</div>
+      <div class="info-text">
+        Before: S1 triggered in 35% of runs (+28°) and did not trigger in 65% of runs (0°). That difference was a major source of variance. The P80 was dominated by runs where S1 <em>and</em> something else went wrong.<br><br>
+        After: S1 is +28° in <em>every</em> run. It is no longer a source of variance. Certainty about a bad outcome reduces uncertainty about the future. Only S2 and O1 remain stochastic — a much smaller variance pool.
+      </div>
+    </div>
+    <div class="result-box">
+      <div class="result-box-label">Resolution path</div>
+      <div class="result-bearing">~+14° at 9 months</div>
+      <div class="result-sub">If action A1 (regulatory counsel) resolves the Ofgem review favourably in 9 months, the anchor decays linearly: +28° × (1 − 9/18) = +14°. Projected bearing at resolution: +14° to +20°. The board watches the arrow return toward north as the action succeeds.</div>
+    </div>
+  `,
+
+  '6a': () => {
+    const ex = EXAMPLES['6a'];
+    const visible = ex.blips.filter(b => visibleBlip(b));
+    const threats = visible.filter(b => b.type==='threat');
+    const opps    = visible.filter(b => b.type==='opportunity');
+    const issues  = ex.issues.filter(i => visibleIssue(i));
+    const pestleCounts = {};
+    [...visible, ...issues].forEach(b => {
+      if(b.pestle) pestleCounts[b.pestle] = (pestleCounts[b.pestle]||0)+1;
     });
+    const pestleNames = {P:'Political',E:'Economic',S:'Social',T:'Technology',L:'Legal',En:'Environmental'};
+    const legend = Object.entries(pestleCounts).map(([k,n]) =>
+      `<span style="color:${PESTLE_COLOR[k]};font-weight:700">${pestleNames[k]}</span> ${n}`
+    ).join(' &nbsp;·&nbsp; ');
+    return `
+    <div class="info-ex-label">Example 6a — PESTLE Stress Test</div>
+    <div class="info-title">Full Risk Landscape: Meridian Group</div>
+    <div class="info-objective">
+      <strong>True North</strong>
+      Deliver regulated infrastructure projects generating £180m revenue by FY28, maintaining investment-grade credit rating. Three confirmed Issues active.
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">Visible risks</div>
+      <div class="info-text">
+        <strong>${threats.length}</strong> threats &nbsp;·&nbsp;
+        <strong>${opps.length}</strong> opportunities &nbsp;·&nbsp;
+        <strong>${issues.length}</strong> confirmed issues<br>
+        <span style="font-size:0.7rem;margin-top:4px;display:block">${legend||'No PESTLE filters active'}</span>
+      </div>
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">Confirmed issues (Now ring)</div>
+      <div class="force-list">
+        ${ex.issues.map(i => `
+        <div class="force-row" style="opacity:${visibleIssue(i)?1:0.3}">
+          <div class="force-dot" style="background:${PESTLE_COLOR[i.pestle]||'#29b6f6'};border-radius:2px;transform:rotate(45deg)"></div>
+          <div class="force-name"><strong>${i.label}</strong><br><span style="font-size:0.65rem;color:#4a5a75">${i.action}</span></div>
+          <div class="force-value" style="color:${PESTLE_COLOR[i.pestle]||'#29b6f6'}">${pestleNames[i.pestle]||''}</div>
+        </div>`).join('')}
+      </div>
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">Dominant threat forces</div>
+      <div class="force-list">
+        ${threats.slice(0,5).map(t => `
+        <div class="force-row">
+          <div class="force-dot" style="background:${PESTLE_COLOR[t.pestle]||'#ef5350'}"></div>
+          <div class="force-name">${t.label}</div>
+          <div class="force-value" style="color:${PESTLE_COLOR[t.pestle]||'#ef5350'}">${t.direction}</div>
+        </div>`).join('')}
+        ${threats.length > 5 ? `<div class="info-text" style="padding:4px 8px;color:#4a5a75">+${threats.length-5} more threats filtered in</div>` : ''}
+      </div>
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">Corrective opportunities</div>
+      <div class="force-list">
+        ${opps.map(o => `
+        <div class="force-row">
+          <div class="force-dot" style="background:${PESTLE_COLOR[o.pestle]||'#26a69a'}"></div>
+          <div class="force-name">${o.label}</div>
+          <div class="force-value" style="color:${PESTLE_COLOR[o.pestle]||'#26a69a'}">${o.direction}</div>
+        </div>`).join('')}
+      </div>
+    </div>
+    <div class="result-box">
+      <div class="result-box-label">Group bearing (P80, all filters on)</div>
+      <div class="result-bearing">+52° east</div>
+      <div class="result-sub">With the full PESTLE risk landscape visible, the group bearing is worse than Ex 6 alone because the Economic, Social, and Environmental threat clusters add eastward force beyond the confirmed Ofgem issue. Use the filter bar to isolate categories and see which PESTLE dimension is the primary contributor.</div>
+    </div>
+  `; },
+};
 
-    document.querySelectorAll('.branch-btn').forEach(btn => {
-      btn.addEventListener('click', () => setActiveBranch(parseInt(btn.dataset.branch, 10)));
-    });
+function renderInfo() {
+  const panel = document.getElementById('info-scroll');
+  panel.innerHTML = INFO[activeEx]();
+}
 
-    // ─── Responsive canvas ────────────────────────────────────────────────────
+// ─── Chat render ──────────────────────────────────────────────────────────────
+function renderChat() {
+  const scroll = document.getElementById('chat-scroll');
+  const msgs = CHATS[activeEx] || [];
+  scroll.innerHTML = msgs.map((m, i) => {
+    const isBoard = m.role === 'board';
+    const initials = m.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+    // Insert a divider before the first analyst response after a board question
+    const divider = (i > 0 && isBoard && CHATS[activeEx][i-1].role === 'analyst')
+      ? `<div class="chat-divider"><span>Exchange</span></div>` : '';
+    return `${divider}<div class="chat-msg">
+      <div class="chat-meta">
+        <div class="chat-avatar ${m.role}">${initials}</div>
+        <span class="chat-name ${m.role}">${m.name}</span>
+        <span class="chat-time">${m.time}</span>
+      </div>
+      <div class="chat-bubble ${m.role}">${m.text}</div>
+    </div>`;
+  }).join('');
+  scroll.scrollTop = 0;
+}
 
-    function resizeCanvas() {
-      const panel     = document.getElementById('radar-panel');
-      const available = Math.min(panel.clientWidth - 40, panel.clientHeight - 100);
-      const size      = Math.max(300, Math.min(700, available));
-      canvas.style.width  = size + 'px';
-      canvas.style.height = size + 'px';
+// ─── Panel tab switching ──────────────────────────────────────────────────────
+let activeTab = 'analysis';
+
+function setTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll('.panel-tab').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === tab);
+  });
+  const infoScroll  = document.getElementById('info-scroll');
+  const chatPanel   = document.getElementById('chat-panel');
+  if(tab === 'analysis') {
+    infoScroll.style.display = '';
+    chatPanel.classList.remove('visible');
+  } else {
+    infoScroll.style.display = 'none';
+    chatPanel.classList.add('visible');
+    renderChat();
+  }
+}
+
+document.querySelectorAll('.panel-tab').forEach(b => {
+  b.addEventListener('click', () => setTab(b.dataset.tab));
+});
+
+// ─── Tooltip ─────────────────────────────────────────────────────────────────
+const tooltip = document.getElementById('radar-tooltip');
+
+function canvasCoords(cx, cy) {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: (cx - rect.left) * (CW / rect.width),
+    y: (cy - rect.top)  * (CH / rect.height),
+  };
+}
+
+function hitTest(mx, my) {
+  const ex = EXAMPLES[activeEx];
+  // Test blips (respect filter in 6a)
+  if(ex.blips) {
+    for(const t of ex.blips) {
+      if(!visibleBlip(t)) continue;
+      const p = polarXY(t.bearing, t.range);
+      const hr = Math.max(t.size*0.7, 16);
+      if((mx-p.x)**2+(my-p.y)**2 <= hr*hr) return {kind:'blip',data:t};
     }
-
-    window.addEventListener('resize', () => {
-      resizeCanvas();
-      renderRadar();
-    });
-
-    // ─── Tooltip ─────────────────────────────────────────────────────────────
-
-    const tooltip = document.getElementById('radar-tooltip');
-
-    function valueClass(v) {
-      if (v === 'High')   return 'high';
-      if (v === 'Medium') return 'medium';
-      if (v === 'Low')    return 'low';
-      return '';
+  }
+  // Test subsidiaries
+  if(ex.showSubsidiaries && ex.subsidiaries) {
+    for(const s of ex.subsidiaries) {
+      const p = polarXY(s.bearing, s.range);
+      if((mx-p.x)**2+(my-p.y)**2 <= 18*18) return {kind:'subsidiary',data:s};
     }
-
-    // Returns canvas-space coordinates of a blip given the current CSS display size
-    function canvasCoords(clientX, clientY) {
-      const rect  = canvas.getBoundingClientRect();
-      const scaleX = canvas.width  / rect.width;
-      const scaleY = canvas.height / rect.height;
-      return {
-        x: (clientX - rect.left) * scaleX,
-        y: (clientY - rect.top)  * scaleY,
-      };
+  }
+  // Test issues (respect filter in 6a)
+  if(ex.issues && ex.issues.length) {
+    for(const i of ex.issues) {
+      if(!visibleIssue(i)) continue;
+      const p = polarXY(i.bearing, ISSUE_RANGE);
+      if((mx-p.x)**2+(my-p.y)**2 <= 18*18) return {kind:'issue',data:i};
     }
+  }
+  return null;
+}
 
-    function hitTestThreats(cx, cy) {
-      const scenario = SCENARIOS[activeScenario];
-      for (const t of scenario.threats) {
-        const p       = polarPoint(t.bearing, t.range);
-        const hitR    = Math.max(t.size * 0.7, 16); // generous hit area
-        const dx      = cx - p.x;
-        const dy      = cy - p.y;
-        if (dx * dx + dy * dy <= hitR * hitR) return t;
-      }
-      return null;
+function vcls(v) {
+  if(v==='High'||v==='high') return 'high';
+  if(v==='Medium'||v==='medium') return 'medium';
+  if(v==='Low'||v==='low') return 'low';
+  if(parseFloat(v)<0) return 'pos';
+  return '';
+}
+
+function showTip(hit, mx, my) {
+  const d = hit.data;
+  let color, badgeClass, badgeText;
+
+  const pestleNames = {P:'Political',E:'Economic',S:'Social',T:'Technology',L:'Legal',En:'Environmental'};
+  if(hit.kind==='issue') {
+    color = d.pestle ? PESTLE_COLOR[d.pestle] : '#29b6f6';
+    badgeClass='issue';
+    badgeText = d.pestle ? `Issue · ${pestleNames[d.pestle]}` : 'Active Issue';
+  } else if(hit.kind==='subsidiary') {
+    color=d.color; badgeClass='subsidiary'; badgeText='Subsidiary';
+  } else {
+    const isOpp=d.type==='opportunity', isKRI=d.type==='kri';
+    color = d.pestle ? PESTLE_COLOR[d.pestle] : isOpp?'#26a69a':isKRI?'#7986cb':'#ef5350';
+    const typeLabel = isOpp?'Opportunity':isKRI?'KRI Indicator':'Threat';
+    badgeClass = isOpp?'opportunity':isKRI?'kri':'threat';
+    badgeText  = d.pestle ? `${typeLabel} · ${pestleNames[d.pestle]}` : typeLabel;
+  }
+
+  document.getElementById('tt-dot').style.background = color;
+  document.getElementById('tt-label').textContent = d.label || d.name || '';
+  const badge = document.getElementById('tt-badge');
+  badge.textContent = badgeText; badge.className = `tt-badge ${badgeClass}`;
+
+  // Build grid cells
+  const grid = document.getElementById('tt-grid');
+  grid.innerHTML = '';
+
+  function cell(label, value, cls) {
+    return `<div class="tt-cell"><div class="tt-cell-label">${label}</div><div class="tt-cell-value ${cls||''}">${value}</div></div>`;
+  }
+
+  if(hit.kind==='issue') {
+    grid.innerHTML =
+      cell('Status','Confirmed','high') +
+      cell('Category', d.pestle ? pestleNames[d.pestle] : '—') +
+      cell('Onset', d.onset||'—') +
+      cell('Resolution', d.resolution||'—');
+    // Show action as rationale
+    document.getElementById('tt-rationale').textContent = d.action || '';
+  } else if(hit.kind==='subsidiary') {
+    const dev = (EXAMPLES[activeEx].showNorthDelta && d.newDeviation!=null) ? d.newDeviation : d.bearing;
+    const devStr = dev>0 ? `+${dev}°` : `${dev}°`;
+    grid.innerHTML =
+      cell('Bearing', devStr, dev>45?'high':dev>20?'medium':'low') +
+      cell('Weight', d.weight||'—') +
+      cell('Revenue', d.revenue||'—') +
+      (d.cascadeWeight!=null ? cell('Cascade wt', d.cascadeWeight) : cell('Issue', d.issue?'Yes':'No', d.issue?'high':'low'));
+  } else {
+    grid.innerHTML =
+      cell('Magnitude', d.magnitude||'—', vcls(d.magnitude)) +
+      cell('Direction', d.direction||'—') +
+      (d.completeness ? cell('Completeness', d.completeness) : '') +
+      (d.capability   ? cell('Capability', d.capability, vcls(d.capability)) : '');
+  }
+
+  document.getElementById('tt-bearing').textContent   = d.bearing_effect || '';
+  document.getElementById('tt-rationale').textContent = d.rationale || '';
+
+  const TW=280, TH=240, vw=window.innerWidth, vh=window.innerHeight;
+  let left=mx+16, top=my-20;
+  if(left+TW>vw-12) left=mx-TW-12;
+  if(top+TH>vh-12) top=vh-TH-12;
+  if(top<8) top=8;
+  tooltip.style.left=left+'px'; tooltip.style.top=top+'px';
+  tooltip.classList.add('visible');
+}
+
+function hideTip() { tooltip.classList.remove('visible'); }
+
+canvas.addEventListener('mousemove', e => {
+  const {x,y}=canvasCoords(e.clientX,e.clientY);
+  const hit=hitTest(x,y);
+  if(hit){ canvas.style.cursor='pointer'; showTip(hit,e.clientX,e.clientY); }
+  else   { canvas.style.cursor='';        hideTip(); }
+});
+canvas.addEventListener('mouseleave', hideTip);
+
+// ─── Resize ───────────────────────────────────────────────────────────────────
+function resizeCanvas() {
+  const panel = document.getElementById('radar-panel');
+  const avail = Math.min(panel.clientWidth - 32, panel.clientHeight - 32);
+  const sz = Math.max(280, Math.min(660, avail));
+  canvas.style.width  = sz+'px';
+  canvas.style.height = sz+'px';
+}
+
+window.addEventListener('resize', () => { resizeCanvas(); renderRadar(); });
+
+// ─── Example switching ────────────────────────────────────────────────────────
+function setEx(n) {
+  activeEx = n;
+  document.querySelectorAll('.ex-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.ex === String(n));
+  });
+  // Show PESTLE filter bar only for 6a
+  document.getElementById('pestle-bar').classList.toggle('visible', n === '6a');
+  hideTip();
+  renderRadar();
+  if(activeTab === 'analysis') renderInfo();
+  else renderChat();
+}
+
+document.querySelectorAll('.ex-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    const v = b.dataset.ex;
+    setEx(v === '6a' ? '6a' : parseInt(v));
+  });
+});
+
+// ─── PESTLE filter wiring ────────────────────────────────────────────────────
+function syncFilterButtons() {
+  document.querySelectorAll('.pf-btn[data-pestle]').forEach(b => {
+    const k = b.dataset.pestle;
+    const isType = k.startsWith('type-');
+    const active = isType ? typeActive[k.replace('type-','')] : pestleActive[k];
+    b.classList.toggle('off', !active);
+  });
+}
+
+document.querySelectorAll('.pf-btn[data-pestle]').forEach(b => {
+  b.addEventListener('click', () => {
+    const k = b.dataset.pestle;
+    if(k.startsWith('type-')) {
+      const t = k.replace('type-','');
+      typeActive[t] = !typeActive[t];
+    } else {
+      pestleActive[k] = !pestleActive[k];
     }
-
-    function showTooltip(t, mouseX, mouseY) {
-      const isOpp  = t.type === 'opportunity';
-      const color  = isOpp ? '#26a69a' : '#ef5350';
-
-      document.getElementById('tt-dot').style.background = color;
-      document.getElementById('tt-label').textContent    = t.label;
-
-      const typeEl = document.getElementById('tt-type');
-      typeEl.textContent  = isOpp ? 'Opportunity' : 'Threat';
-      typeEl.className    = `tt-type ${t.type}`;
-
-      const lhEl = document.getElementById('tt-likelihood');
-      lhEl.textContent  = t.likelihood;
-      lhEl.className    = `tt-cell-value ${valueClass(t.likelihood)}`;
-
-      const impEl = document.getElementById('tt-impact');
-      impEl.textContent = t.impact;
-      impEl.className   = `tt-cell-value ${valueClass(t.impact)}`;
-
-      // Capability: for threats, low capability = high risk = red; invert the colour scale
-      const capInvert = { High: 'Low', Medium: 'Medium', Low: 'High' };
-      const capEl = document.getElementById('tt-capability');
-      capEl.textContent = t.capability;
-      capEl.className   = `tt-cell-value ${isOpp ? valueClass(t.capability) : valueClass(capInvert[t.capability])}`;
-
-      document.getElementById('tt-bearing').textContent   = t.bearingEffect;
-      document.getElementById('tt-rationale').textContent = t.rationale;
-      document.getElementById('tt-objective').textContent = t.objective;
-      document.getElementById('tt-horizon').textContent   = t.horizon;
-
-      // Position tooltip: prefer right of cursor, flip left if near right edge
-      const TW = 280;
-      const TH = 220;
-      const vw = window.innerWidth;
-      const vh = window.innerHeight;
-      let left = mouseX + 16;
-      let top  = mouseY - 20;
-      if (left + TW > vw - 12) left = mouseX - TW - 12;
-      if (top  + TH > vh - 12) top  = vh - TH - 12;
-      if (top < 8)              top  = 8;
-
-      tooltip.style.left = left + 'px';
-      tooltip.style.top  = top  + 'px';
-      tooltip.classList.add('visible');
-    }
-
-    function hideTooltip() {
-      tooltip.classList.remove('visible');
-    }
-
-    canvas.addEventListener('mousemove', e => {
-      const { x, y } = canvasCoords(e.clientX, e.clientY);
-      const hit = hitTestThreats(x, y);
-      if (hit) {
-        canvas.style.cursor = 'pointer';
-        showTooltip(hit, e.clientX, e.clientY);
-      } else {
-        canvas.style.cursor = '';
-        hideTooltip();
-      }
-    });
-
-    canvas.addEventListener('mouseleave', hideTooltip);
-
-    // ─── Bearing rationale ────────────────────────────────────────────────────
-
-    function renderBearingRationale() {
-      const scenario = SCENARIOS[activeScenario];
-      const branch   = scenario.branches[activeBranch];
-      document.getElementById('bearing-rationale-text').textContent = branch.bearingRationale;
-    }
-
-    // ─── Boot ─────────────────────────────────────────────────────────────────
-    resizeCanvas();
-    syncBranchButtons();
+    syncFilterButtons();
     renderRadar();
-    renderObjectives();
-    renderBearingRationale();
-  </script>
+  });
+});
+
+document.getElementById('pf-all-btn').addEventListener('click', () => {
+  ['P','E','S','T','L','En'].forEach(k => pestleActive[k] = true);
+  ['threat','opportunity','issue'].forEach(k => typeActive[k] = true);
+  syncFilterButtons();
+  renderRadar();
+});
+
+// ─── Boot ─────────────────────────────────────────────────────────────────────
+resizeCanvas();
+renderRadar();
+renderInfo();
+</script>
 </body>
 </html>
