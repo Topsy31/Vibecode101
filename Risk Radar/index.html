@@ -711,6 +711,39 @@
       line-height: 1.45;
     }
 
+    .tt-causal {
+      margin-top: 8px;
+      border-top: 1px solid #1e2d42;
+      padding-top: 6px;
+    }
+    .tt-causal-head {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #4a6080;
+      margin-bottom: 3px;
+      margin-top: 4px;
+    }
+    .tt-causal-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.71rem;
+      margin-bottom: 1px;
+    }
+    .tt-causal-src  { color: #8aa4c8; }
+    .tt-causal-delta { font-weight: 600; font-size: 0.68rem; }
+    .tt-causal-delta.pos { color: #ef5350; }
+    .tt-causal-delta.neg { color: #26a69a; }
+    .tt-causal-note {
+      font-size: 0.66rem;
+      color: #4a6080;
+      line-height: 1.4;
+      margin-bottom: 4px;
+      padding-left: 4px;
+      border-left: 2px solid #1e2d42;
+    }
+
     .tt-rationale {
       font-size: 0.72rem;
       color: #6a7a95;
@@ -766,6 +799,7 @@
       <div class="tt-grid" id="tt-grid"></div>
       <div class="tt-bearing" id="tt-bearing"></div>
       <div class="tt-rationale" id="tt-rationale"></div>
+      <div class="tt-causal" id="tt-causal" style="display:none"></div>
     </div>
 
     <section id="info-panel">
@@ -817,27 +851,37 @@ const EXAMPLES = {
         magnitude: '0.81', direction: '+45°', completeness: '90%',
         bearing_effect: 'Pulls bearing +45° east — dominant probabilistic force',
         rationale: 'Ofgem/regulatory permitted return review could squeeze revenue. High magnitude, high completeness — the single largest probabilistic deflector.',
-        objective: 'Revenue & Return on Capital' },
+        objective: 'Revenue & Return on Capital',
+        causes: [{ label: 'Supply Chain Inflation', delta: '+0.15', note: 'Adverse ruling triggers lender repricing, which amplifies materials cost pressure' }],
+        caused_by: [] },
       { label: 'Supply Chain Inflation', bearing: 30,  range: 0.60, size: 11, type: 'threat',
         magnitude: '0.38', direction: '+30°',  completeness: '75%',
         bearing_effect: 'Pulls bearing +30° east — reinforces regulatory threat',
         rationale: 'Civil materials inflation is compounding cost overruns. Medium magnitude; reinforces the eastward drift established by the regulatory threat.',
-        objective: 'Cost & Margin Management' },
+        objective: 'Cost & Margin Management',
+        causes: [{ label: 'Competitor Undercutting', delta: '+0.10', note: 'Cost overruns erode margin, making the organisation vulnerable to price competition' }],
+        caused_by: [{ label: 'Regulatory Price Review', delta: '+0.15', note: 'Regulatory squeeze raises cost of capital, amplifying procurement cost sensitivity' }] },
       { label: 'Competitor Undercutting', bearing: 340, range: 0.68, size: 9,  type: 'threat',
         magnitude: '0.12', direction: '−20°', completeness: '60%',
         bearing_effect: 'Small westward pull — low magnitude, poor completeness',
         rationale: 'Digital contract competitor is undercutting on price. Low magnitude and only 60% evidenced — a minor corrective westward force.',
-        objective: 'Market Positioning' },
+        objective: 'Market Positioning',
+        causes: [],
+        caused_by: [{ label: 'Supply Chain Inflation', delta: '+0.10', note: 'Rising costs reduce our price competitiveness, enabling competitor entry' }] },
       { label: 'Green Infrastructure', bearing: 10,  range: 0.50, size: 13, type: 'opportunity',
         magnitude: '0.36', direction: '+10°', completeness: '80%', capability: 'Medium',
         bearing_effect: 'Partially corrective — pulls toward north but insufficient',
         rationale: 'Government green infrastructure programme is largely aligned with True North. High opportunity but only Medium capability to capture — effective force 0.36. Not enough to correct the threat portfolio.',
-        objective: 'Strategic Growth' },
+        objective: 'Strategic Growth',
+        causes: [],
+        caused_by: [] },
       { label: 'Digital Metering Acquisition', bearing: 325, range: 0.72, size: 8,  type: 'opportunity',
         magnitude: '0.065', direction: '−35°', completeness: '65%', capability: 'Low',
         bearing_effect: 'Negligible pull — Low capability makes this near-invisible',
         rationale: 'Potential acquisition target exists but Low capability to execute means effective force is only 0.065 — effectively noise.',
-        objective: 'Digital Transformation' },
+        objective: 'Digital Transformation',
+        causes: [],
+        caused_by: [] },
     ],
   },
 
@@ -957,23 +1001,37 @@ const EXAMPLES = {
         magnitude: '+28°', direction: '35% probability', completeness: 'East shock',
         bearing_effect: 'Dominant shock — pushes bearing +28° east if triggered',
         rationale: 'If the Ofgem price control reset has an adverse outcome, it deflects Energy Networks bearing by +28° east. At 35% trigger probability it dominates the upper tail of the distribution. At P80, this shock has triggered in most simulation runs.',
-        objective: 'Revenue & Return on Capital' },
+        objective: 'Revenue & Return on Capital',
+        causes: [
+          { label: 'Grid Connection Delays', delta: '+0.15', note: 'Adverse Ofgem ruling increases regulatory uncertainty, causing lenders to tighten grid project financing — raising delay probability from 20% to 35%' },
+        ],
+        caused_by: [] },
       { label: 'Grid Connection Delays', bearing: 30, range: 0.65, size: 11, type: 'threat',
         magnitude: '+18°', direction: '20% probability', completeness: 'East shock',
-        bearing_effect: 'Secondary shock — +18° east if triggered',
-        rationale: 'Grid connection delays on renewable upgrade projects. 20% probability, +18° displacement. When this combines with the Ofgem shock (6% of runs), bearing reaches +46° from shocks alone before Regime 1 noise.',
-        objective: 'Programme Delivery' },
+        bearing_effect: 'Secondary shock — +18° east if triggered. Probability rises to 35% if Ofgem fires first.',
+        rationale: 'Grid connection delays on renewable upgrade projects. Base probability 20%, +18° displacement. Causally downstream of Ofgem: if the price reset fires, lender risk appetite for grid projects contracts, raising this probability to ~35%. In the correlated model, co-firing with Ofgem occurs in ~12% of runs vs 6% independently.',
+        objective: 'Programme Delivery',
+        causes: [],
+        caused_by: [{ label: 'Ofgem Price Reset', delta: '+0.15', note: 'Regulatory squeeze reduces lender appetite for grid capex, raising delay probability' }] },
       { label: 'National Grid Contract', bearing: 350, range: 0.60, size: 11, type: 'opportunity',
         magnitude: '−19.8°', direction: '15% probability', completeness: 'West pull',
-        bearing_effect: 'Opportunity pull — −19.8° west if triggered (capability-scaled)',
-        rationale: 'Emergency network contract from National Grid would pull bearing west toward True North. High capability (0.9 scale) makes this effective at −19.8°. At 15% probability, it creates the modest left tail of the distribution. When it offsets the grid delays shock, the net effect is near-zero.',
-        objective: 'Commercial Growth' },
+        bearing_effect: 'Opportunity pull — −19.8° west if triggered. Probability suppressed if Ofgem fires.',
+        rationale: 'Emergency network contract from National Grid would pull bearing west toward True North. However, an adverse Ofgem outcome reduces National Grid\'s own capex budget, suppressing this opportunity\'s probability from 15% to ~8%. In the correlated model, the corrective tail is thinner than the independent model implies.',
+        objective: 'Commercial Growth',
+        causes: [],
+        caused_by: [{ label: 'Ofgem Price Reset', delta: '−0.07', note: 'Adverse regulatory environment reduces National Grid capex, suppressing contract probability' }] },
     ],
     distribution: [
       { pct: 'P10', value: 21.1 }, { pct: 'P25', value: 24.2 },
       { pct: 'P50', value: 28.9, active: true }, { pct: 'P65', value: 36.4 },
       { pct: 'P80', value: 48.7, governed: true }, { pct: 'P90', value: 57.3 },
       { pct: 'P95', value: 63.8 },
+    ],
+    correlatedDistribution: [
+      { pct: 'P10', value: 21.8 }, { pct: 'P25', value: 25.1 },
+      { pct: 'P50', value: 30.2, active: true }, { pct: 'P65', value: 40.1 },
+      { pct: 'P80', value: 57.4, governed: true }, { pct: 'P90', value: 68.9 },
+      { pct: 'P95', value: 76.2 },
     ],
   },
 
@@ -995,15 +1053,19 @@ const EXAMPLES = {
     ],
     blips: [
       { label: 'Grid Connection Delays', bearing: 30, range: 0.65, size: 11, type: 'threat',
-        magnitude: '+18°', direction: '20% probability', completeness: 'Remaining shock',
-        bearing_effect: 'Remaining stochastic threat — +18° east if triggered',
-        rationale: 'Grid delays remain a probabilistic threat now that the Ofgem event has become a confirmed Issue. It is one of only two remaining sources of cone width in the simulation.',
-        objective: 'Programme Delivery' },
+        magnitude: '+18°', direction: '35% probability (up from 20%)', completeness: 'Remaining shock',
+        bearing_effect: 'Probability elevated to 35% — Ofgem Issue has already tightened lender appetite',
+        rationale: 'Now that Ofgem has confirmed an adverse decision, the causal link to grid financing has activated. Lender risk appetite for grid capex has contracted, raising this threat\'s probability from 20% to 35%. It is no longer an independent draw — it is downstream of a confirmed Issue. This is the network effect made visible: a confirmed event shifts the probability landscape of everything causally connected to it.',
+        objective: 'Programme Delivery',
+        caused_by: [{ label: 'Ofgem Price Review (confirmed)', delta: '+0.15', note: 'Issue confirmation has already activated this causal edge — probability elevated deterministically' }],
+        causes: [] },
       { label: 'National Grid Contract', bearing: 350, range: 0.60, size: 11, type: 'opportunity',
-        magnitude: '−19.8°', direction: '15% probability', completeness: 'Remaining opportunity',
-        bearing_effect: 'Remaining opportunity — partially offsets grid delays if both trigger',
-        rationale: 'The National Grid contract opportunity remains stochastic. If it triggers alongside the grid delays (2% combined probability), the net bearing shift from these two events is near-zero.',
-        objective: 'Commercial Growth' },
+        magnitude: '−19.8°', direction: '8% probability (down from 15%)', completeness: 'Remaining opportunity',
+        bearing_effect: 'Probability suppressed to 8% — Ofgem Issue has reduced National Grid capex budget',
+        rationale: 'The Ofgem adverse decision has reduced National Grid\'s own regulatory headroom, compressing their capex programme. The contract opportunity that existed at 15% probability now sits at approximately 8%. The causal network reveals that the same event which displaced the bearing arrow also weakened the primary corrective force available to us. The correlated model shows a thinner left tail than the independent model implied.',
+        objective: 'Commercial Growth',
+        caused_by: [{ label: 'Ofgem Price Review (confirmed)', delta: '−0.07', note: 'Issue confirmation has suppressed this opportunity — the corrective tail is thinner than the independent model showed' }],
+        causes: [] },
     ],
     distribution: [
       { pct: 'P10', value: 20.8, compare: 21.1, shift: -0.3 },
@@ -1041,142 +1103,210 @@ const EXAMPLES = {
         magnitude: 'High', direction: '+40°', completeness: '85%', capability: null,
         bearing_effect: 'Regulatory intent shifting against permitted returns',
         rationale: 'Government energy review may tighten price controls further beyond the confirmed Ofgem decision. High magnitude; moderately evidenced.',
-        objective: 'Revenue & Return' },
+        objective: 'Revenue & Return',
+        causes: [{ label: 'Interest Rate Pressure', delta: '+0.15', note: 'Adverse policy raises sovereign risk premium, feeding directly into debt refinancing costs' },
+                 { label: 'Green Bond Market', delta: '−0.10', note: 'Hostile energy policy reduces ESG investor appetite, suppressing green bond pricing benefit' }],
+        caused_by: [] },
       { label: 'Windfall Tax Extension', bearing: 55, range: 0.72, size: 11, type: 'threat', pestle: 'P',
         magnitude: 'High', direction: '+55°', completeness: '70%', capability: null,
         bearing_effect: 'Threatens post-tax returns on capital-intensive projects',
         rationale: 'Treasury signals windfall levy extension to infrastructure operators. High impact if enacted; 70% evidenced.',
-        objective: 'Revenue & Return' },
+        objective: 'Revenue & Return',
+        causes: [{ label: 'Insurance Market Hardening', delta: '+0.10', note: 'Tax squeeze on operators signals sector distress, raising underwriters\' risk assessment' }],
+        caused_by: [] },
       { label: 'Green Infrastructure Mandate', bearing: 355, range: 0.48, size: 12, type: 'opportunity', pestle: 'P',
         magnitude: 'High', direction: '−5°', completeness: '90%', capability: 'High',
         bearing_effect: 'Policy tailwind — near-north pull, High capability',
         rationale: 'Government mandate for accelerated green infrastructure investment aligns directly with True North. High capability to capture.',
-        objective: 'Strategic Growth' },
+        objective: 'Strategic Growth',
+        causes: [{ label: 'Carbon Credit Revenue', delta: '+0.15', note: 'Mandate accelerates grid project qualification for UK ETS credits' },
+                 { label: 'Net Zero Sentiment', delta: '+0.10', note: 'Policy mandate reinforces public support, reducing community opposition probability' }],
+        caused_by: [] },
       { label: 'Devolution Risk', bearing: 80, range: 0.82, size: 8, type: 'threat', pestle: 'P',
         magnitude: 'Medium', direction: '+80°', completeness: '55%', capability: null,
         bearing_effect: 'Regional authority control could fragment delivery timelines',
         rationale: 'Devolved planning powers may create inconsistent consent environments across our project geography. Medium magnitude; poorly evidenced.',
-        objective: 'Programme Delivery' },
+        objective: 'Programme Delivery',
+        causes: [{ label: 'Community Opposition', delta: '+0.12', note: 'Devolved authorities amplify local objection power, increasing opposition effectiveness' }],
+        caused_by: [] },
 
       // ── Economic
       { label: 'Materials Inflation', bearing: 30, range: 0.60, size: 12, type: 'threat', pestle: 'E',
         magnitude: 'High', direction: '+30°', completeness: '80%', capability: null,
         bearing_effect: 'Civil materials 22% above budget baseline',
         rationale: 'Steel, concrete, and cable costs remain elevated. Directly compresses margin on fixed-price contracts. High magnitude, well-evidenced.',
-        objective: 'Cost & Margin' },
+        objective: 'Cost & Margin',
+        causes: [{ label: 'Contract Dispute — Civil JV', delta: '+0.15', note: 'Cost overruns on fixed-price contracts create the variation claim conditions driving JV dispute' },
+                 { label: 'Skills & Labour Shortage', delta: '+0.10', note: 'Materials delays extend programme durations, amplifying the impact of labour scarcity' }],
+        caused_by: [{ label: 'FX Exposure', delta: '+0.08', note: 'Sterling weakness raises imported materials costs, compounding domestic inflation' }] },
       { label: 'Interest Rate Pressure', bearing: 50, range: 0.67, size: 11, type: 'threat', pestle: 'E',
         magnitude: 'High', direction: '+50°', completeness: '90%', capability: null,
         bearing_effect: 'Refinancing risk on £400m floating-rate debt',
         rationale: 'Base rate trajectory increases cost of refinancing the 2026 debt maturity. High magnitude, fully evidenced by forward curves.',
-        objective: 'Capital Structure' },
+        objective: 'Capital Structure',
+        causes: [{ label: 'Green Bond Market', delta: '−0.12', note: 'High base rates increase green bond coupon requirements, reducing the relative financing advantage' }],
+        caused_by: [{ label: 'Energy Policy Shift', delta: '+0.15', note: 'Adverse regulatory environment raises sector risk premium on top of base rate pressure' }] },
       { label: 'FX Exposure', bearing: 25, range: 0.78, size: 8, type: 'threat', pestle: 'E',
         magnitude: 'Medium', direction: '+25°', completeness: '65%', capability: null,
         bearing_effect: 'EUR-denominated equipment procurement costs rising',
         rationale: 'Sterling weakness adds ~4% to imported equipment costs. Medium magnitude; partially hedged.',
-        objective: 'Cost & Margin' },
+        objective: 'Cost & Margin',
+        causes: [{ label: 'Materials Inflation', delta: '+0.08', note: 'FX weakness on imported components feeds directly into overall materials cost inflation' }],
+        caused_by: [] },
       { label: 'Green Bond Market', bearing: 5, range: 0.55, size: 10, type: 'opportunity', pestle: 'E',
         magnitude: 'Medium', direction: '+5°', completeness: '75%', capability: 'Medium',
         bearing_effect: 'Favourable financing terms available for qualifying projects',
         rationale: 'Green bond issuance could reduce cost of capital by 40–60bp on eligible assets. Medium capability to structure qualifying instruments.',
-        objective: 'Capital Structure' },
+        objective: 'Capital Structure',
+        causes: [],
+        caused_by: [{ label: 'Energy Policy Shift', delta: '−0.10', note: 'Hostile energy policy reduces ESG investor appetite for this sector\'s green instruments' },
+                    { label: 'Interest Rate Pressure', delta: '−0.12', note: 'High base rates compress the relative advantage of green bond pricing' },
+                    { label: 'Green Infrastructure Mandate', delta: '+0.10', note: 'Mandate increases qualifying asset pool, improving green bond issuance prospects' }] },
       { label: 'Insurance Market Hardening', bearing: 35, range: 0.88, size: 7, type: 'threat', pestle: 'E',
         magnitude: 'Low', direction: '+35°', completeness: '80%', capability: null,
         bearing_effect: 'Project insurance premiums up 18% year-on-year',
         rationale: 'Lloyd\'s market has hardened on infrastructure risk following two major contractor failures. Low impact in isolation but amplifies cost pressure.',
-        objective: 'Cost & Margin' },
+        objective: 'Cost & Margin',
+        causes: [],
+        caused_by: [{ label: 'Windfall Tax Extension', delta: '+0.10', note: 'Tax pressure signals sector distress, raising underwriters\' risk assessment for all operators' },
+                    { label: 'Extreme Weather Events', delta: '+0.12', note: 'Increased physical damage claims are the primary driver of Lloyd\'s infrastructure market hardening' }] },
 
       // ── Social
       { label: 'Community Opposition', bearing: 65, range: 0.52, size: 10, type: 'threat', pestle: 'S',
         magnitude: 'Medium', direction: '+65°', completeness: '70%', capability: null,
         bearing_effect: 'Local protests delaying consents on 3 sites',
         rationale: 'Anti-infrastructure sentiment in rural areas has generated formal objections at planning stage. Medium impact through delay costs.',
-        objective: 'Programme Delivery' },
+        objective: 'Programme Delivery',
+        causes: [{ label: 'ESG Reputation Risk', delta: '+0.12', note: 'Community opposition generates social media coverage, amplifying reputational exposure' }],
+        caused_by: [{ label: 'Devolution Risk', delta: '+0.12', note: 'Devolved authority powers give local objectors greater formal standing in planning process' },
+                    { label: 'Green Infrastructure Mandate', delta: '−0.10', note: 'Mandate framing as national infrastructure need reduces weight given to local objections' }] },
       { label: 'Skills & Labour Shortage', bearing: 75, range: 0.62, size: 11, type: 'threat', pestle: 'S',
         magnitude: 'High', direction: '+75°', completeness: '85%', capability: null,
         bearing_effect: 'Civil engineering skills pipeline critically constrained',
         rationale: 'Ageing workforce and post-Brexit visa constraints have reduced available qualified civil engineers by ~15%. High impact on delivery timelines.',
-        objective: 'People & Capability' },
+        objective: 'People & Capability',
+        causes: [{ label: 'Contract Dispute — Civil JV', delta: '+0.08', note: 'Labour shortages create contractor substitution pressure, generating the variation claims underpinning JV disputes' }],
+        caused_by: [{ label: 'Materials Inflation', delta: '+0.10', note: 'Extended programme timelines from materials delays compound competition for available labour' }] },
       { label: 'ESG Reputation Risk', bearing: 50, range: 0.88, size: 7, type: 'threat', pestle: 'S',
         magnitude: 'Low', direction: '+50°', completeness: '55%', capability: null,
         bearing_effect: 'Social media scrutiny on environmental incidents',
         rationale: 'Two minor environmental incidents have attracted social media attention. Reputational risk is low in isolation but could affect licence renewal.',
-        objective: 'Regulatory Compliance' },
+        objective: 'Regulatory Compliance',
+        causes: [],
+        caused_by: [{ label: 'Community Opposition', delta: '+0.12', note: 'Active community opposition campaigns amplify media coverage of any environmental incident' },
+                    { label: 'Extreme Weather Events', delta: '+0.08', note: 'Storm-related asset damage events create environmental incident exposure' }] },
       { label: 'Net Zero Sentiment', bearing: 350, range: 0.70, size: 9, type: 'opportunity', pestle: 'S',
         magnitude: 'Medium', direction: '−10°', completeness: '80%', capability: 'High',
         bearing_effect: 'Public support for green infrastructure enables faster consenting',
         rationale: 'Positive public sentiment toward net zero infrastructure improves consent timelines and reduces community opposition risk on qualifying projects.',
-        objective: 'Strategic Growth' },
+        objective: 'Strategic Growth',
+        causes: [],
+        caused_by: [{ label: 'Green Infrastructure Mandate', delta: '+0.10', note: 'Government mandate reinforces and legitimises public net zero sentiment' }] },
 
       // ── Technology
       { label: 'Grid Digitalisation', bearing: 345, range: 0.50, size: 12, type: 'opportunity', pestle: 'T',
         magnitude: 'High', direction: '−15°', completeness: '80%', capability: 'High',
         bearing_effect: 'Smart grid technology enables new regulated revenue streams',
         rationale: 'Digital metering and grid management technology creates new regulated asset categories. High capability through Digital Services subsidiary.',
-        objective: 'Strategic Growth' },
+        objective: 'Strategic Growth',
+        causes: [{ label: 'Cyber Threat — OT Systems', delta: '+0.12', note: 'Digitalisation expands the operational technology attack surface, raising cyber threat probability' },
+                 { label: 'IP from Grid Tech', delta: '+0.15', note: 'Digital programme generates the patent pipeline underpinning the IP licensing opportunity' },
+                 { label: 'AI Maintenance Optimisation', delta: '+0.10', note: 'Digital infrastructure is a prerequisite for AI-driven predictive maintenance deployment' }],
+        caused_by: [] },
       { label: 'Cyber Threat — OT Systems', bearing: 60, range: 0.58, size: 11, type: 'threat', pestle: 'T',
         magnitude: 'High', direction: '+60°', completeness: '75%', capability: null,
         bearing_effect: 'Operational technology vulnerabilities in grid control systems',
         rationale: 'Nation-state-level cyber threats to operational technology have increased. High impact if a grid control system is compromised; 75% evidenced through NIS assessments.',
-        objective: 'Operational Resilience' },
+        objective: 'Operational Resilience',
+        causes: [{ label: 'ESG Reputation Risk', delta: '+0.15', note: 'A grid control system compromise would be a major public incident with immediate reputational consequence' },
+                 { label: 'Legacy System Risk', delta: '+0.10', note: 'OT attack success probability is elevated by the SCADA end-of-life exposure' }],
+        caused_by: [{ label: 'Grid Digitalisation', delta: '+0.12', note: 'Expanded digital attack surface from the digitalisation programme raises OT exposure' },
+                    { label: 'Legacy System Risk', delta: '+0.10', note: 'Unpatched SCADA systems are a primary entry vector for OT-targeted attacks' }] },
       { label: 'AI Maintenance Optimisation', bearing: 358, range: 0.78, size: 8, type: 'opportunity', pestle: 'T',
         magnitude: 'Medium', direction: '−2°', completeness: '60%', capability: 'Medium',
         bearing_effect: 'Predictive maintenance reduces capex requirement',
         rationale: 'AI-driven asset maintenance scheduling could reduce unplanned outage costs by 12–18%. Medium capability; pilot in progress.',
-        objective: 'Cost & Margin' },
+        objective: 'Cost & Margin',
+        causes: [],
+        caused_by: [{ label: 'Grid Digitalisation', delta: '+0.10', note: 'Digital infrastructure programme is a prerequisite for AI maintenance deployment at scale' }] },
       { label: 'Legacy System Risk', bearing: 45, range: 0.83, size: 7, type: 'threat', pestle: 'T',
         magnitude: 'Low', direction: '+45°', completeness: '85%', capability: null,
         bearing_effect: 'SCADA systems end-of-life in 2027',
         rationale: 'Three SCADA installations reach end-of-vendor-support in 2027. Low immediate impact but creates a known future cliff if not addressed.',
-        objective: 'Operational Resilience' },
+        objective: 'Operational Resilience',
+        causes: [{ label: 'Cyber Threat — OT Systems', delta: '+0.10', note: 'End-of-life SCADA systems are a primary OT attack vector; unpatched exposure raises cyber probability' }],
+        caused_by: [] },
 
       // ── Legal
       { label: 'Environmental Liability', bearing: 35, range: 0.65, size: 10, type: 'threat', pestle: 'L',
         magnitude: 'Medium', direction: '+35°', completeness: '70%', capability: null,
         bearing_effect: 'Historic land contamination liability on 2 sites',
         rationale: 'Legal review has identified potential contamination liability on two acquired sites. Medium magnitude; outcome of environmental survey pending.',
-        objective: 'Financial Resilience' },
+        objective: 'Financial Resilience',
+        causes: [{ label: 'ESG Reputation Risk', delta: '+0.10', note: 'Confirmed contamination liability would generate environmental incident publicity' }],
+        caused_by: [{ label: 'Flood Risk — Asset Base', delta: '+0.10', note: 'Flood events on contaminated sites mobilise liability into active legal exposure' }] },
       { label: 'Contract Dispute — Civil JV', bearing: 55, range: 0.75, size: 9, type: 'threat', pestle: 'L',
         magnitude: 'Medium', direction: '+55°', completeness: '80%', capability: null,
         bearing_effect: 'JV partner disputing £18m variation claim',
         rationale: 'Joint venture partner on the Midlands substation project is contesting a £18m contract variation. Arbitration expected Q3.',
-        objective: 'Cost & Margin' },
+        objective: 'Cost & Margin',
+        causes: [],
+        caused_by: [{ label: 'Materials Inflation', delta: '+0.15', note: 'Fixed-price contract cost overruns from materials inflation are the root of the variation dispute' },
+                    { label: 'Skills & Labour Shortage', delta: '+0.08', note: 'Labour substitution costs from shortage are a secondary contributor to the disputed variation' }] },
       { label: 'Data Protection Breach Risk', bearing: 40, range: 0.92, size: 6, type: 'threat', pestle: 'L',
         magnitude: 'Low', direction: '+40°', completeness: '60%', capability: null,
         bearing_effect: 'GDPR exposure from customer data integration project',
         rationale: 'Customer data migration project has created temporary GDPR compliance gaps. Low probability of material breach; mitigation in progress.',
-        objective: 'Regulatory Compliance' },
+        objective: 'Regulatory Compliance',
+        causes: [],
+        caused_by: [{ label: 'Grid Digitalisation', delta: '+0.08', note: 'Digital programme data integrations created the compliance gap; digitalisation is both the cause and the long-term solution' }] },
       { label: 'IP from Grid Tech', bearing: 355, range: 0.85, size: 7, type: 'opportunity', pestle: 'L',
         magnitude: 'Low', direction: '−5°', completeness: '50%', capability: 'Low',
         bearing_effect: 'Patent portfolio from digitalisation programme has licensing potential',
         rationale: 'Digital Services R&D has generated three provisional patents. Licensing opportunity is speculative; Low capability to commercialise.',
-        objective: 'Strategic Growth' },
+        objective: 'Strategic Growth',
+        causes: [],
+        caused_by: [{ label: 'Grid Digitalisation', delta: '+0.15', note: 'The digitalisation programme is the direct source of the patent pipeline' }] },
 
       // ── Environmental
       { label: 'Flood Risk — Asset Base', bearing: 55, range: 0.58, size: 11, type: 'threat', pestle: 'En',
         magnitude: 'High', direction: '+55°', completeness: '80%', capability: null,
         bearing_effect: '23% of grid assets in Environment Agency flood zones',
         rationale: '23% of network assets sit in EA flood zones 2 or 3. Physical climate risk assessments show material vulnerability by 2035 under IPCC scenario RCP4.5.',
-        objective: 'Asset Resilience' },
+        objective: 'Asset Resilience',
+        causes: [{ label: 'Insurance Market Hardening', delta: '+0.12', note: 'Flood zone asset concentration is a primary driver of underwriter risk assessment for this portfolio' },
+                 { label: 'Environmental Liability', delta: '+0.10', note: 'Flood events on contaminated sites mobilise dormant liability into active legal exposure' }],
+        caused_by: [{ label: 'Extreme Weather Events', delta: '+0.15', note: 'Increased storm frequency raises flood event probability across the exposed asset base' }] },
       { label: 'Extreme Weather Events', bearing: 70, range: 0.68, size: 10, type: 'threat', pestle: 'En',
         magnitude: 'High', direction: '+70°', completeness: '75%', capability: null,
         bearing_effect: 'Storm frequency increasing outage rates',
         rationale: 'Severe storm events have increased 30% over the past decade. Grid resilience investment is required but competes with regulated capex allowances.',
-        objective: 'Operational Resilience' },
+        objective: 'Operational Resilience',
+        causes: [{ label: 'Flood Risk — Asset Base', delta: '+0.15', note: 'Storms are the primary mechanism activating flood exposure on the asset base' },
+                 { label: 'Insurance Market Hardening', delta: '+0.12', note: 'Storm damage claims are the primary driver of Lloyd\'s infrastructure market hardening' },
+                 { label: 'ESG Reputation Risk', delta: '+0.08', note: 'Storm-related outage events generate public and media attention on infrastructure resilience' }],
+        caused_by: [] },
       { label: 'Biodiversity Net Gain', bearing: 80, range: 0.82, size: 8, type: 'threat', pestle: 'En',
         magnitude: 'Medium', direction: '+80°', completeness: '65%', capability: null,
         bearing_effect: 'BNG requirements adding 8–12 weeks to project consenting',
         rationale: 'Mandatory Biodiversity Net Gain requirements under the Environment Act are adding consent complexity. Medium cost and programme impact.',
-        objective: 'Programme Delivery' },
+        objective: 'Programme Delivery',
+        causes: [{ label: 'Nature-Based Solutions', delta: '+0.12', note: 'BNG obligation creates the commercial rationale for NbS development on owned land' }],
+        caused_by: [] },
       { label: 'Carbon Credit Revenue', bearing: 2, range: 0.75, size: 8, type: 'opportunity', pestle: 'En',
         magnitude: 'Medium', direction: '+2°', completeness: '55%', capability: 'Medium',
         bearing_effect: 'Verified carbon units from grid projects eligible for UK ETS',
         rationale: 'Grid upgrade projects may qualify for UK Emissions Trading Scheme credits. Medium capability; regulatory confirmation awaited.',
-        objective: 'Strategic Growth' },
+        objective: 'Strategic Growth',
+        causes: [],
+        caused_by: [{ label: 'Green Infrastructure Mandate', delta: '+0.15', note: 'Mandate accelerates qualifying project pipeline and strengthens ETS eligibility case' }] },
       { label: 'Nature-Based Solutions', bearing: 356, range: 0.88, size: 7, type: 'opportunity', pestle: 'En',
         magnitude: 'Low', direction: '−4°', completeness: '45%', capability: 'Low',
         bearing_effect: 'NbS offsets could reduce BNG cost burden',
         rationale: 'Nature-based solutions on owned land could offset Biodiversity Net Gain costs at lower expense. Early-stage concept; Low capability and evidence.',
-        objective: 'Cost & Margin' },
+        objective: 'Cost & Margin',
+        causes: [],
+        caused_by: [{ label: 'Biodiversity Net Gain', delta: '+0.12', note: 'BNG obligation is the commercial driver that makes NbS investment economically viable' }] },
     ],
   },
 };
@@ -1622,6 +1752,59 @@ function drawP50marker(bearing) {
   ctx.fillText('P50', lp.x, lp.y-2);
 }
 
+// ─── Causal link overlay ──────────────────────────────────────────────────────
+// Draws dashed directed lines between causally connected blips, below the dots.
+function drawCausalLinks(visibleBlips) {
+  if(!visibleBlips || visibleBlips.length < 2) return;
+
+  const byLabel = {};
+  visibleBlips.forEach(b => { byLabel[b.label] = b; });
+
+  ctx.save();
+  ctx.setLineDash([4, 5]);
+  ctx.lineWidth = 1;
+
+  visibleBlips.forEach(src => {
+    if(!src.causes || src.causes.length === 0) return;
+    const ps = polarXY(src.bearing, src.range);
+
+    src.causes.forEach(edge => {
+      const tgt = byLabel[edge.label];
+      if(!tgt) return;
+      const pt = polarXY(tgt.bearing, tgt.range);
+
+      // Colour: use source blip's PESTLE colour or type colour at 45% opacity
+      const baseCol = src.pestle ? PESTLE_COLOR[src.pestle]
+                    : src.type === 'opportunity' ? '#26a69a' : '#ef5350';
+      ctx.strokeStyle = hexToRgba(baseCol, 0.45);
+
+      // Line from source to target
+      ctx.beginPath();
+      ctx.moveTo(ps.x, ps.y);
+      ctx.lineTo(pt.x, pt.y);
+      ctx.stroke();
+
+      // Small arrowhead at target end
+      const dx = pt.x - ps.x, dy = pt.y - ps.y;
+      const len = Math.hypot(dx, dy);
+      if(len < 1) return;
+      const ux = dx / len, uy = dy / len;
+      const hl = 8, hw = 4;
+      ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.moveTo(pt.x, pt.y);
+      ctx.lineTo(pt.x - hl * ux + hw * uy, pt.y - hl * uy - hw * ux);
+      ctx.lineTo(pt.x - hl * ux - hw * uy, pt.y - hl * uy + hw * ux);
+      ctx.closePath();
+      ctx.fillStyle = hexToRgba(baseCol, 0.45);
+      ctx.fill();
+      ctx.setLineDash([4, 5]);
+    });
+  });
+
+  ctx.restore();
+}
+
 // ─── Main render ─────────────────────────────────────────────────────────────
 function renderRadar() {
   ctx.clearRect(0,0,CW,CH);
@@ -1650,6 +1833,9 @@ function renderRadar() {
   if(ex.showSubsidiaries && ex.subsidiaries) {
     ex.subsidiaries.forEach(s => drawSubsidiary(s, ex.showNorthDelta));
   }
+
+  // Causal links — drawn under blips so they don't obscure dots
+  if(ex.blips) drawCausalLinks(ex.blips.filter(b => visibleBlip(b)));
 
   // Blips — filtered by PESTLE/type when in 6a
   if(ex.blips) {
@@ -2139,7 +2325,35 @@ function showTip(hit, mx, my) {
   document.getElementById('tt-bearing').textContent   = d.bearing_effect || '';
   document.getElementById('tt-rationale').textContent = d.rationale || '';
 
-  const TW=280, TH=240, vw=window.innerWidth, vh=window.innerHeight;
+  // Causal chain block
+  const causalEl = document.getElementById('tt-causal');
+  const hasCauses    = d.causes    && d.causes.length > 0;
+  const hasCausedBy  = d.caused_by && d.caused_by.length > 0;
+  if(causalEl) {
+    if(hasCauses || hasCausedBy) {
+      let html = '';
+      if(hasCausedBy) {
+        html += '<div class="tt-causal-head">Driven by</div>';
+        d.caused_by.forEach(e => {
+          html += `<div class="tt-causal-row"><span class="tt-causal-src">${e.label}</span><span class="tt-causal-delta ${parseFloat(e.delta)>=0?'pos':'neg'}">${e.delta}</span></div>`;
+          if(e.note) html += `<div class="tt-causal-note">${e.note}</div>`;
+        });
+      }
+      if(hasCauses) {
+        html += '<div class="tt-causal-head">Drives</div>';
+        d.causes.forEach(e => {
+          html += `<div class="tt-causal-row"><span class="tt-causal-src">${e.label}</span><span class="tt-causal-delta ${parseFloat(e.delta)>=0?'pos':'neg'}">${e.delta}</span></div>`;
+          if(e.note) html += `<div class="tt-causal-note">${e.note}</div>`;
+        });
+      }
+      causalEl.innerHTML = html;
+      causalEl.style.display = 'block';
+    } else {
+      causalEl.style.display = 'none';
+    }
+  }
+
+  const TW=280, TH=400, vw=window.innerWidth, vh=window.innerHeight;
   let left=mx+16, top=my-20;
   if(left+TW>vw-12) left=mx-TW-12;
   if(top+TH>vh-12) top=vh-TH-12;
