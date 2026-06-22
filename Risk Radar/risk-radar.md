@@ -1,8 +1,14 @@
 # Risk Radar — Philosophical Underpinning
 
-*This document captures the conceptual foundations of Risk Radar: what it is, why it exists, what assumptions it rests on, and what it explicitly does not claim to be. It is the document to challenge before anything is built.*
+*This document captures the conceptual foundations of Risk Radar: what it is, why it exists, what assumptions it rests on, and what it explicitly does not claim to be. It is the document to challenge before anything is built — and to update as evidence from building accumulates.*
 
-*It is organised in two parts. Part I covers the instrument — the problem, the central claim, the mental model, the architecture, and the assumptions. Part II covers the computation — how the conceptual model is realised mathematically, including simulation, risk appetite, and bidirectional signal flow. Readers who want to understand what Risk Radar is should read Part I. Readers who want to understand how it works should continue into Part II.*
+*It is organised in three parts.*
+
+*Part I covers the instrument — the problem, the central claim, the mental model, the architecture, and the assumptions. Readers who want to understand what Risk Radar is should read Part I.*
+
+*Part II covers the computation — how the conceptual model is realised mathematically, including the Monte Carlo simulation architecture, risk appetite as a percentile selector, the risk correlation network, and bidirectional signal flow across tiers. Readers who want to understand how it works should read Part II.*
+
+*Part III covers the empirical evidence — what the first two Tier 0 proof-of-concept implementations (WEF.html and Shell.html, June 2026) confirmed, broke, and structurally revised in the theoretical model. Where Parts I and II are theory, Part III is the first external test of that theory against real data and real audiences. Where they conflict, Part III takes precedence.*
 
 ---
 
