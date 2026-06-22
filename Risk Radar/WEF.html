@@ -1871,47 +1871,65 @@ function drawHistoryTrack(sdg) {
   const TRACK_R = 0.88;
   const color = SDG_COLOR[sdg.id] || '#4fc3f7';
 
-  // Draw connecting line first (behind dots)
-  ctx.save();
-  ctx.strokeStyle = color + '55';
-  ctx.lineWidth = 1.5;
-  ctx.setLineDash([3,3]);
-  ctx.beginPath();
-  hist.forEach((h,i) => {
-    const p = polarXY(h.bearing, TRACK_R);
-    if(i===0) ctx.moveTo(p.x, p.y);
-    else ctx.lineTo(p.x, p.y);
-  });
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  // Draw dots with year labels
   const STATUS_COLOR = {
     'on-track':'#4caf50','moderate':'#8bc34a','marginal':'#ff9800',
     'stagnation':'#ff5722','regression':'#f44336'
   };
-  hist.forEach(h => {
-    const p = polarXY(h.bearing, TRACK_R);
-    const dc = STATUS_COLOR[h.status] || '#aaa';
 
-    // Dot
+  // Collapse consecutive points at the same bearing into one labelled dot.
+  // Groups preserve status of the first entry; label shows year range.
+  const groups = [];
+  hist.forEach(h => {
+    const last = groups[groups.length - 1];
+    if(last && last.bearing === h.bearing) {
+      last.endYear = h.year;
+    } else {
+      groups.push({ bearing: h.bearing, status: h.status, startYear: h.year, endYear: h.year });
+    }
+  });
+
+  // Connecting line through group centroids
+  ctx.save();
+  ctx.strokeStyle = color + '55';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([3, 3]);
+  ctx.beginPath();
+  groups.forEach((g, i) => {
+    const p = polarXY(g.bearing, TRACK_R);
+    if(i === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
+  });
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Dots + year labels — alternate label side to avoid overlap
+  groups.forEach((g, i) => {
+    const p = polarXY(g.bearing, TRACK_R);
+    const dc = STATUS_COLOR[g.status] || '#aaa';
+
     ctx.beginPath();
-    ctx.arc(p.x, p.y, 5, 0, Math.PI*2);
+    ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
     ctx.fillStyle = dc;
     ctx.fill();
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth = 0.8;
+    ctx.strokeStyle = '#050e1f';
+    ctx.lineWidth = 1;
     ctx.stroke();
 
-    // Year label — offset radially outward
-    const angle = bearingToAngle(h.bearing);
-    const lx = p.x + Math.cos(angle)*14;
-    const ly = p.y + Math.sin(angle)*14;
-    ctx.font = 'bold 9px monospace';
-    ctx.fillStyle = '#ddd';
+    // Label text: "21" or "21–23"
+    const startLbl = String(g.startYear).slice(2);
+    const endLbl   = String(g.endYear).slice(2);
+    const lbl = startLbl === endLbl ? startLbl : `${startLbl}–${endLbl}`;
+
+    // Place label on alternating tangential sides to avoid radial stacking
+    const angle = bearingToAngle(g.bearing);
+    const perp  = angle + (i % 2 === 0 ? -Math.PI/2 : Math.PI/2);
+    const lx = p.x + Math.cos(perp) * 13;
+    const ly = p.y + Math.sin(perp) * 13;
+
+    ctx.font = 'bold 8px monospace';
+    ctx.fillStyle = '#b0bec5';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(String(h.year).slice(2), lx, ly);
+    ctx.fillText(lbl, lx, ly);
   });
   ctx.restore();
 }
