@@ -1867,70 +1867,80 @@ function drawBearingLabel(bearing) {
 // ── Historical track ─────────────────────────────────────────────────────
 function drawHistoryTrack(sdg) {
   const hist = sdg.history;
-  if(!hist || hist.length < 2) return;
-  const TRACK_R = 0.88;
-  const color = SDG_COLOR[sdg.id] || '#4fc3f7';
+  if(!hist || hist.length < 1) return;
 
   const STATUS_COLOR = {
-    'on-track':'#4caf50','moderate':'#8bc34a','marginal':'#ff9800',
-    'stagnation':'#ff5722','regression':'#f44336'
+    'on-track':'#4caf50', 'moderate':'#8bc34a', 'marginal':'#ff9800',
+    'stagnation':'#ff5722', 'regression':'#f44336'
   };
 
-  // Collapse consecutive points at the same bearing into one labelled dot.
-  // Groups preserve status of the first entry; label shows year range.
+  // Collapse runs with identical bearing into one mark with a range label
   const groups = [];
   hist.forEach(h => {
-    const last = groups[groups.length - 1];
-    if(last && last.bearing === h.bearing) {
-      last.endYear = h.year;
+    const prev = groups[groups.length - 1];
+    if(prev && prev.bearing === h.bearing) {
+      prev.endYear = h.year;
     } else {
       groups.push({ bearing: h.bearing, status: h.status, startYear: h.year, endYear: h.year });
     }
   });
 
-  // Connecting line through group centroids
+  const TICK_OUTER = MAX_R - 1;
+  const TICK_INNER = MAX_R - 11;
+  const LABEL_R    = MAX_R + 16;
+
   ctx.save();
-  ctx.strokeStyle = color + '55';
-  ctx.lineWidth = 1.5;
-  ctx.setLineDash([3, 3]);
-  ctx.beginPath();
-  groups.forEach((g, i) => {
-    const p = polarXY(g.bearing, TRACK_R);
-    if(i === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
-  });
-  ctx.stroke();
-  ctx.setLineDash([]);
 
-  // Dots + year labels — alternate label side to avoid overlap
-  groups.forEach((g, i) => {
-    const p = polarXY(g.bearing, TRACK_R);
-    const dc = STATUS_COLOR[g.status] || '#aaa';
-
+  // Faint connecting arc between distinct positions
+  if(groups.length > 1) {
     ctx.beginPath();
-    ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
-    ctx.fillStyle = dc;
-    ctx.fill();
-    ctx.strokeStyle = '#050e1f';
+    groups.forEach((g, i) => {
+      const a  = bearingToAngle(g.bearing);
+      const px = CX + (MAX_R - 6) * Math.cos(a);
+      const py = CY + (MAX_R - 6) * Math.sin(a);
+      if(i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    });
+    ctx.strokeStyle = 'rgba(255,255,255,0.10)';
     ctx.lineWidth = 1;
+    ctx.setLineDash([2, 5]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  groups.forEach(g => {
+    const angle = bearingToAngle(g.bearing);
+    const sc    = STATUS_COLOR[g.status] || '#888';
+    const s     = String(g.startYear).slice(2);
+    const e     = String(g.endYear).slice(2);
+    const lbl   = s === e ? s : `${s}–${e}`;
+
+    // Tick mark
+    ctx.beginPath();
+    ctx.moveTo(CX + TICK_INNER * Math.cos(angle), CY + TICK_INNER * Math.sin(angle));
+    ctx.lineTo(CX + TICK_OUTER * Math.cos(angle), CY + TICK_OUTER * Math.sin(angle));
+    ctx.strokeStyle = sc;
+    ctx.lineWidth = 2.5;
     ctx.stroke();
 
-    // Label text: "21" or "21–23"
-    const startLbl = String(g.startYear).slice(2);
-    const endLbl   = String(g.endYear).slice(2);
-    const lbl = startLbl === endLbl ? startLbl : `${startLbl}–${endLbl}`;
+    // Anchor dot on ring
+    ctx.beginPath();
+    ctx.arc(CX + TICK_OUTER * Math.cos(angle), CY + TICK_OUTER * Math.sin(angle), 3, 0, Math.PI * 2);
+    ctx.fillStyle = sc;
+    ctx.fill();
 
-    // Place label on alternating tangential sides to avoid radial stacking
-    const angle = bearingToAngle(g.bearing);
-    const perp  = angle + (i % 2 === 0 ? -Math.PI/2 : Math.PI/2);
-    const lx = p.x + Math.cos(perp) * 13;
-    const ly = p.y + Math.sin(perp) * 13;
-
+    // Year label outside ring — horizontal, no rotation, with dark halo for legibility
+    const lx = CX + LABEL_R * Math.cos(angle);
+    const ly = CY + LABEL_R * Math.sin(angle);
     ctx.font = 'bold 8px monospace';
-    ctx.fillStyle = '#b0bec5';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
+    ctx.strokeStyle = '#050e1f';
+    ctx.lineWidth = 3;
+    ctx.strokeText(lbl, lx, ly);
+    ctx.fillStyle = sc;
     ctx.fillText(lbl, lx, ly);
   });
+
   ctx.restore();
 }
 
