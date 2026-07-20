@@ -30,6 +30,9 @@ Project inventory lives in `PROJECTS.md` (not loaded automatically — check it 
 ### Reference integrity
 **No hallucinated references.** Every citation must be verified. Do not invent sources, statistics, or quotations.
 
+### Accuracy over helpfulness
+Prioritise accuracy over helpfulness. Flag uncertainty rather than smoothing over it. Do not invent sources, quotes, or APIs. Mark unverified statistics as approximate. Note where information may be stale post-cutoff. Ask rather than assume when context is unclear.
+
 ### No custom authentication
 Never build custom auth. Delegate to Clerk, Auth0, Supabase Auth, or equivalent. The cost of getting auth wrong is too high; the cost of delegation is negligible.
 
